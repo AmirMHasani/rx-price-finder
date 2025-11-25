@@ -81,7 +81,14 @@
 - [x] Add loading states and error handling
 - [x] Write tests for core functionality
 
-## BUG FIXES (High Priority - URGENT)
+## BUG FIXES (High Priority - CRITICAL)
+- [x] FIXED: Implement partial search (show suggestions for "lip" not just "lipitor")
+- [x] FIXED: Auto-fill dosage field with available options from RxNorm
+- [x] FIXED: Auto-fill form field with available options from RxNorm
+- [x] FIXED: Add dropdown for dosage selection to prevent invalid entries
+- [x] FIXED: Add dropdown for form selection to prevent invalid entries
+- [x] FIXED: Validate that selected dosage/form combination is valid
+- [x] FIXED: Test complete end-to-end workflow with multiple medications
 - [x] FIXED: Search field becomes unresponsive after each letter (removed blocking API calls)
 - [x] FIXED: Search not showing results for Lipitor (optimized API response handling)
 - [x] FIXED: Investigate RxNorm API call failures (removed sequential API calls)

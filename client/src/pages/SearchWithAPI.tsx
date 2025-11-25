@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, type ReactNode } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { insurancePlans, insuranceCarriers } from "@/data/insurance";
 import { Search as SearchIcon, Pill, Shield, Loader2, X } from "lucide-react";
 import { useLocation } from "wouter";
-import { searchMedications, type MedicationResult } from "@/services/medicationService";
+import { searchMedications, getMedicationDetails, type MedicationResult } from "@/services/medicationService";
+import { searchCommonMedications } from "@/data/commonMedications";
 
 export default function SearchWithAPI() {
   const [, setLocation] = useLocation();
@@ -24,6 +25,11 @@ export default function SearchWithAPI() {
   const [deductibleMet, setDeductibleMet] = useState(false);
   const [userZip, setUserZip] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
+  
+  // Dosage and form options
+  const [availableDosages, setAvailableDosages] = useState<string[]>([]);
+  const [availableForms, setAvailableForms] = useState<string[]>([]);
+  const [loadingDetails, setLoadingDetails] = useState(false);
   
   const searchTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const selectedIns = insurancePlans.find(i => i.id === selectedInsurance);
@@ -42,17 +48,37 @@ export default function SearchWithAPI() {
       return;
     }
 
-    // Set new timeout for search
+    // First, search common medications (instant)
+    const common = searchCommonMedications(searchInput);
+    const commonResults = common.map(m => ({
+      rxcui: m.rxcui,
+      name: m.name,
+      genericName: m.genericName,
+      brandName: m.brandName,
+      type: "COMMON",
+      strength: "",
+      dosages: m.dosages,
+      forms: m.forms,
+    }));
+    
+    setMedicationResults(commonResults);
+    setShowDropdown(commonResults.length > 0);
+
+    // Then, search RxNorm API (with debounce) for additional results
     searchTimeoutRef.current = setTimeout(async () => {
       setSearchLoading(true);
       try {
         const results = await searchMedications(searchInput);
-        setMedicationResults(results);
-        setShowDropdown(results.length > 0);
+        // Combine common medications with RxNorm results, avoiding duplicates
+        const combined = [
+          ...commonResults,
+          ...results.filter(r => !common.some(c => c.rxcui === r.rxcui)),
+        ];
+        setMedicationResults(combined);
+        setShowDropdown(combined.length > 0);
       } catch (error) {
         console.error("Search error:", error);
-        setMedicationResults([]);
-        setShowDropdown(false);
+        // Keep common medications results even if RxNorm fails
       } finally {
         setSearchLoading(false);
       }
@@ -66,13 +92,52 @@ export default function SearchWithAPI() {
     };
   }, [searchInput]);
 
-  const handleSelectMedication = (medication: MedicationResult) => {
+  const handleSelectMedication = async (medication: MedicationResult) => {
     setSelectedMedication(medication);
     setSearchInput("");
     setMedicationResults([]);
     setShowDropdown(false);
     setSelectedDosage("");
     setSelectedForm("");
+    
+    // Use pre-loaded dosages/forms if available
+    if (medication.dosages && medication.dosages.length > 0) {
+      setAvailableDosages(medication.dosages);
+      setSelectedDosage(medication.dosages[0]);
+    } else {
+      setAvailableDosages([]);
+    }
+    
+    if (medication.forms && medication.forms.length > 0) {
+      setAvailableForms(medication.forms);
+      setSelectedForm(medication.forms[0]);
+    } else {
+      setAvailableForms([]);
+    }
+
+    // Fetch additional details from RxNorm if not from common medications
+    if (medication.type !== "COMMON") {
+      setLoadingDetails(true);
+      try {
+        const details = await getMedicationDetails(medication.rxcui);
+        if (details.dosages && details.dosages.length > 0) {
+          setAvailableDosages(details.dosages);
+          if (!selectedDosage) {
+            setSelectedDosage(details.dosages[0]);
+          }
+        }
+        if (details.forms && details.forms.length > 0) {
+          setAvailableForms(details.forms);
+          if (!selectedForm) {
+            setSelectedForm(details.forms[0]);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching medication details:", error);
+      } finally {
+        setLoadingDetails(false);
+      }
+    }
   };
 
   const handleClearSearch = () => {
@@ -80,6 +145,8 @@ export default function SearchWithAPI() {
     setMedicationResults([]);
     setShowDropdown(false);
     setSelectedMedication(null);
+    setAvailableDosages([]);
+    setAvailableForms([]);
   };
 
   const handleSearch = () => {
@@ -158,7 +225,7 @@ export default function SearchWithAPI() {
                       <div className="relative">
                         <Input
                           id="medication-search"
-                          placeholder="Search medications (e.g., metformin, lipitor)..."
+                          placeholder="Search medications (e.g., lipitor, metformin)..."
                           value={searchInput}
                           onChange={(e) => setSearchInput(e.target.value)}
                           onFocus={() => {
@@ -227,26 +294,58 @@ export default function SearchWithAPI() {
                     </div>
                   </div>
 
+                  {/* Dosage Dropdown */}
                   <div className="space-y-2">
                     <Label htmlFor="dosage">Dosage</Label>
-                    <Input
-                      id="dosage"
-                      placeholder="e.g., 500mg, 10mg"
-                      value={selectedDosage}
-                      onChange={(e) => setSelectedDosage(e.target.value)}
-                      disabled={!selectedMedication}
-                    />
+                    {availableDosages.length > 0 && !loadingDetails ? (
+                      <Select value={selectedDosage} onValueChange={setSelectedDosage} disabled={!selectedMedication}>
+                        <SelectTrigger id="dosage">
+                          <SelectValue placeholder="Select dosage" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableDosages.map((dosage) => (
+                            <SelectItem key={dosage} value={dosage}>
+                              {dosage}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Input
+                        id="dosage"
+                        placeholder="e.g., 500mg, 10mg"
+                        value={selectedDosage}
+                        onChange={(e) => setSelectedDosage(e.target.value)}
+                        disabled={!selectedMedication || loadingDetails}
+                      />
+                    )}
                   </div>
 
+                  {/* Form Dropdown */}
                   <div className="space-y-2">
                     <Label htmlFor="form">Form</Label>
-                    <Input
-                      id="form"
-                      placeholder="e.g., Tablet, Capsule"
-                      value={selectedForm}
-                      onChange={(e) => setSelectedForm(e.target.value)}
-                      disabled={!selectedMedication}
-                    />
+                    {availableForms.length > 0 && !loadingDetails ? (
+                      <Select value={selectedForm} onValueChange={setSelectedForm} disabled={!selectedMedication}>
+                        <SelectTrigger id="form">
+                          <SelectValue placeholder="Select form" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableForms.map((form) => (
+                            <SelectItem key={form} value={form}>
+                              {form}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Input
+                        id="form"
+                        placeholder="e.g., Tablet, Capsule"
+                        value={selectedForm}
+                        onChange={(e) => setSelectedForm(e.target.value)}
+                        disabled={!selectedMedication || loadingDetails}
+                      />
+                    )}
                   </div>
 
                   <div className="space-y-2">

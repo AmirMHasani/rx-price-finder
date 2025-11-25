@@ -1,7 +1,7 @@
 /**
  * Medication Service
  * Provides functions to search medications from RxNorm API
- * Optimized for instant search without blocking API calls
+ * Includes dosage and form extraction for auto-fill functionality
  */
 
 export interface MedicationResult {
@@ -11,6 +11,8 @@ export interface MedicationResult {
   brandName: string;
   type: string;
   strength?: string;
+  dosages?: string[];
+  forms?: string[];
 }
 
 const RXNORM_BASE_URL = "https://rxnav.nlm.nih.gov/REST";
@@ -56,11 +58,111 @@ function extractBrandName(name: string): string {
 }
 
 /**
+ * Extract dose form from medication name
+ * e.g., "atorvastatin 20 MG Oral Tablet" -> "Oral Tablet"
+ */
+function extractForm(name: string): string {
+  // Remove bracketed brand names and strength
+  let cleaned = name.replace(/\[.*?\]/g, "").trim();
+  
+  // Remove the generic name (first word)
+  const words = cleaned.split(/\s+/);
+  if (words.length > 1) {
+    // Remove the first word (generic name) and the strength
+    const remaining = words.slice(1).join(" ");
+    // Remove the strength (e.g., "20 MG")
+    const form = remaining.replace(/\d+\s*(?:MG|mg|mcg|MCG|g|G|IU|iu)/i, "").trim();
+    return form || "Tablet"; // Default to Tablet if no form found
+  }
+  
+  return "Tablet";
+}
+
+/**
+ * Get all available dosages for a medication from RxNorm
+ */
+async function getAvailableDosages(rxcui: string): Promise<string[]> {
+  try {
+    const response = await fetch(
+      `${RXNORM_BASE_URL}/rxcui/${rxcui}/allProperties.json?prop=STRENGTH`
+    );
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const data = await response.json();
+    const dosages = new Set<string>();
+
+    if (data.propConceptGroup) {
+      data.propConceptGroup.forEach((group: any) => {
+        if (group.propName === "STRENGTH" && group.conceptProperties) {
+          group.conceptProperties.forEach((prop: any) => {
+            const strength = prop.name;
+            if (strength) {
+              // Extract just the numeric part with unit
+              const match = strength.match(/(\d+\s*(?:MG|mg|mcg|MCG|g|G|IU|iu))/i);
+              if (match) {
+                dosages.add(match[1]);
+              }
+            }
+          });
+        }
+      });
+    }
+
+    return Array.from(dosages).sort((a, b) => {
+      const numA = parseInt(a);
+      const numB = parseInt(b);
+      return numA - numB;
+    });
+  } catch (error) {
+    console.error("Error getting dosages:", error);
+    return [];
+  }
+}
+
+/**
+ * Get all available forms for a medication from RxNorm
+ */
+async function getAvailableForms(rxcui: string): Promise<string[]> {
+  try {
+    const response = await fetch(
+      `${RXNORM_BASE_URL}/rxcui/${rxcui}/allProperties.json?prop=DOSE_FORM`
+    );
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const data = await response.json();
+    const forms = new Set<string>();
+
+    if (data.propConceptGroup) {
+      data.propConceptGroup.forEach((group: any) => {
+        if (group.propName === "DOSE_FORM" && group.conceptProperties) {
+          group.conceptProperties.forEach((prop: any) => {
+            if (prop.name) {
+              forms.add(prop.name);
+            }
+          });
+        }
+      });
+    }
+
+    return Array.from(forms);
+  } catch (error) {
+    console.error("Error getting forms:", error);
+    return [];
+  }
+}
+
+/**
  * Search for medications using RxNorm API
- * OPTIMIZED: No blocking API calls - instant results
+ * Supports partial search (e.g., "lip" returns Lipitor)
  */
 export async function searchMedications(searchTerm: string): Promise<MedicationResult[]> {
-  if (searchTerm.length < 2) {
+  if (searchTerm.length < 3) {
     return [];
   }
 
@@ -87,18 +189,13 @@ export async function searchMedications(searchTerm: string): Promise<MedicationR
     const seenNames = new Set<string>();
 
     // Process concept groups from RxNorm
-    // TTY (Term Type) codes:
-    // BN = Brand Name
-    // GN = Generic Name
-    // SBD = Semantic Branded Drug
-    // SCD = Semantic Clinical Drug
-    // IN = Ingredient
-    // PIN = Precise Ingredient
     for (const group of data.drugGroup.conceptGroup) {
       const tty = group.tty;
       
-      // Focus on brand names and generic names first
-      if (!["BN", "GN", "SBD", "SCD", "IN"].includes(tty)) {
+      // Include brand names, generic names, and branded packs
+      // BN = Brand Name, GN = Generic Name, SBD = Semantic Branded Drug
+      // SCD = Semantic Clinical Drug, IN = Ingredient, BPCK = Branded Pack
+      if (!["BN", "GN", "SBD", "SCD", "IN", "BPCK", "GPCK"].includes(tty)) {
         continue;
       }
 
@@ -122,6 +219,7 @@ export async function searchMedications(searchTerm: string): Promise<MedicationR
         const genericName = extractGenericName(name);
         const brandName = extractBrandName(name);
         const strength = extractStrength(name);
+        const form = extractForm(name);
 
         medications.push({
           rxcui,
@@ -130,6 +228,8 @@ export async function searchMedications(searchTerm: string): Promise<MedicationR
           brandName: brandName,
           type: tty,
           strength: strength,
+          dosages: [], // Will be filled on demand
+          forms: [form], // Start with extracted form
         });
 
         // Limit results to avoid too many items
@@ -173,9 +273,34 @@ export async function searchMedications(searchTerm: string): Promise<MedicationR
 }
 
 /**
- * Get medication details from RxNorm
+ * Get medication details including available dosages and forms
  */
 export async function getMedicationDetails(rxcui: string) {
+  try {
+    const [dosages, forms] = await Promise.all([
+      getAvailableDosages(rxcui),
+      getAvailableForms(rxcui),
+    ]);
+
+    return {
+      rxcui,
+      dosages,
+      forms,
+    };
+  } catch (error) {
+    console.error("Error getting medication details:", error);
+    return {
+      rxcui,
+      dosages: [],
+      forms: [],
+    };
+  }
+}
+
+/**
+ * Get medication details from RxNorm (legacy function)
+ */
+export async function getMedicationDetailsLegacy(rxcui: string) {
   try {
     const response = await fetch(
       `${RXNORM_BASE_URL}/rxcui/${rxcui}/allProperties.json?prop=all`
