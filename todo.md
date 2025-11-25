@@ -2,6 +2,10 @@
 
 ## Core Features
 - [ ] Upgrade project to full-stack with database and user authentication
+- [x] Integrate RxNorm API for real medication data
+- [x] Integrate FDA NDC database for drug information
+- [x] Create client-side medication search service
+- [x] Update frontend to use real API data
 - [x] Design database schema for pharmacies, medications, insurance plans, and prescription prices
 - [x] Create pharmacy management system (add/edit pharmacy locations)
 - [x] Create medication database (drug names, dosages, forms)

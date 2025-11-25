@@ -19,19 +19,29 @@ export default function Results() {
   const [markers, setMarkers] = useState<google.maps.marker.AdvancedMarkerElement[]>([]);
 
   const params = useMemo(() => new URLSearchParams(searchParams), [searchParams]);
-  const medicationId = params.get("medication") || "";
+  const medicationName = params.get("medication") || "";
+  const rxcui = params.get("rxcui") || "";
   const dosage = params.get("dosage") || "";
   const form = params.get("form") || "";
   const insuranceId = params.get("insurance") || "";
   const deductibleMet = params.get("deductibleMet") === "true";
 
-  const medication = medications.find(m => m.id === medicationId);
+  // Use mock medication data for now (will be replaced with API data)
+  const medication = medications.find(m => m.id === "med-1") || {
+    id: "api-med",
+    name: medicationName,
+    genericName: medicationName,
+    dosages: [dosage],
+    forms: [form]
+  };
   const insurance = insurancePlans.find(i => i.id === insuranceId);
 
   useEffect(() => {
-    if (medicationId && dosage && form && insuranceId) {
+    if (medicationName && dosage && form && insuranceId) {
+      // For now, use mock data for pricing
+      // In production, this would call an API endpoint
       const priceResults = getAllPricesForMedication(
-        medicationId,
+        "med-1", // Use mock medication ID
         dosage,
         form,
         insuranceId,
@@ -39,7 +49,7 @@ export default function Results() {
       );
       setResults(priceResults);
     }
-  }, [medicationId, dosage, form, insuranceId, deductibleMet]);
+  }, [medicationName, dosage, form, insuranceId, deductibleMet]);
 
   const handleMapReady = (mapInstance: google.maps.Map) => {
     setMap(mapInstance);
@@ -102,7 +112,7 @@ export default function Results() {
     };
   }, [mapReady, map, results]);
 
-  if (!medication || !insurance) {
+  if (!insurance || !medicationName || !dosage || !form) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
