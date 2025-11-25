@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation, useSearch } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +8,7 @@ import { insurancePlans } from "@/data/insurance";
 import { getAllPricesForMedication, PriceResult } from "@/data/pricing";
 import { ArrowLeft, MapPin, Phone, Clock, Truck, Car, DollarSign, TrendingDown } from "lucide-react";
 import { MapView } from "@/components/Map";
+import { getMockMedicationId } from "@/services/medicationMappingService";
 
 export default function Results() {
   const [, setLocation] = useLocation();
@@ -26,9 +27,14 @@ export default function Results() {
   const insuranceId = params.get("insurance") || "";
   const deductibleMet = params.get("deductibleMet") === "true";
 
-  // Use mock medication data for now (will be replaced with API data)
-  const medication = medications.find(m => m.id === "med-1") || {
-    id: "api-med",
+  // Map RXCUI to mock medication ID
+  const mockMedicationId = useMemo(() => {
+    return getMockMedicationId(rxcui);
+  }, [rxcui]);
+
+  // Create medication object from URL parameters
+  const medication = {
+    id: mockMedicationId,
     name: medicationName,
     genericName: medicationName,
     dosages: [dosage],
@@ -37,11 +43,10 @@ export default function Results() {
   const insurance = insurancePlans.find(i => i.id === insuranceId);
 
   useEffect(() => {
-    if (medicationName && dosage && form && insuranceId) {
-      // For now, use mock data for pricing
-      // In production, this would call an API endpoint
+    if (medicationName && dosage && form && insuranceId && mockMedicationId) {
+      // Use the mapped mock medication ID for pricing data
       const priceResults = getAllPricesForMedication(
-        "med-1", // Use mock medication ID
+        mockMedicationId,
         dosage,
         form,
         insuranceId,
@@ -49,7 +54,7 @@ export default function Results() {
       );
       setResults(priceResults);
     }
-  }, [medicationName, dosage, form, insuranceId, deductibleMet]);
+  }, [medicationName, dosage, form, insuranceId, deductibleMet, mockMedicationId]);
 
   const handleMapReady = (mapInstance: google.maps.Map) => {
     setMap(mapInstance);
@@ -78,8 +83,8 @@ export default function Results() {
       const priceLabel = document.createElement("div");
       priceLabel.className = index === 0 
         ? "bg-green-600 text-white px-3 py-1.5 rounded-full font-bold text-sm shadow-lg border-2 border-white"
-        : "bg-blue-600 text-white px-3 py-1.5 rounded-full font-semibold text-sm shadow-lg border-2 border-white";
-      priceLabel.textContent = `$${result.totalCost}`;
+        : "bg-blue-600 text-white px-3 py-1.5 rounded-full font-bold text-sm shadow-lg border-2 border-white";
+      priceLabel.textContent = `$${result.insurancePrice}`;
       
       markerContent.appendChild(priceLabel);
 
@@ -92,9 +97,6 @@ export default function Results() {
 
       marker.addListener("click", () => {
         setSelectedPharmacy(result.pharmacy.id);
-        // Scroll to the pharmacy card
-        const element = document.getElementById(`pharmacy-${result.pharmacy.id}`);
-        element?.scrollIntoView({ behavior: "smooth", block: "center" });
       });
 
       newMarkers.push(marker);
@@ -103,213 +105,163 @@ export default function Results() {
 
     setMarkers(newMarkers);
     map.fitBounds(bounds);
-
-    // Cleanup
-    return () => {
-      newMarkers.forEach(marker => {
-        marker.map = null;
-      });
-    };
   }, [mapReady, map, results]);
 
-  if (!insurance || !medicationName || !dosage || !form) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-lg text-muted-foreground mb-4">Invalid search parameters</p>
-          <Button onClick={() => setLocation("/")}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Search
-          </Button>
-        </div>
-      </div>
-    );
-  }
+  const lowestPrice = results.length > 0 ? Math.min(...results.map(r => r.insurancePrice)) : 0;
+  const highestPrice = results.length > 0 ? Math.max(...results.map(r => r.insurancePrice)) : 0;
+  const potentialSavings = highestPrice - lowestPrice;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       {/* Header */}
-      <header className="bg-white border-b border-border shadow-sm sticky top-0 z-10">
-        <div className="container py-4">
+      <header className="bg-white border-b border-border shadow-sm">
+        <div className="container py-6">
           <div className="flex items-center justify-between">
-            <div>
-              <Button variant="ghost" onClick={() => setLocation("/")} className="mb-2">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                New Search
-              </Button>
-              <h1 className="text-xl font-bold text-foreground">
-                {medication.name} ({medication.genericName})
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                {dosage} {form} • {insurance.carrier} - {insurance.planName}
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-sm text-muted-foreground">Found {results.length} pharmacies</p>
-              {results.length > 0 && (
-                <p className="text-lg font-bold text-green-600">
-                  Best Price: ${results[0].totalCost}
-                </p>
-              )}
-            </div>
+            <Button
+              variant="ghost"
+              onClick={() => setLocation("/")}
+              className="gap-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              New Search
+            </Button>
+            <h1 className="text-2xl font-bold text-foreground">RxPriceFinder</h1>
+            <div className="w-24" /> {/* Spacer for alignment */}
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <div className="container py-6">
-        <div className="grid lg:grid-cols-2 gap-6">
+      <main className="container py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Results List */}
-          <div className="space-y-4 lg:h-[calc(100vh-200px)] lg:overflow-y-auto">
-            {results.length === 0 ? (
+          <div className="lg:col-span-2">
+            {/* Medication Info */}
+            <Card className="mb-8">
+              <CardHeader>
+                <CardTitle className="text-2xl">{medicationName}</CardTitle>
+                <CardDescription>
+                  {dosage} {form} • {insurance?.carrier} - {insurance?.planName}
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            {/* Pharmacy Results */}
+            {results.length > 0 ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-bold">Found {results.length} pharmacies</h2>
+                  {potentialSavings > 0 && (
+                    <Badge className="bg-green-100 text-green-800">
+                      <TrendingDown className="w-4 h-4 mr-2" />
+                      Save up to ${potentialSavings}
+                    </Badge>
+                  )}
+                </div>
+
+                {results.map((result, index) => (
+                  <Card
+                    key={result.pharmacy.id}
+                    className={`cursor-pointer transition-all ${
+                      selectedPharmacy === result.pharmacy.id
+                        ? "ring-2 ring-primary"
+                        : "hover:shadow-md"
+                    }`}
+                    onClick={() => setSelectedPharmacy(result.pharmacy.id)}
+                  >
+                    <CardContent className="pt-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Pharmacy Info */}
+                        <div>
+                          <div className="flex items-start justify-between mb-4">
+                            <div>
+                              <h3 className="font-bold text-lg">{result.pharmacy.name}</h3>
+                              <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
+                                <MapPin className="w-4 h-4" />
+                                {result.pharmacy.address}
+                              </div>
+                            </div>
+                            {index === 0 && (
+                              <Badge className="bg-green-100 text-green-800">Lowest Price</Badge>
+                            )}
+                          </div>
+
+                          <div className="space-y-2 text-sm">
+                            <div className="flex items-center gap-2">
+                              <Phone className="w-4 h-4 text-muted-foreground" />
+                              <span>{result.pharmacy.phone}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Clock className="w-4 h-4 text-muted-foreground" />
+                              <span>{result.pharmacy.hours}</span>
+                            </div>
+                            <div className="flex gap-2 mt-3">
+                              {result.pharmacy.hasDelivery && (
+                                <Badge variant="outline" className="text-xs">
+                                  <Truck className="w-3 h-3 mr-1" />
+                                  Delivery
+                                </Badge>
+                              )}
+                              {result.pharmacy.hasDriveThru && (
+                                <Badge variant="outline" className="text-xs">
+                                  <Car className="w-3 h-3 mr-1" />
+                                  Drive-Thru
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Pricing Info */}
+                        <div className="bg-blue-50 p-4 rounded-lg">
+                          <div className="space-y-3">
+                            <div>
+                              <p className="text-sm text-muted-foreground">Cash Price</p>
+                              <p className="text-2xl font-bold text-foreground line-through opacity-50">
+                                ${result.cashPrice}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-muted-foreground">With {insurance?.carrier}</p>
+                              <p className="text-3xl font-bold text-primary">
+                                ${result.insurancePrice}
+                              </p>
+                            </div>
+                            <div className="pt-2 border-t border-border">
+                              <p className="text-sm font-semibold text-green-700">
+                                Save ${result.savings}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
               <Card>
-                <CardContent className="py-12 text-center">
+                <CardContent className="pt-6 text-center">
                   <p className="text-muted-foreground">No results found</p>
                 </CardContent>
               </Card>
-            ) : (
-              results.map((result, index) => (
-                <Card
-                  key={result.pharmacy.id}
-                  id={`pharmacy-${result.pharmacy.id}`}
-                  className={`cursor-pointer transition-all ${
-                    selectedPharmacy === result.pharmacy.id
-                      ? "ring-2 ring-primary shadow-lg"
-                      : "hover:shadow-md"
-                  } ${index === 0 ? "border-green-500 border-2" : ""}`}
-                  onClick={() => setSelectedPharmacy(result.pharmacy.id)}
-                >
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <CardTitle className="text-lg">{result.pharmacy.name}</CardTitle>
-                          {index === 0 && (
-                            <Badge className="bg-green-600 text-white">
-                              Lowest Price
-                            </Badge>
-                          )}
-                        </div>
-                        <CardDescription className="flex items-center gap-1">
-                          <MapPin className="w-3 h-3" />
-                          {result.pharmacy.address}, {result.pharmacy.city}, {result.pharmacy.state}
-                        </CardDescription>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-primary">
-                          ${result.totalCost}
-                        </div>
-                        {result.savings > 0 && (
-                          <div className="text-sm text-green-600 flex items-center gap-1">
-                            <TrendingDown className="w-3 h-3" />
-                            Save ${result.savings}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {/* Price Breakdown */}
-                    <div className="bg-muted/50 rounded-lg p-3 space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Cash Price:</span>
-                        <span className="font-medium line-through">${result.cashPrice}</span>
-                      </div>
-                      {deductibleMet ? (
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">Insurance Copay:</span>
-                          <span className="font-bold text-green-600">${result.copay}</span>
-                        </div>
-                      ) : (
-                        <>
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="text-muted-foreground">Before Deductible:</span>
-                            <span className="font-medium">${result.insurancePrice}</span>
-                          </div>
-                          <p className="text-xs text-muted-foreground italic">
-                            After meeting your ${insurance.deductible} deductible, you'll pay ${result.copay}
-                          </p>
-                        </>
-                      )}
-                    </div>
-
-                    {/* Pharmacy Details */}
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Phone className="w-4 h-4" />
-                        {result.pharmacy.phone}
-                      </div>
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Clock className="w-4 h-4" />
-                        {result.pharmacy.hours.split(",")[0]}
-                      </div>
-                      {result.pharmacy.hasDelivery && (
-                        <div className="flex items-center gap-2 text-green-600">
-                          <Truck className="w-4 h-4" />
-                          Delivery Available
-                        </div>
-                      )}
-                      {result.pharmacy.hasDriveThru && (
-                        <div className="flex items-center gap-2 text-blue-600">
-                          <Car className="w-4 h-4" />
-                          Drive-Thru
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
             )}
           </div>
 
           {/* Map */}
-          <div className="lg:sticky lg:top-24 lg:h-[calc(100vh-200px)]">
-            <Card className="h-full">
+          <div className="lg:col-span-1">
+            <Card className="sticky top-4">
               <CardHeader>
-                <CardTitle className="text-base">Pharmacy Locations</CardTitle>
+                <CardTitle>Pharmacy Locations</CardTitle>
                 <CardDescription>Click markers to view details</CardDescription>
               </CardHeader>
-              <CardContent className="p-0">
-                <div className="h-[400px] lg:h-[calc(100vh-320px)] rounded-b-lg overflow-hidden">
-                  <MapView
-                    onMapReady={handleMapReady}
-                    className="w-full h-full"
-                  />
-                </div>
+              <CardContent>
+                <MapView onMapReady={handleMapReady} />
               </CardContent>
             </Card>
           </div>
         </div>
-
-        {/* Summary Card */}
-        {results.length > 0 && (
-          <Card className="mt-6 bg-gradient-to-r from-blue-50 to-green-50 border-blue-200">
-            <CardContent className="py-6">
-              <div className="flex items-center justify-between flex-wrap gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center">
-                    <DollarSign className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-foreground">Potential Savings</p>
-                    <p className="text-sm text-muted-foreground">
-                      By choosing the lowest price pharmacy
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-3xl font-bold text-green-600">
-                    ${Math.max(...results.map(r => r.totalCost)) - results[0].totalCost}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    vs. most expensive option
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+      </main>
     </div>
   );
 }
