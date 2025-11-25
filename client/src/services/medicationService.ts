@@ -1,7 +1,7 @@
 /**
  * Medication Service
  * Provides functions to search medications from RxNorm API
- * Filters results to show only relevant medications with generic and brand names
+ * Optimized for instant search without blocking API calls
  */
 
 export interface MedicationResult {
@@ -16,72 +16,48 @@ export interface MedicationResult {
 const RXNORM_BASE_URL = "https://rxnav.nlm.nih.gov/REST";
 
 /**
- * Get generic name for a medication using RxNorm API
+ * Extract strength from medication name
+ * e.g., "atorvastatin 20 MG" -> "20 MG"
  */
-async function getGenericName(rxcui: string): Promise<string | null> {
-  try {
-    const response = await fetch(
-      `${RXNORM_BASE_URL}/rxcui/${rxcui}/related.json?rela=has_ingredient`
-    );
-
-    if (!response.ok) {
-      return null;
-    }
-
-    const data = await response.json();
-
-    if (data.relatedGroup && data.relatedGroup.length > 0) {
-      const ingredients = data.relatedGroup[0].conceptGroup;
-      if (ingredients && ingredients.length > 0) {
-        const ingredient = ingredients[0].conceptProperties?.[0];
-        if (ingredient) {
-          return ingredient.name;
-        }
-      }
-    }
-
-    return null;
-  } catch (error) {
-    console.error("Error getting generic name:", error);
-    return null;
-  }
+function extractStrength(name: string): string {
+  const match = name.match(/(\d+\s*(?:MG|mg|mcg|MCG|g|G|IU|iu))/);
+  return match ? match[1] : "";
 }
 
 /**
- * Get brand name for a medication using RxNorm API
+ * Extract generic name from a full drug name
+ * e.g., "atorvastatin 20 MG Oral Tablet [Lipitor]" -> "atorvastatin"
  */
-async function getBrandName(rxcui: string): Promise<string | null> {
-  try {
-    const response = await fetch(
-      `${RXNORM_BASE_URL}/rxcui/${rxcui}/related.json?rela=ingredient_of`
-    );
-
-    if (!response.ok) {
-      return null;
-    }
-
-    const data = await response.json();
-
-    if (data.relatedGroup && data.relatedGroup.length > 0) {
-      const brands = data.relatedGroup[0].conceptGroup;
-      if (brands && brands.length > 0) {
-        const brand = brands[0].conceptProperties?.[0];
-        if (brand) {
-          return brand.name;
-        }
-      }
-    }
-
-    return null;
-  } catch (error) {
-    console.error("Error getting brand name:", error);
-    return null;
+function extractGenericName(name: string): string {
+  // Remove bracketed brand names
+  let cleaned = name.replace(/\[.*?\]/g, "").trim();
+  
+  // Extract the first word (usually the generic name)
+  const words = cleaned.split(/\s+/);
+  if (words.length > 0) {
+    return words[0];
   }
+  
+  return name;
+}
+
+/**
+ * Extract brand name from a full drug name
+ * e.g., "atorvastatin 20 MG Oral Tablet [Lipitor]" -> "Lipitor"
+ */
+function extractBrandName(name: string): string {
+  const match = name.match(/\[(.*?)\]/);
+  if (match && match[1]) {
+    return match[1];
+  }
+  
+  // If no bracketed name, use the full name
+  return name;
 }
 
 /**
  * Search for medications using RxNorm API
- * Filters to show only relevant active ingredients (not all strengths/forms)
+ * OPTIMIZED: No blocking API calls - instant results
  */
 export async function searchMedications(searchTerm: string): Promise<MedicationResult[]> {
   if (searchTerm.length < 2) {
@@ -89,17 +65,21 @@ export async function searchMedications(searchTerm: string): Promise<MedicationR
   }
 
   try {
+    console.log(`Searching for: ${searchTerm}`);
+    
     const response = await fetch(
       `${RXNORM_BASE_URL}/drugs.json?name=${encodeURIComponent(searchTerm)}`
     );
 
     if (!response.ok) {
-      throw new Error(`RxNorm API error: ${response.statusText}`);
+      console.error(`RxNorm API error: ${response.statusText}`);
+      return [];
     }
 
     const data = await response.json();
 
     if (!data.drugGroup || !data.drugGroup.conceptGroup) {
+      console.log("No results from RxNorm API");
       return [];
     }
 
@@ -138,44 +118,27 @@ export async function searchMedications(searchTerm: string): Promise<MedicationR
 
         seenNames.add(nameKey);
 
-        // Determine if this is a brand name or generic name
-        let genericName = "";
-        let brandName = "";
-
-        if (tty === "BN" || tty === "SBD") {
-          // This is a brand name
-          brandName = name;
-          // Try to get the generic name
-          const generic = await getGenericName(rxcui);
-          genericName = generic || name;
-        } else if (tty === "GN" || tty === "IN") {
-          // This is a generic name
-          genericName = name;
-          // Try to get a brand name
-          const brand = await getBrandName(rxcui);
-          brandName = brand || name;
-        } else {
-          // For SCD and other types, use the name as-is
-          genericName = name;
-          brandName = name;
-        }
+        // Extract generic and brand names from the full name
+        const genericName = extractGenericName(name);
+        const brandName = extractBrandName(name);
+        const strength = extractStrength(name);
 
         medications.push({
           rxcui,
-          name: brandName || genericName,
+          name: name, // Use full name
           genericName: genericName,
           brandName: brandName,
           type: tty,
-          strength: extractStrength(name),
+          strength: strength,
         });
 
-        // Limit results to avoid too many API calls
-        if (medications.length >= 15) {
+        // Limit results to avoid too many items
+        if (medications.length >= 20) {
           break;
         }
       }
 
-      if (medications.length >= 15) {
+      if (medications.length >= 20) {
         break;
       }
     }
@@ -194,23 +157,19 @@ export async function searchMedications(searchTerm: string): Promise<MedicationR
       if (aName.startsWith(searchLower) && !bName.startsWith(searchLower)) return -1;
       if (bName.startsWith(searchLower) && !aName.startsWith(searchLower)) return 1;
 
+      // Brand name match
+      if (a.brandName.toLowerCase().includes(searchLower) && !b.brandName.toLowerCase().includes(searchLower)) return -1;
+      if (b.brandName.toLowerCase().includes(searchLower) && !a.brandName.toLowerCase().includes(searchLower)) return 1;
+
       return 0;
     });
 
-    return medications.slice(0, 12); // Return top 12 results
+    console.log(`Found ${medications.length} medications`);
+    return medications.slice(0, 15); // Return top 15 results
   } catch (error) {
     console.error("Error searching medications:", error);
     return [];
   }
-}
-
-/**
- * Extract strength from medication name
- * e.g., "atorvastatin 20 MG" -> "20 MG"
- */
-function extractStrength(name: string): string {
-  const match = name.match(/(\d+\s*(?:MG|mg|mcg|MCG|g|G|IU|iu))/);
-  return match ? match[1] : "";
 }
 
 /**

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 
 import { insurancePlans, insuranceCarriers } from "@/data/insurance";
-import { Search as SearchIcon, Pill, Shield, Loader2 } from "lucide-react";
+import { Search as SearchIcon, Pill, Shield, Loader2, X } from "lucide-react";
 import { useLocation } from "wouter";
 import { searchMedications, type MedicationResult } from "@/services/medicationService";
 
@@ -23,35 +23,63 @@ export default function SearchWithAPI() {
   const [selectedInsurance, setSelectedInsurance] = useState("");
   const [deductibleMet, setDeductibleMet] = useState(false);
   const [userZip, setUserZip] = useState("");
-
+  const [showDropdown, setShowDropdown] = useState(false);
+  
+  const searchTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const selectedIns = insurancePlans.find(i => i.id === selectedInsurance);
 
-  // Real-time search with minimal debounce
+  // Debounced search - waits 300ms after user stops typing
   useEffect(() => {
-    const timer = setTimeout(async () => {
-      if (searchInput.length >= 2) {
-        setSearchLoading(true);
-        try {
-          const results = await searchMedications(searchInput);
-          setMedicationResults(results);
-        } catch (error) {
-          console.error("Search error:", error);
-          setMedicationResults([]);
-        } finally {
-          setSearchLoading(false);
-        }
-      } else {
-        setMedicationResults([]);
-      }
-    }, 100); // Reduced debounce to 100ms for faster response
+    // Clear previous timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
 
-    return () => clearTimeout(timer);
+    // If input is less than 2 characters, clear results
+    if (searchInput.length < 2) {
+      setMedicationResults([]);
+      setShowDropdown(false);
+      return;
+    }
+
+    // Set new timeout for search
+    searchTimeoutRef.current = setTimeout(async () => {
+      setSearchLoading(true);
+      try {
+        const results = await searchMedications(searchInput);
+        setMedicationResults(results);
+        setShowDropdown(results.length > 0);
+      } catch (error) {
+        console.error("Search error:", error);
+        setMedicationResults([]);
+        setShowDropdown(false);
+      } finally {
+        setSearchLoading(false);
+      }
+    }, 300); // Wait 300ms after user stops typing
+
+    // Cleanup timeout on unmount
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
   }, [searchInput]);
 
   const handleSelectMedication = (medication: MedicationResult) => {
     setSelectedMedication(medication);
+    setSearchInput("");
+    setMedicationResults([]);
+    setShowDropdown(false);
     setSelectedDosage("");
     setSelectedForm("");
+  };
+
+  const handleClearSearch = () => {
+    setSearchInput("");
+    setMedicationResults([]);
+    setShowDropdown(false);
+    setSelectedMedication(null);
   };
 
   const handleSearch = () => {
@@ -126,23 +154,40 @@ export default function SearchWithAPI() {
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2 md:col-span-2">
                     <Label htmlFor="medication-search">Medication Name</Label>
-                    <div className="space-y-2">
-                      <Input
-                        id="medication-search"
-                        placeholder="Search medications (e.g., metformin, lipitor)..."
-                        value={searchInput}
-                        onChange={(e) => setSearchInput(e.target.value)}
-                        disabled={searchLoading}
-                        className="w-full"
-                      />
+                    <div className="space-y-2 relative">
+                      <div className="relative">
+                        <Input
+                          id="medication-search"
+                          placeholder="Search medications (e.g., metformin, lipitor)..."
+                          value={searchInput}
+                          onChange={(e) => setSearchInput(e.target.value)}
+                          onFocus={() => {
+                            if (medicationResults.length > 0) {
+                              setShowDropdown(true);
+                            }
+                          }}
+                          disabled={!!selectedMedication}
+                          className="w-full pr-10"
+                        />
+                        {searchInput && (
+                          <button
+                            onClick={handleClearSearch}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+
                       {searchLoading && (
                         <div className="flex items-center justify-center p-4 bg-muted rounded-md">
                           <Loader2 className="w-4 h-4 animate-spin mr-2" />
                           <span className="text-sm text-muted-foreground">Searching medications...</span>
                         </div>
                       )}
-                      {!searchLoading && medicationResults.length > 0 && (
-                        <div className="border border-border rounded-md bg-background max-h-64 overflow-y-auto">
+
+                      {!searchLoading && showDropdown && medicationResults.length > 0 && (
+                        <div className="absolute top-full left-0 right-0 z-50 border border-border rounded-md bg-background max-h-64 overflow-y-auto shadow-lg">
                           {medicationResults.map((medication) => (
                             <button
                               key={medication.rxcui}
@@ -164,11 +209,13 @@ export default function SearchWithAPI() {
                           ))}
                         </div>
                       )}
+
                       {!searchLoading && searchInput.length >= 2 && medicationResults.length === 0 && (
                         <div className="p-4 bg-muted rounded-md text-center text-sm text-muted-foreground">
                           No medications found. Try a different search.
                         </div>
                       )}
+
                       {selectedMedication && (
                         <div className="p-3 bg-green-50 border border-green-200 rounded-md">
                           <p className="text-sm font-medium text-green-900">✓ Selected: {selectedMedication.brandName || selectedMedication.name}</p>
