@@ -80,3 +80,11 @@
 - [x] Implement responsive design for mobile and desktop
 - [x] Add loading states and error handling
 - [x] Write tests for core functionality
+
+## BUG FIXES (High Priority)
+- [x] Fix medication search to show only relevant results (filter out unrelated products)
+- [x] Display generic name and brand name for each medication
+- [x] Fix search pausing after each letter typed
+- [x] Implement real-time search without requiring re-focus
+- [x] Test end-to-end flow with one medication (e.g., Lipitor)
+- [x] Verify all data displays correctly in results page

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -23,11 +23,10 @@ export default function SearchWithAPI() {
   const [selectedInsurance, setSelectedInsurance] = useState("");
   const [deductibleMet, setDeductibleMet] = useState(false);
   const [userZip, setUserZip] = useState("");
-  const [openMedicationPopover, setOpenMedicationPopover] = useState(false);
 
   const selectedIns = insurancePlans.find(i => i.id === selectedInsurance);
 
-  // Debounce search
+  // Real-time search with minimal debounce
   useEffect(() => {
     const timer = setTimeout(async () => {
       if (searchInput.length >= 2) {
@@ -44,14 +43,13 @@ export default function SearchWithAPI() {
       } else {
         setMedicationResults([]);
       }
-    }, 300);
+    }, 100); // Reduced debounce to 100ms for faster response
 
     return () => clearTimeout(timer);
   }, [searchInput]);
 
   const handleSelectMedication = (medication: MedicationResult) => {
     setSelectedMedication(medication);
-    setOpenMedicationPopover(false);
     setSelectedDosage("");
     setSelectedForm("");
   };
@@ -63,8 +61,7 @@ export default function SearchWithAPI() {
 
     const params = new URLSearchParams({
       medication: selectedMedication.name,
-      rxcui: selectedMedication.rxcui || "",
-      ndc: selectedMedication.ndc || "",
+      rxcui: selectedMedication.rxcui,
       dosage: selectedDosage,
       form: selectedForm,
       insurance: selectedInsurance,
@@ -148,19 +145,19 @@ export default function SearchWithAPI() {
                         <div className="border border-border rounded-md bg-background max-h-64 overflow-y-auto">
                           {medicationResults.map((medication) => (
                             <button
-                              key={`${medication.source}-${medication.rxcui || medication.ndc}`}
+                              key={medication.rxcui}
                               onClick={() => handleSelectMedication(medication)}
                               className="w-full text-left px-4 py-3 hover:bg-muted border-b border-border last:border-b-0 transition-colors"
                             >
-                              <div className="font-medium text-sm">{medication.name}</div>
-                              {medication.genericName && (
+                              <div className="font-medium text-sm">{medication.brandName || medication.name}</div>
+                              {medication.genericName && medication.genericName !== medication.brandName && (
                                 <div className="text-xs text-muted-foreground">
                                   Generic: {medication.genericName}
                                 </div>
                               )}
-                              {medication.manufacturer && (
+                              {medication.strength && (
                                 <div className="text-xs text-muted-foreground">
-                                  {medication.manufacturer}
+                                  {medication.strength}
                                 </div>
                               )}
                             </button>
@@ -174,7 +171,10 @@ export default function SearchWithAPI() {
                       )}
                       {selectedMedication && (
                         <div className="p-3 bg-green-50 border border-green-200 rounded-md">
-                          <p className="text-sm font-medium text-green-900">✓ Selected: {selectedMedication.name}</p>
+                          <p className="text-sm font-medium text-green-900">✓ Selected: {selectedMedication.brandName || selectedMedication.name}</p>
+                          {selectedMedication.genericName && selectedMedication.genericName !== selectedMedication.brandName && (
+                            <p className="text-xs text-green-700">Generic: {selectedMedication.genericName}</p>
+                          )}
                         </div>
                       )}
                     </div>
@@ -260,25 +260,23 @@ export default function SearchWithAPI() {
                 </div>
 
                 {selectedIns && (
-                  <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-                    <p className="text-sm font-medium text-foreground">Plan Details:</p>
-                    <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
-                      <div>Tier 1 Copay: <span className="font-medium text-foreground">${selectedIns.tier1Copay}</span></div>
-                      <div>Tier 2 Copay: <span className="font-medium text-foreground">${selectedIns.tier2Copay}</span></div>
-                      <div>Tier 3 Copay: <span className="font-medium text-foreground">${selectedIns.tier3Copay}</span></div>
-                      <div>Tier 4 Copay: <span className="font-medium text-foreground">${selectedIns.tier4Copay}</span></div>
-                      <div className="col-span-2">Annual Deductible: <span className="font-medium text-foreground">${selectedIns.deductible}</span></div>
+                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-md">
+                    <p className="text-sm font-medium text-blue-900 mb-2">Insurance Plan Details:</p>
+                    <div className="grid grid-cols-2 gap-2 text-xs text-blue-800">
+                      <div>Tier 1 Copay: ${selectedIns.tier1Copay}</div>
+                      <div>Tier 2 Copay: ${selectedIns.tier2Copay}</div>
+                      <div>Tier 3 Copay: ${selectedIns.tier3Copay}</div>
+                      <div>Tier 4 Copay: ${selectedIns.tier4Copay}</div>
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* Search Button */}
+              {/* Submit Button */}
               <Button
                 onClick={handleSearch}
                 disabled={isSearchDisabled}
-                className="w-full"
-                size="lg"
+                className="w-full h-12 text-base"
               >
                 <SearchIcon className="w-4 h-4 mr-2" />
                 Compare Prices
@@ -286,11 +284,14 @@ export default function SearchWithAPI() {
             </CardContent>
           </Card>
 
-          {/* Info Cards */}
+          {/* Features Section */}
           <div className="grid md:grid-cols-3 gap-6 mt-12">
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Real Medication Data</CardTitle>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Pill className="w-5 h-5 text-primary" />
+                  Real Medication Data
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
@@ -301,7 +302,10 @@ export default function SearchWithAPI() {
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Insurance-Based Pricing</CardTitle>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Shield className="w-5 h-5 text-primary" />
+                  Insurance-Based Pricing
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
@@ -312,7 +316,10 @@ export default function SearchWithAPI() {
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Save Money</CardTitle>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <SearchIcon className="w-5 h-5 text-primary" />
+                  Save Money
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">

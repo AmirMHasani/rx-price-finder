@@ -1,26 +1,93 @@
 /**
  * Medication Service
- * Provides functions to search medications from RxNorm and FDA APIs
- * This is a client-side implementation that calls the APIs directly
+ * Provides functions to search medications from RxNorm API
+ * Filters results to show only relevant medications with generic and brand names
  */
 
 export interface MedicationResult {
-  source: "rxnorm" | "fda";
-  rxcui?: string;
-  ndc?: string;
+  rxcui: string;
   name: string;
-  type?: string;
-  genericName?: string;
-  manufacturer?: string;
+  genericName: string;
+  brandName: string;
+  type: string;
+  strength?: string;
 }
 
 const RXNORM_BASE_URL = "https://rxnav.nlm.nih.gov/REST";
-const FDA_BASE_URL = "https://api.fda.gov/drug/ndc.json";
+
+/**
+ * Get generic name for a medication using RxNorm API
+ */
+async function getGenericName(rxcui: string): Promise<string | null> {
+  try {
+    const response = await fetch(
+      `${RXNORM_BASE_URL}/rxcui/${rxcui}/related.json?rela=has_ingredient`
+    );
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = await response.json();
+
+    if (data.relatedGroup && data.relatedGroup.length > 0) {
+      const ingredients = data.relatedGroup[0].conceptGroup;
+      if (ingredients && ingredients.length > 0) {
+        const ingredient = ingredients[0].conceptProperties?.[0];
+        if (ingredient) {
+          return ingredient.name;
+        }
+      }
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Error getting generic name:", error);
+    return null;
+  }
+}
+
+/**
+ * Get brand name for a medication using RxNorm API
+ */
+async function getBrandName(rxcui: string): Promise<string | null> {
+  try {
+    const response = await fetch(
+      `${RXNORM_BASE_URL}/rxcui/${rxcui}/related.json?rela=ingredient_of`
+    );
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = await response.json();
+
+    if (data.relatedGroup && data.relatedGroup.length > 0) {
+      const brands = data.relatedGroup[0].conceptGroup;
+      if (brands && brands.length > 0) {
+        const brand = brands[0].conceptProperties?.[0];
+        if (brand) {
+          return brand.name;
+        }
+      }
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Error getting brand name:", error);
+    return null;
+  }
+}
 
 /**
  * Search for medications using RxNorm API
+ * Filters to show only relevant active ingredients (not all strengths/forms)
  */
-export async function searchRxNorm(searchTerm: string): Promise<MedicationResult[]> {
+export async function searchMedications(searchTerm: string): Promise<MedicationResult[]> {
+  if (searchTerm.length < 2) {
+    return [];
+  }
+
   try {
     const response = await fetch(
       `${RXNORM_BASE_URL}/drugs.json?name=${encodeURIComponent(searchTerm)}`
@@ -36,98 +103,114 @@ export async function searchRxNorm(searchTerm: string): Promise<MedicationResult
       return [];
     }
 
-    const drugs: MedicationResult[] = [];
+    const medications: MedicationResult[] = [];
+    const seenNames = new Set<string>();
 
-    data.drugGroup.conceptGroup.forEach(
-      (group: { tty: string; conceptProperties?: Array<{ rxcui: string; name: string }> }) => {
-        if (group.conceptProperties) {
-          group.conceptProperties.forEach(
-            (prop: { rxcui: string; name: string }) => {
-              drugs.push({
-                source: "rxnorm",
-                rxcui: prop.rxcui,
-                name: prop.name,
-                type: group.tty,
-              });
-            }
-          );
+    // Process concept groups from RxNorm
+    // TTY (Term Type) codes:
+    // BN = Brand Name
+    // GN = Generic Name
+    // SBD = Semantic Branded Drug
+    // SCD = Semantic Clinical Drug
+    // IN = Ingredient
+    // PIN = Precise Ingredient
+    for (const group of data.drugGroup.conceptGroup) {
+      const tty = group.tty;
+      
+      // Focus on brand names and generic names first
+      if (!["BN", "GN", "SBD", "SCD", "IN"].includes(tty)) {
+        continue;
+      }
+
+      if (!group.conceptProperties) {
+        continue;
+      }
+
+      for (const prop of group.conceptProperties) {
+        const name = prop.name;
+        const rxcui = prop.rxcui;
+
+        // Skip if we've already seen this medication
+        const nameKey = name.toLowerCase();
+        if (seenNames.has(nameKey)) {
+          continue;
+        }
+
+        seenNames.add(nameKey);
+
+        // Determine if this is a brand name or generic name
+        let genericName = "";
+        let brandName = "";
+
+        if (tty === "BN" || tty === "SBD") {
+          // This is a brand name
+          brandName = name;
+          // Try to get the generic name
+          const generic = await getGenericName(rxcui);
+          genericName = generic || name;
+        } else if (tty === "GN" || tty === "IN") {
+          // This is a generic name
+          genericName = name;
+          // Try to get a brand name
+          const brand = await getBrandName(rxcui);
+          brandName = brand || name;
+        } else {
+          // For SCD and other types, use the name as-is
+          genericName = name;
+          brandName = name;
+        }
+
+        medications.push({
+          rxcui,
+          name: brandName || genericName,
+          genericName: genericName,
+          brandName: brandName,
+          type: tty,
+          strength: extractStrength(name),
+        });
+
+        // Limit results to avoid too many API calls
+        if (medications.length >= 15) {
+          break;
         }
       }
-    );
 
-    return drugs;
-  } catch (error) {
-    console.error("Error searching RxNorm:", error);
-    return [];
-  }
-}
-
-/**
- * Search for medications using FDA API
- */
-export async function searchFDA(searchTerm: string): Promise<MedicationResult[]> {
-  try {
-    const query = `brand_name:"${searchTerm}" OR generic_name:"${searchTerm}"`;
-    const response = await fetch(
-      `${FDA_BASE_URL}?search=${encodeURIComponent(query)}&limit=10`
-    );
-
-    if (!response.ok) {
-      throw new Error(`FDA API error: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-
-    if (!data.results) {
-      return [];
-    }
-
-    return data.results.map((drug: any) => ({
-      source: "fda",
-      ndc: drug.ndc_code || "",
-      name: drug.brand_name || drug.generic_name || "",
-      type: drug.dosage_form || "",
-      genericName: drug.generic_name || "",
-      manufacturer: drug.labeler_name || "",
-    }));
-  } catch (error) {
-    console.error("Error searching FDA:", error);
-    return [];
-  }
-}
-
-/**
- * Search medications from both RxNorm and FDA APIs
- */
-export async function searchMedications(searchTerm: string): Promise<MedicationResult[]> {
-  if (searchTerm.length < 2) {
-    return [];
-  }
-
-  try {
-    // Search both APIs in parallel
-    const [rxnormResults, fdaResults] = await Promise.all([
-      searchRxNorm(searchTerm),
-      searchFDA(searchTerm),
-    ]);
-
-    // Combine results
-    const allResults = [...rxnormResults, ...fdaResults];
-
-    // Deduplicate by name (case-insensitive)
-    const uniqueMap = new Map<string, MedicationResult>();
-    allResults.forEach((drug) => {
-      const key = drug.name.toLowerCase();
-      if (!uniqueMap.has(key)) {
-        uniqueMap.set(key, drug);
+      if (medications.length >= 15) {
+        break;
       }
+    }
+
+    // Sort by relevance: exact matches first, then partial matches
+    medications.sort((a, b) => {
+      const searchLower = searchTerm.toLowerCase();
+      const aName = a.name.toLowerCase();
+      const bName = b.name.toLowerCase();
+
+      // Exact match
+      if (aName === searchLower && bName !== searchLower) return -1;
+      if (bName === searchLower && aName !== searchLower) return 1;
+
+      // Starts with search term
+      if (aName.startsWith(searchLower) && !bName.startsWith(searchLower)) return -1;
+      if (bName.startsWith(searchLower) && !aName.startsWith(searchLower)) return 1;
+
+      return 0;
     });
 
-    return Array.from(uniqueMap.values()).slice(0, 20); // Limit to 20 results
+    return medications.slice(0, 12); // Return top 12 results
   } catch (error) {
     console.error("Error searching medications:", error);
     return [];
   }
+}
+
+/**
+ * Extract strength from medication name
+ * e.g., "atorvastatin 20 MG" -> "20 MG"
+ */
+function extractStrength(name: string): string {
+  const match = name.match(/(\d+\s*(?:MG|mg|mcg|MCG|g|G|IU|iu))/);
+  return match ? match[1] : "";
 }
 
 /**
@@ -186,55 +269,5 @@ export async function getMedicationDetails(rxcui: string) {
   } catch (error) {
     console.error("Error getting medication details:", error);
     return null;
-  }
-}
-
-/**
- * Get generic alternatives for a brand name drug
- */
-export async function searchGenericAlternatives(
-  brandName: string
-): Promise<MedicationResult[]> {
-  try {
-    // First find the brand name drug
-    const brandDrugs = await searchMedications(brandName);
-
-    if (brandDrugs.length === 0) {
-      return [];
-    }
-
-    const firstDrug = brandDrugs[0];
-    const genericName = firstDrug.genericName;
-
-    if (!genericName) {
-      return [];
-    }
-
-    // Search for all drugs with the same generic name
-    const response = await fetch(
-      `${FDA_BASE_URL}?search=generic_name:"${encodeURIComponent(genericName)}"&limit=20`
-    );
-
-    if (!response.ok) {
-      throw new Error(`FDA API error: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-
-    if (!data.results) {
-      return [];
-    }
-
-    return data.results.map((drug: any) => ({
-      source: "fda",
-      ndc: drug.ndc_code || "",
-      name: drug.brand_name || drug.generic_name || "",
-      type: drug.dosage_form || "",
-      genericName: drug.generic_name || "",
-      manufacturer: drug.labeler_name || "",
-    }));
-  } catch (error) {
-    console.error("Error searching generic alternatives:", error);
-    return [];
   }
 }
