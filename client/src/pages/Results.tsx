@@ -20,20 +20,23 @@ export default function Results() {
   const [mapReady, setMapReady] = useState(false);
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [markers, setMarkers] = useState<google.maps.marker.AdvancedMarkerElement[]>([]);
-  
-  // Get user's location from ZIP code for map centering
-  const userLocation = useMemo(() => {
-    return getZipCodeLocation(userZip);
-  }, [userZip]);
 
   const params = useMemo(() => new URLSearchParams(searchParams), [searchParams]);
   const medicationName = params.get("medication") || "";
   const rxcui = params.get("rxcui") || "";
   const dosage = params.get("dosage") || "";
   const form = params.get("form") || "";
+  const frequency = params.get("frequency") || "1";
+  const quantity = params.get("quantity") || "30";
+  const totalPills = parseInt(params.get("totalPills") || "30");
   const insuranceId = params.get("insurance") || "";
   const deductibleMet = params.get("deductibleMet") === "true";
   const userZip = params.get("zip") || "02108"; // Default to Boston if no ZIP provided
+  
+  // Get user's location from ZIP code for map centering
+  const userLocation = useMemo(() => {
+    return getZipCodeLocation(userZip);
+  }, [userZip]);
 
   // Map RXCUI to mock medication ID
   const mockMedicationId = useMemo(() => {
@@ -158,7 +161,10 @@ export default function Results() {
               <CardHeader>
                 <CardTitle className="text-2xl">{medicationName}</CardTitle>
                 <CardDescription>
-                  {dosage} {form} • {insurance?.carrier} - {insurance?.planName}
+                  {dosage} {form} • {frequency === "1" ? "Once daily" : frequency === "2" ? "Twice daily" : frequency === "3" ? "Three times daily" : frequency === "4" ? "Four times daily" : frequency === "0.5" ? "Every other day" : "Once weekly"} • {quantity} days supply ({totalPills} pills)
+                </CardDescription>
+                <CardDescription className="mt-2">
+                  {insurance?.carrier} - {insurance?.planName}
                 </CardDescription>
               </CardHeader>
             </Card>

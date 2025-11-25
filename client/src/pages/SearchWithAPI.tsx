@@ -21,6 +21,8 @@ export default function SearchWithAPI() {
   const [selectedMedication, setSelectedMedication] = useState<MedicationResult | null>(null);
   const [selectedDosage, setSelectedDosage] = useState("");
   const [selectedForm, setSelectedForm] = useState("");
+  const [selectedFrequency, setSelectedFrequency] = useState("1"); // Default to once daily
+  const [quantity, setQuantity] = useState("30"); // Default to 30 days
   const [selectedInsurance, setSelectedInsurance] = useState("");
   const [deductibleMet, setDeductibleMet] = useState(false);
   const [userZip, setUserZip] = useState("");
@@ -189,11 +191,16 @@ export default function SearchWithAPI() {
       return;
     }
 
+    const totalPills = Math.ceil(parseFloat(selectedFrequency) * parseFloat(quantity));
+    
     const params = new URLSearchParams({
       medication: selectedMedication.name,
       rxcui: selectedMedication.rxcui,
       dosage: selectedDosage,
       form: selectedForm,
+      frequency: selectedFrequency,
+      quantity: quantity,
+      totalPills: totalPills.toString(),
       insurance: selectedInsurance,
       deductibleMet: deductibleMet.toString(),
       zip: userZip,
@@ -381,6 +388,41 @@ export default function SearchWithAPI() {
                         disabled={!selectedMedication || loadingDetails}
                       />
                     )}
+                  </div>
+
+                  {/* Frequency Dropdown */}
+                  <div className="space-y-2">
+                    <Label htmlFor="frequency">How often do you take it?</Label>
+                    <Select value={selectedFrequency} onValueChange={setSelectedFrequency}>
+                      <SelectTrigger id="frequency">
+                        <SelectValue placeholder="Select frequency" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">Once daily</SelectItem>
+                        <SelectItem value="2">Twice daily</SelectItem>
+                        <SelectItem value="3">Three times daily</SelectItem>
+                        <SelectItem value="4">Four times daily</SelectItem>
+                        <SelectItem value="0.5">Every other day</SelectItem>
+                        <SelectItem value="0.14">Once weekly</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Quantity Input */}
+                  <div className="space-y-2">
+                    <Label htmlFor="quantity">How many days supply?</Label>
+                    <Input
+                      id="quantity"
+                      type="number"
+                      placeholder="30"
+                      value={quantity}
+                      onChange={(e) => setQuantity(e.target.value)}
+                      min="1"
+                      max="365"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Total pills: {Math.ceil(parseFloat(selectedFrequency) * parseFloat(quantity) || 0)}
+                    </p>
                   </div>
 
                   <div className="space-y-2">
