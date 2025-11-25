@@ -17,10 +17,6 @@ Find the cheapest pharmacy prices for your prescriptions based on your insurance
 - 🗺️ **Interactive Map** - View all pharmacy locations with price markers on Google Maps
 - 📱 **Responsive Design** - Works perfectly on desktop, tablet, and mobile devices
 
-## Live Demo
-
-🔗 **[Try RxPriceFinder Now](https://3000-imgt4osctejn64po14v3v-7bcd9181.manusvm.computer/)**
-
 ## How It Works
 
 1. **Search for Your Medication** - Type the medication name (brand or generic) and select from real FDA database
@@ -245,7 +241,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Support
 
-For questions or issues, please open an issue on GitHub or contact [your-email@example.com](mailto:your-email@example.com)
+For questions or issues, please open an issue on GitHub.
 
 ## Roadmap
 
@@ -275,4 +271,4 @@ For questions or issues, please open an issue on GitHub or contact [your-email@e
 
 ---
 
-**Made with ❤️ by [Your Name](https://github.com/AmirMHasani)**
+**Made with ❤️ by [Amir M Hasani](https://github.com/AmirMHasani)**
