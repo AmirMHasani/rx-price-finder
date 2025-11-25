@@ -4,89 +4,126 @@
  */
 
 interface MedicationMapping {
-  rxcui: string;
   mockId: string;
-  name: string;
-  genericName: string;
+  brandNames: string[];
+  genericNames: string[];
+  rxcuis: string[];
 }
 
 const medicationMappings: MedicationMapping[] = [
   {
-    rxcui: "617318",
     mockId: "med-1",
-    name: "Lipitor",
-    genericName: "atorvastatin"
+    brandNames: ["Lipitor"],
+    genericNames: ["atorvastatin"],
+    rxcuis: ["617318", "859424", "617310", "859419"]
   },
   {
-    rxcui: "860649",
-    mockId: "med-4",
-    name: "Glucophage",
-    genericName: "metformin"
-  },
-  {
-    rxcui: "197446",
-    mockId: "med-3",
-    name: "Prinivil",
-    genericName: "lisinopril"
-  },
-  {
-    rxcui: "198029",
-    mockId: "med-3",
-    name: "Norvasc",
-    genericName: "amlodipine"
-  },
-  {
-    rxcui: "199348",
-    mockId: "med-6",
-    name: "Prilosec",
-    genericName: "omeprazole"
-  },
-  {
-    rxcui: "204108",
     mockId: "med-2",
-    name: "Synthroid",
-    genericName: "levothyroxine"
+    brandNames: ["Synthroid", "Levoxyl"],
+    genericNames: ["levothyroxine"],
+    rxcuis: ["204108", "966224", "966191"]
   },
   {
-    rxcui: "206764",
+    mockId: "med-3",
+    brandNames: ["Norvasc"],
+    genericNames: ["amlodipine"],
+    rxcuis: ["198029", "197361", "197362"]
+  },
+  {
+    mockId: "med-4",
+    brandNames: ["Glucophage"],
+    genericNames: ["metformin"],
+    rxcuis: ["860649", "860975", "860974"]
+  },
+  {
     mockId: "med-5",
-    name: "Zoloft",
-    genericName: "sertraline"
+    brandNames: ["Zoloft"],
+    genericNames: ["sertraline"],
+    rxcuis: ["206764", "312940", "312961"]
   },
   {
-    rxcui: "206977",
+    mockId: "med-6",
+    brandNames: ["Prilosec", "Konvomep"],
+    genericNames: ["omeprazole"],
+    rxcuis: ["199348", "207212", "207211", "207210", "207213"]
+  },
+  {
     mockId: "med-7",
-    name: "Ventolin",
-    genericName: "albuterol"
+    brandNames: ["Ventolin", "ProAir"],
+    genericNames: ["albuterol"],
+    rxcuis: ["206977", "245314", "630208"]
   },
   {
-    rxcui: "248656",
     mockId: "med-8",
-    name: "Advair",
-    genericName: "fluticasone/salmeterol"
+    brandNames: ["Advair"],
+    genericNames: ["fluticasone", "salmeterol"],
+    rxcuis: ["351137", "351136", "351135"]
   },
   {
-    rxcui: "349032",
     mockId: "med-9",
-    name: "Xarelto",
-    genericName: "rivaroxaban"
+    brandNames: ["Xarelto"],
+    genericNames: ["rivaroxaban"],
+    rxcuis: ["1114195", "1114198", "1114201"]
+  },
+  {
+    mockId: "med-10",
+    brandNames: ["Lyrica"],
+    genericNames: ["pregabalin"],
+    rxcuis: ["187832", "187833", "187834"]
   },
 ];
 
 /**
- * Get mock medication ID from RXCUI
- * Falls back to med-1 if not found
+ * Get mock medication ID from RXCUI or medication name
+ * @param rxcui - The RXCUI code
+ * @param medicationName - The medication name (brand or generic)
+ * @returns The mock medication ID or "med-1" as fallback
  */
-export function getMockMedicationId(rxcui: string): string {
-  const mapping = medicationMappings.find(m => m.rxcui === rxcui);
-  return mapping ? mapping.mockId : "med-1"; // Default to Lipitor if not found
+export function getMockMedicationId(rxcui: string, medicationName?: string): string {
+  console.log(`[MedicationMapping] Looking up RXCUI: ${rxcui}, Name: ${medicationName}`);
+  
+  // Try name matching first (more reliable than RXCUI)
+  if (medicationName) {
+    const lowerName = medicationName.toLowerCase();
+    const nameMapping = medicationMappings.find(m => 
+      m.brandNames.some(brand => lowerName.includes(brand.toLowerCase())) ||
+      m.genericNames.some(generic => lowerName.includes(generic.toLowerCase()))
+    );
+    
+    if (nameMapping) {
+      console.log(`[MedicationMapping] Found by name: ${nameMapping.mockId}`);
+      return nameMapping.mockId;
+    }
+  }
+  
+  // Fall back to RXCUI match
+  const rxcuiMapping = medicationMappings.find(m => m.rxcuis.includes(rxcui));
+  if (rxcuiMapping) {
+    console.log(`[MedicationMapping] Found by RXCUI: ${rxcuiMapping.mockId}`);
+    return rxcuiMapping.mockId;
+  }
+  
+  console.warn(`[MedicationMapping] No mapping found for RXCUI ${rxcui} or name ${medicationName}, defaulting to med-1`);
+  return "med-1"; // Default to Lipitor if not found
 }
 
 /**
- * Get medication mapping by RXCUI
+ * Get medication mapping by RXCUI or name
  */
-export function getMedicationMapping(rxcui: string): MedicationMapping | undefined {
-  return medicationMappings.find(m => m.rxcui === rxcui);
+export function getMedicationMapping(rxcui: string, medicationName?: string): MedicationMapping | undefined {
+  // First try exact RXCUI match
+  let mapping = medicationMappings.find(m => m.rxcuis.includes(rxcui));
+  
+  // If no RXCUI match and medication name provided, try name matching
+  if (!mapping && medicationName) {
+    const lowerName = medicationName.toLowerCase();
+    mapping = medicationMappings.find(m => 
+      m.brandNames.some(brand => lowerName.includes(brand.toLowerCase())) ||
+      m.genericNames.some(generic => lowerName.includes(generic.toLowerCase()))
+    );
+  }
+  
+  return mapping;
 }
 
 /**

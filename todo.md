@@ -103,3 +103,30 @@
 - [x] FIXED: Re-test end-to-end flow with Lipitor (all tests passing)
 - [x] Fix medication search to show only relevant results (filter out unrelated products)
 - [x] Display generic name and brand name for each medication
+
+## COMPREHENSIVE TESTING (User Request)
+- [ ] Test medication 1: Lipitor (atorvastatin) - cholesterol
+- [ ] Test medication 2: Metformin (Glucophage) - diabetes
+- [ ] Test medication 3: Lisinopril - blood pressure
+- [ ] Test medication 4: Levothyroxine (Synthroid) - thyroid
+- [ ] Test medication 5: Amlodipine (Norvasc) - blood pressure
+- [ ] Test medication 6: Omeprazole (Prilosec) - acid reflux
+- [ ] Test medication 7: Simvastatin (Zocor) - cholesterol
+- [ ] Test medication 8: Losartan (Cozaar) - blood pressure
+- [ ] Test medication 9: Gabapentin (Neurontin) - nerve pain
+- [ ] Test medication 10: Hydrochlorothiazide (HCTZ) - blood pressure
+- [ ] Verify API implementation is correct
+- [ ] Fix any medication mapping issues
+- [ ] Document test results
+
+## NEW BUG FIXES (Nov 25, 2025)
+- [x] Fix dosage auto-fill for RxNorm API medications (extract from medication name)
+- [x] Fix form auto-fill for RxNorm API medications (extract from medication name)
+- [x] Fix medication mapping to prioritize name matching over RXCUI matching
+- [x] Fix pricing lookup to use flexible form matching (e.g., "Delayed Release Oral Capsule" matches "Capsule")
+- [x] Add graceful error handling for medications without pricing data
+- [x] Improve form extraction regex to exclude chemical compounds (e.g., "sodium" in "warfarin sodium")
+- [x] Test RxNorm API with medications NOT in hardcoded list (warfarin, amoxicillin)
+- [x] Verify end-to-end flow works for both common medications and RxNorm API results
+- [x] Push all changes to GitHub repository
+- [x] CRITICAL: Fix incorrect medication mapping (med-3 was mapped to lisinopril but should be amlodipine)

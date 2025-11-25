@@ -100,40 +100,63 @@ export default function SearchWithAPI() {
     setSelectedDosage("");
     setSelectedForm("");
     
-    // Use pre-loaded dosages/forms if available
+    // Use pre-loaded dosages/forms if available (from common medications)
     if (medication.dosages && medication.dosages.length > 0) {
       setAvailableDosages(medication.dosages);
       setSelectedDosage(medication.dosages[0]);
     } else {
-      setAvailableDosages([]);
+      // Extract dosage from medication name if not pre-loaded
+      // e.g., "omeprazole 20 MG Delayed Release Oral Capsule" -> "20mg"
+      const strengthMatch = medication.name.match(/(\d+)\s*(MG|mg|mcg|MCG|g|G|IU|iu)/i);
+      if (strengthMatch) {
+        const dosage = strengthMatch[1] + strengthMatch[2].toLowerCase();
+        setAvailableDosages([dosage]);
+        setSelectedDosage(dosage);
+      } else {
+        setAvailableDosages([]);
+      }
     }
     
     if (medication.forms && medication.forms.length > 0) {
       setAvailableForms(medication.forms);
       setSelectedForm(medication.forms[0]);
     } else {
-      setAvailableForms([]);
+      // Extract form from medication name if not pre-loaded
+      // e.g., "omeprazole 20 MG Delayed Release Oral Capsule" -> "Delayed Release Oral Capsule"
+      const formMatch = medication.name.match(/\d+\s*(?:MG|mg|mcg|MCG|g|G|IU|iu)\s+(.+?)(?:\s*\[|$)/i);
+      if (formMatch) {
+        const form = formMatch[1].trim();
+        setAvailableForms([form]);
+        setSelectedForm(form);
+      } else {
+        setAvailableForms([]);
+      }
     }
 
-    // Fetch additional details from RxNorm if not from common medications
+    // Try to fetch additional details from RxNorm if not from common medications
+    // This is optional and won't block the user if it fails
     if (medication.type !== "COMMON") {
       setLoadingDetails(true);
       try {
         const details = await getMedicationDetails(medication.rxcui);
-        if (details.dosages && details.dosages.length > 0) {
+        // Only update if we got better data from the API
+        if (details.dosages && details.dosages.length > 1) {
           setAvailableDosages(details.dosages);
-          if (!selectedDosage) {
+          // Keep the current selection if it's in the list
+          if (!details.dosages.includes(selectedDosage)) {
             setSelectedDosage(details.dosages[0]);
           }
         }
-        if (details.forms && details.forms.length > 0) {
+        if (details.forms && details.forms.length > 1) {
           setAvailableForms(details.forms);
-          if (!selectedForm) {
+          // Keep the current selection if it's in the list
+          if (!details.forms.includes(selectedForm)) {
             setSelectedForm(details.forms[0]);
           }
         }
       } catch (error) {
         console.error("Error fetching medication details:", error);
+        // Ignore errors - we already have data from the medication name
       } finally {
         setLoadingDetails(false);
       }

@@ -119,11 +119,14 @@ export function calculateInsurancePrice(
   const pharmacy = pharmacies.find(p => p.id === pharmacyId);
   const insurance = insurancePlans.find(i => i.id === insuranceId);
   const tier = medicationTiers.find(t => t.medicationId === medicationId);
+  
+  // Flexible form matching: check if the requested form contains the pricing form
+  // e.g., "Delayed Release Oral Capsule" contains "Capsule"
   const pricing = pharmacyPrices.find(
     p => p.medicationId === medicationId && 
          p.pharmacyId === pharmacyId && 
          p.dosage === dosage && 
-         p.form === form
+         (p.form === form || form.includes(p.form) || p.form.includes(form))
   );
 
   if (!medication || !pharmacy || !insurance || !tier || !pricing) {
