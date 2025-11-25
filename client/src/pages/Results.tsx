@@ -26,13 +26,16 @@ export default function Results() {
   const form = params.get("form") || "";
   const insuranceId = params.get("insurance") || "";
   const deductibleMet = params.get("deductibleMet") === "true";
+  const frequency = params.get("frequency") || "QD";
+  const daysSupply = parseInt(params.get("daysSupply") || "30");
+  const totalPills = parseInt(params.get("totalPills") || "30");
   const zip = params.get("zip") || "";
-  const quantity = parseInt(params.get("quantity") || "30");
-  const frequency = params.get("frequency") || "once";
 
   // Map RXCUI to mock medication ID
   const mockMedicationId = useMemo(() => {
-    return getMockMedicationId(rxcui, medicationName);
+    const id = getMockMedicationId(rxcui, medicationName);
+    console.log('[Results] mockMedicationId:', id, 'for RXCUI:', rxcui, 'medication:', medicationName);
+    return id;
   }, [rxcui, medicationName]);
 
   // Create medication object from URL parameters
@@ -46,7 +49,9 @@ export default function Results() {
   const insurance = insurancePlans.find(i => i.id === insuranceId);
 
   useEffect(() => {
+    console.log('[Results] useEffect triggered with:', { medicationName, dosage, form, insuranceId, mockMedicationId, zip });
     if (medicationName && dosage && form && insuranceId && mockMedicationId) {
+      console.log('[Results] Calling getAllPricesForMedication...');
       // Use the mapped mock medication ID for pricing data
       const priceResults = getAllPricesForMedication(
         mockMedicationId,
@@ -54,23 +59,14 @@ export default function Results() {
         form,
         insuranceId,
         deductibleMet,
-        undefined,
-        undefined,
         zip
       );
-      
-      // Multiply prices by quantity
-      const adjustedResults = priceResults.map(result => ({
-        ...result,
-        cashPrice: result.cashPrice * quantity,
-        insurancePrice: result.insurancePrice * quantity,
-        savings: result.savings * quantity,
-        perPillPrice: result.insurancePrice, // Store original per-pill price
-      }));
-      
-      setResults(adjustedResults);
+      console.log('[Results] Got', priceResults.length, 'results');
+      setResults(priceResults);
+    } else {
+      console.log('[Results] Skipping getAllPricesForMedication - missing required params');
     }
-  }, [medicationName, dosage, form, insuranceId, deductibleMet, mockMedicationId, zip, quantity]);
+  }, [medicationName, dosage, form, insuranceId, deductibleMet, mockMedicationId, zip]);
 
   const handleMapReady = (mapInstance: google.maps.Map) => {
     setMap(mapInstance);
@@ -157,7 +153,7 @@ export default function Results() {
               <CardHeader>
                 <CardTitle className="text-2xl">{medicationName}</CardTitle>
                 <CardDescription>
-                  {dosage} {form} • {quantity}-day supply • {frequency === "once" ? "Once daily" : frequency === "twice" ? "Twice daily" : frequency === "three" ? "Three times daily" : "As needed"} • {insurance?.carrier} - {insurance?.planName}
+                  {dosage} {form} • {frequency} • {daysSupply} days ({totalPills} pills) • {insurance?.carrier} - {insurance?.planName}
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -241,9 +237,6 @@ export default function Results() {
                               <p className="text-sm text-muted-foreground">With {insurance?.carrier}</p>
                               <p className="text-3xl font-bold text-primary">
                                 ${result.insurancePrice}
-                              </p>
-                              <p className="text-xs text-muted-foreground mt-1">
-                                (${result.perPillPrice?.toFixed(2)} per pill)
                               </p>
                             </div>
                             <div className="pt-2 border-t border-border">
