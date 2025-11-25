@@ -1,7 +1,67 @@
 # RxPriceFinder TODO
 
-## Core Features
-- [ ] Upgrade project to full-stack with database and user authentication
+## PHASE 1: Database & Authentication (Manus)
+- [x] Create mock database layer with in-memory storage
+- [x] Create database schema (users, insurance, searches, pharmacies, prices)
+- [x] Create authentication pages (signup, login, profile)
+- [x] Create insurance profile management
+- [x] Write and pass 47 unit tests for authentication and database
+
+## PHASE 2: Geolocation & Pharmacy Search (Manus)
+- [ ] Implement user geolocation hook
+- [ ] Create pharmacy search service (Google Places)
+- [ ] Store pharmacies in database
+- [ ] Create pharmacy search page
+- [ ] Test geolocation and search
+
+## PHASE 3: GoodRx API Integration (Manus)
+- [ ] Create GoodRx service
+- [ ] Implement price caching system
+- [ ] Update search results with real prices
+- [ ] Test price fetching
+
+## PHASE 4: Insurance Database & Tier Estimation (Manus)
+- [ ] Populate insurance plans database
+- [ ] Create drug tier estimation engine
+- [ ] Create insurance price calculator
+- [ ] Populate drug tier database
+- [ ] Test tier estimation and calculations
+
+## PHASE 5: Enhanced Results Page (Manus)
+- [ ] Rebuild results page with real data
+- [ ] Add price comparison features
+- [ ] Add pharmacy filtering
+- [ ] Enhance map integration
+- [ ] Test results display
+
+## PHASE 6: User Features (Manus)
+- [ ] Create search history feature
+- [ ] Create favorite pharmacies feature
+- [ ] Create user dashboard
+- [ ] Create settings page
+- [ ] Test user features
+
+## PHASE 7: Testing, Optimization & Launch (Manus)
+- [ ] Write unit tests
+- [ ] Write integration tests
+- [ ] Performance optimization
+- [ ] Mobile responsiveness testing
+- [ ] Deploy to production
+- [ ] Create documentation
+
+## PHASE 8: Critical Human Tasks (You)
+- [ ] Get Google Places API key (15 min)
+- [ ] Request GoodRx API access (5 min, wait 3-7 days)
+- [ ] Set up Supabase production database (30 min)
+- [ ] Configure email notifications (20 min)
+- [ ] Set up error tracking (15 min)
+- [ ] Create marketing page (2-3 hours)
+- [ ] Create legal documents (1-2 hours)
+- [ ] Set up user acquisition strategy (2-3 hours)
+- [ ] Plan NCPDP membership (future)
+- [ ] Gather insurance data (future)
+
+## Previous Features (Completed)
 - [x] Integrate RxNorm API for real medication data
 - [x] Integrate FDA NDC database for drug information
 - [x] Create client-side medication search service
@@ -17,9 +77,6 @@
 - [x] Add pharmacy location map integration
 - [x] Show distance from user to each pharmacy
 - [x] Display detailed price breakdown (copay, deductible, out-of-pocket)
-- [ ] Add user authentication for saving searches and insurance info
-- [ ] Create user profile for storing insurance information
-- [ ] Add search history for logged-in users
 - [x] Implement responsive design for mobile and desktop
 - [x] Add loading states and error handling
 - [x] Write tests for core functionality
