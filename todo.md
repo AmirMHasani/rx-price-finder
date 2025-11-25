@@ -130,3 +130,16 @@
 - [x] Verify end-to-end flow works for both common medications and RxNorm API results
 - [x] Push all changes to GitHub repository
 - [x] CRITICAL: Fix incorrect medication mapping (med-3 was mapped to lisinopril but should be amlodipine)
+
+## PHARMACY ZIP CODE FIX (User Request - Nov 25, 2025)
+- [x] Fix pharmacy locations to support all ZIP codes (currently only shows Boston area)
+- [x] Implement dynamic pharmacy generation based on user's ZIP code input
+- [x] Test with multiple ZIP codes across different states (Chicago 60601, LA 90001)
+- [x] Update map to center on user's location based on ZIP code
+
+## QUANTITY & FREQUENCY FIELDS (User Request - Nov 25, 2025)
+- [x] Add quantity selector to search form (30-day supply, 90-day supply)
+- [x] Add frequency field (once daily, twice daily, three times daily, as needed)
+- [x] Update pricing calculations to multiply by quantity
+- [x] Show per-pill price and total price in results
+- [x] Display bulk savings for 90-day vs 30-day supplies

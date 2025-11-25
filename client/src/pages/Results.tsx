@@ -26,6 +26,9 @@ export default function Results() {
   const form = params.get("form") || "";
   const insuranceId = params.get("insurance") || "";
   const deductibleMet = params.get("deductibleMet") === "true";
+  const zip = params.get("zip") || "";
+  const quantity = parseInt(params.get("quantity") || "30");
+  const frequency = params.get("frequency") || "once";
 
   // Map RXCUI to mock medication ID
   const mockMedicationId = useMemo(() => {
@@ -50,11 +53,24 @@ export default function Results() {
         dosage,
         form,
         insuranceId,
-        deductibleMet
+        deductibleMet,
+        undefined,
+        undefined,
+        zip
       );
-      setResults(priceResults);
+      
+      // Multiply prices by quantity
+      const adjustedResults = priceResults.map(result => ({
+        ...result,
+        cashPrice: result.cashPrice * quantity,
+        insurancePrice: result.insurancePrice * quantity,
+        savings: result.savings * quantity,
+        perPillPrice: result.insurancePrice, // Store original per-pill price
+      }));
+      
+      setResults(adjustedResults);
     }
-  }, [medicationName, dosage, form, insuranceId, deductibleMet, mockMedicationId]);
+  }, [medicationName, dosage, form, insuranceId, deductibleMet, mockMedicationId, zip, quantity]);
 
   const handleMapReady = (mapInstance: google.maps.Map) => {
     setMap(mapInstance);
@@ -141,7 +157,7 @@ export default function Results() {
               <CardHeader>
                 <CardTitle className="text-2xl">{medicationName}</CardTitle>
                 <CardDescription>
-                  {dosage} {form} • {insurance?.carrier} - {insurance?.planName}
+                  {dosage} {form} • {quantity}-day supply • {frequency === "once" ? "Once daily" : frequency === "twice" ? "Twice daily" : frequency === "three" ? "Three times daily" : "As needed"} • {insurance?.carrier} - {insurance?.planName}
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -225,6 +241,9 @@ export default function Results() {
                               <p className="text-sm text-muted-foreground">With {insurance?.carrier}</p>
                               <p className="text-3xl font-bold text-primary">
                                 ${result.insurancePrice}
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                (${result.perPillPrice?.toFixed(2)} per pill)
                               </p>
                             </div>
                             <div className="pt-2 border-t border-border">

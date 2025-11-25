@@ -1,6 +1,7 @@
 import { medications } from "./medications";
 import { pharmacies } from "./pharmacies";
 import { insurancePlans } from "./insurance";
+import { generatePharmaciesForZip } from "@/services/pharmacyGenerator";
 
 export interface MedicationTier {
   medicationId: string;
@@ -105,31 +106,43 @@ export interface PriceResult {
   totalCost: number;
   savings: number;
   distance?: number; // miles from user location
+  perPillPrice?: number; // Price per pill (before quantity multiplication)
 }
 
 export function calculateInsurancePrice(
   medicationId: string,
   dosage: string,
   form: string,
-  pharmacyId: string,
+  pharmacy: typeof pharmacies[0],
   insuranceId: string,
   deductibleMet: boolean = false
 ): PriceResult | null {
   const medication = medications.find(m => m.id === medicationId);
-  const pharmacy = pharmacies.find(p => p.id === pharmacyId);
   const insurance = insurancePlans.find(i => i.id === insuranceId);
   const tier = medicationTiers.find(t => t.medicationId === medicationId);
   
+  if (!medication || !pharmacy || !insurance || !tier) {
+    return null;
+  }
+  
   // Flexible form matching: check if the requested form contains the pricing form
   // e.g., "Delayed Release Oral Capsule" contains "Capsule"
+  // For dynamically generated pharmacies, match by chain name instead of pharmacy ID
+  const pharmacyChain = pharmacy.name.split(' ')[0]; // e.g., "CVS" from "CVS Pharmacy"
+  
   const pricing = pharmacyPrices.find(
-    p => p.medicationId === medicationId && 
-         p.pharmacyId === pharmacyId && 
-         p.dosage === dosage && 
-         (p.form === form || form.includes(p.form) || p.form.includes(form))
+    p => {
+      const pricingPharmacy = pharmacies.find(ph => ph.id === p.pharmacyId);
+      const pricingChain = pricingPharmacy?.name.split(' ')[0];
+      
+      return p.medicationId === medicationId && 
+             (p.pharmacyId === pharmacy.id || pricingChain === pharmacyChain) && 
+             p.dosage === dosage && 
+             (p.form === form || form.includes(p.form) || p.form.includes(form));
+    }
   );
 
-  if (!medication || !pharmacy || !insurance || !tier || !pricing) {
+  if (!pricing) {
     return null;
   }
 
@@ -188,16 +201,20 @@ export function getAllPricesForMedication(
   insuranceId: string,
   deductibleMet: boolean = false,
   userLat?: number,
-  userLng?: number
+  userLng?: number,
+  userZip?: string
 ): PriceResult[] {
   const results: PriceResult[] = [];
 
-  pharmacies.forEach(pharmacy => {
+  // Use dynamic pharmacy generation if ZIP code is provided
+  const pharmacyList = userZip ? generatePharmaciesForZip(userZip) : pharmacies;
+
+  pharmacyList.forEach(pharmacy => {
     const result = calculateInsurancePrice(
       medicationId,
       dosage,
       form,
-      pharmacy.id,
+      pharmacy,
       insuranceId,
       deductibleMet
     );

@@ -24,6 +24,8 @@ export default function SearchWithAPI() {
   const [selectedInsurance, setSelectedInsurance] = useState("");
   const [deductibleMet, setDeductibleMet] = useState(false);
   const [userZip, setUserZip] = useState("");
+  const [quantity, setQuantity] = useState("30"); // 30-day or 90-day supply
+  const [frequency, setFrequency] = useState("once"); // once, twice, three times daily
   const [showDropdown, setShowDropdown] = useState(false);
   
   // Dosage and form options
@@ -185,6 +187,8 @@ export default function SearchWithAPI() {
       insurance: selectedInsurance,
       deductibleMet: deductibleMet.toString(),
       zip: userZip,
+      quantity: quantity,
+      frequency: frequency,
     });
 
     setLocation(`/results?${params.toString()}`);
@@ -369,6 +373,36 @@ export default function SearchWithAPI() {
                         disabled={!selectedMedication || loadingDetails}
                       />
                     )}
+                  </div>
+
+                  {/* Quantity Selector */}
+                  <div className="space-y-2">
+                    <Label htmlFor="quantity">Quantity</Label>
+                    <Select value={quantity} onValueChange={setQuantity}>
+                      <SelectTrigger id="quantity">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="30">30-day supply</SelectItem>
+                        <SelectItem value="90">90-day supply</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Frequency Selector */}
+                  <div className="space-y-2">
+                    <Label htmlFor="frequency">Frequency</Label>
+                    <Select value={frequency} onValueChange={setFrequency}>
+                      <SelectTrigger id="frequency">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="once">Once daily</SelectItem>
+                        <SelectItem value="twice">Twice daily</SelectItem>
+                        <SelectItem value="three">Three times daily</SelectItem>
+                        <SelectItem value="asneeded">As needed</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="space-y-2">
