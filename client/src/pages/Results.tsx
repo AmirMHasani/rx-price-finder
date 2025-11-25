@@ -9,6 +9,8 @@ import { getAllPricesForMedication, PriceResult } from "@/data/pricing";
 import { ArrowLeft, MapPin, Phone, Clock, Truck, Car, DollarSign, TrendingDown } from "lucide-react";
 import { MapView } from "@/components/Map";
 import { getMockMedicationId } from "@/services/medicationMappingService";
+import { generatePharmaciesForZip } from "@/services/pharmacyGenerator";
+import { getZipCodeLocation } from "@/services/zipCodeService";
 
 export default function Results() {
   const [, setLocation] = useLocation();
@@ -18,6 +20,11 @@ export default function Results() {
   const [mapReady, setMapReady] = useState(false);
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [markers, setMarkers] = useState<google.maps.marker.AdvancedMarkerElement[]>([]);
+  
+  // Get user's location from ZIP code for map centering
+  const userLocation = useMemo(() => {
+    return getZipCodeLocation(userZip);
+  }, [userZip]);
 
   const params = useMemo(() => new URLSearchParams(searchParams), [searchParams]);
   const medicationName = params.get("medication") || "";
@@ -26,16 +33,11 @@ export default function Results() {
   const form = params.get("form") || "";
   const insuranceId = params.get("insurance") || "";
   const deductibleMet = params.get("deductibleMet") === "true";
-  const frequency = params.get("frequency") || "QD";
-  const daysSupply = parseInt(params.get("daysSupply") || "30");
-  const totalPills = parseInt(params.get("totalPills") || "30");
-  const zip = params.get("zip") || "";
+  const userZip = params.get("zip") || "02108"; // Default to Boston if no ZIP provided
 
   // Map RXCUI to mock medication ID
   const mockMedicationId = useMemo(() => {
-    const id = getMockMedicationId(rxcui, medicationName);
-    console.log('[Results] mockMedicationId:', id, 'for RXCUI:', rxcui, 'medication:', medicationName);
-    return id;
+    return getMockMedicationId(rxcui, medicationName);
   }, [rxcui, medicationName]);
 
   // Create medication object from URL parameters
@@ -49,9 +51,13 @@ export default function Results() {
   const insurance = insurancePlans.find(i => i.id === insuranceId);
 
   useEffect(() => {
-    console.log('[Results] useEffect triggered with:', { medicationName, dosage, form, insuranceId, mockMedicationId, zip });
-    if (medicationName && dosage && form && insuranceId && mockMedicationId) {
-      console.log('[Results] Calling getAllPricesForMedication...');
+    if (medicationName && dosage && form && insuranceId && mockMedicationId && userZip) {
+      // Generate pharmacies dynamically based on user's ZIP code
+      const dynamicPharmacies = generatePharmaciesForZip(userZip, 8);
+      
+      // Get user's location for distance calculation
+      const userLocation = getZipCodeLocation(userZip);
+      
       // Use the mapped mock medication ID for pricing data
       const priceResults = getAllPricesForMedication(
         mockMedicationId,
@@ -59,14 +65,13 @@ export default function Results() {
         form,
         insuranceId,
         deductibleMet,
-        zip
+        userLocation.lat,
+        userLocation.lng,
+        dynamicPharmacies
       );
-      console.log('[Results] Got', priceResults.length, 'results');
       setResults(priceResults);
-    } else {
-      console.log('[Results] Skipping getAllPricesForMedication - missing required params');
     }
-  }, [medicationName, dosage, form, insuranceId, deductibleMet, mockMedicationId, zip]);
+  }, [medicationName, dosage, form, insuranceId, deductibleMet, mockMedicationId, userZip]);
 
   const handleMapReady = (mapInstance: google.maps.Map) => {
     setMap(mapInstance);
@@ -153,7 +158,7 @@ export default function Results() {
               <CardHeader>
                 <CardTitle className="text-2xl">{medicationName}</CardTitle>
                 <CardDescription>
-                  {dosage} {form} • {frequency} • {daysSupply} days ({totalPills} pills) • {insurance?.carrier} - {insurance?.planName}
+                  {dosage} {form} • {insurance?.carrier} - {insurance?.planName}
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -289,7 +294,11 @@ export default function Results() {
                 <CardDescription>Click markers to view details</CardDescription>
               </CardHeader>
               <CardContent>
-                <MapView onMapReady={handleMapReady} />
+                <MapView 
+                  onMapReady={handleMapReady} 
+                  initialCenter={{ lat: userLocation.lat, lng: userLocation.lng }}
+                  initialZoom={12}
+                />
               </CardContent>
             </Card>
           </div>

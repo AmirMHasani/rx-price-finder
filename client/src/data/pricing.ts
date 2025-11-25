@@ -1,6 +1,5 @@
 import { medications } from "./medications";
 import { pharmacies } from "./pharmacies";
-import { generatePharmaciesForZip, Pharmacy } from "@/utils/zipCodeUtils";
 import { insurancePlans } from "./insurance";
 
 export interface MedicationTier {
@@ -30,6 +29,46 @@ export const medicationTiers: MedicationTier[] = [
   { medicationId: "med-8", tier: 3 }, // Advair - non-preferred brand
   { medicationId: "med-9", tier: 3 }, // Xarelto - specialty
   { medicationId: "med-10", tier: 4 }, // Lyrica - specialty
+  { medicationId: "med-11", tier: 1 }, // Lisinopril - generic
+  { medicationId: "med-12", tier: 2 }, // Rosuvastatin - preferred generic
+  { medicationId: "med-13", tier: 1 }, // Esomeprazole - generic
+  { medicationId: "med-14", tier: 2 }, // Clopidogrel - preferred generic
+  { medicationId: "med-15", tier: 2 }, // Montelukast - preferred generic
+  { medicationId: "med-16", tier: 1 }, // Valsartan - generic
+  { medicationId: "med-17", tier: 4 }, // Insulin Glargine - specialty
+  { medicationId: "med-18", tier: 1 }, // Losartan - generic
+  { medicationId: "med-19", tier: 1 }, // Gabapentin - generic
+  { medicationId: "med-20", tier: 2 }, // Fluoxetine - preferred generic
+  { medicationId: "med-21", tier: 1 }, // Simvastatin - generic
+  { medicationId: "med-22", tier: 1 }, // Metoprolol - generic
+  { medicationId: "med-23", tier: 1 }, // Hydrochlorothiazide - generic
+  { medicationId: "med-24", tier: 2 }, // Escitalopram - preferred generic
+  { medicationId: "med-25", tier: 3 }, // Duloxetine - non-preferred brand
+  { medicationId: "med-26", tier: 3 }, // Celecoxib - non-preferred brand
+  { medicationId: "med-27", tier: 1 }, // Cetirizine - generic
+  { medicationId: "med-28", tier: 1 }, // Amoxicillin - generic
+  { medicationId: "med-29", tier: 1 }, // Azithromycin - generic
+  { medicationId: "med-30", tier: 2 }, // Zolpidem - preferred generic
+  { medicationId: "med-31", tier: 1 }, // Albuterol Sulfate - generic
+  { medicationId: "med-32", tier: 1 }, // Warfarin - generic
+  { medicationId: "med-33", tier: 3 }, // Apixaban - specialty
+  { medicationId: "med-34", tier: 3 }, // Sitagliptin - non-preferred brand
+  { medicationId: "med-35", tier: 3 }, // Tiotropium - non-preferred brand
+  { medicationId: "med-36", tier: 2 }, // Sildenafil - preferred generic
+  { medicationId: "med-37", tier: 3 }, // Tadalafil - non-preferred brand
+  { medicationId: "med-38", tier: 4 }, // Aripiprazole - specialty
+  { medicationId: "med-39", tier: 3 }, // Quetiapine - non-preferred brand
+  { medicationId: "med-40", tier: 2 }, // Ezetimibe - preferred generic
+  { medicationId: "med-41", tier: 2 }, // Olmesartan - preferred generic
+  { medicationId: "med-42", tier: 1 }, // Tamsulosin - generic
+  { medicationId: "med-43", tier: 4 }, // Pregabalin - specialty
+  { medicationId: "med-44", tier: 2 }, // Fenofibrate - preferred generic
+  { medicationId: "med-45", tier: 2 }, // Pioglitazone - preferred generic
+  { medicationId: "med-46", tier: 1 }, // Phenytoin - generic
+  { medicationId: "med-47", tier: 1 }, // Furosemide - generic
+  { medicationId: "med-48", tier: 3 }, // Conjugated Estrogens - non-preferred brand
+  { medicationId: "med-49", tier: 2 }, // Venlafaxine - preferred generic
+  { medicationId: "med-50", tier: 2 }, // Bupropion - preferred generic
 ];
 
 // Generate realistic pharmacy pricing
@@ -56,16 +95,16 @@ medications.forEach(med => {
         
         // Base medication costs (before pharmacy markup)
         const medBaseCosts: Record<string, number> = {
-          "med-1": 25,
-          "med-2": 15,
-          "med-3": 12,
-          "med-4": 18,
-          "med-5": 30,
-          "med-6": 20,
-          "med-7": 55,
-          "med-8": 280,
-          "med-9": 450,
-          "med-10": 380
+          "med-1": 25, "med-2": 15, "med-3": 12, "med-4": 18, "med-5": 30,
+          "med-6": 20, "med-7": 55, "med-8": 280, "med-9": 450, "med-10": 380,
+          "med-11": 10, "med-12": 30, "med-13": 25, "med-14": 35, "med-15": 40,
+          "med-16": 22, "med-17": 320, "med-18": 15, "med-19": 18, "med-20": 20,
+          "med-21": 12, "med-22": 14, "med-23": 8, "med-24": 28, "med-25": 65,
+          "med-26": 75, "med-27": 10, "med-28": 12, "med-29": 18, "med-30": 25,
+          "med-31": 16, "med-32": 15, "med-33": 480, "med-34": 420, "med-35": 380,
+          "med-36": 45, "med-37": 55, "med-38": 520, "med-39": 180, "med-40": 35,
+          "med-41": 28, "med-42": 22, "med-43": 380, "med-44": 40, "med-45": 38,
+          "med-46": 20, "med-47": 10, "med-48": 85, "med-49": 45, "med-50": 35
         };
         
         const baseCost = medBaseCosts[med.id] || 50;
@@ -112,7 +151,7 @@ export function calculateInsurancePrice(
   medicationId: string,
   dosage: string,
   form: string,
-  pharmacy: Pharmacy,
+  pharmacy: { id: string; chain: string; name: string; address: string; city: string; state: string; zip: string; phone: string; lat: number; lng: number; hours: string; hasDelivery: boolean; hasDriveThru: boolean },
   insuranceId: string,
   deductibleMet: boolean = false
 ): PriceResult | null {
@@ -120,22 +159,53 @@ export function calculateInsurancePrice(
   const insurance = insurancePlans.find(i => i.id === insuranceId);
   const tier = medicationTiers.find(t => t.medicationId === medicationId);
   
-  // Match pharmacy by name (for dynamic pharmacies) or by ID (for static pharmacies)
-  const staticPharmacy = pharmacies.find(p => p.id === pharmacy.id || p.name === pharmacy.name);
-  const pharmacyIdForPricing = staticPharmacy?.id || pharmacy.id;
-  
-  // Flexible form matching: check if the requested form contains the pricing form
-  // e.g., "Delayed Release Oral Capsule" contains "Capsule"
-  const pricing = pharmacyPrices.find(
-    p => p.medicationId === medicationId && 
-         p.pharmacyId === pharmacyIdForPricing && 
-         p.dosage === dosage && 
-         (p.form === form || form.includes(p.form) || p.form.includes(form))
-  );
-
-  if (!medication || !pharmacy || !insurance || !tier || !pricing) {
+  if (!medication || !pharmacy || !insurance || !tier) {
     return null;
   }
+  
+  // Calculate price based on pharmacy chain (not specific pharmacy ID)
+  // This allows dynamic pharmacies to work with pricing data
+  const chainMultiplier: Record<string, number> = {
+    "CVS": 1.15,
+    "Walgreens": 1.12,
+    "Rite Aid": 1.18,
+    "Stop & Shop": 0.95,
+    "Target": 0.98,
+    "Walmart": 0.85,
+    "Costco": 0.80
+  };
+  
+  const medBaseCosts: Record<string, number> = {
+    "med-1": 25,
+    "med-2": 15,
+    "med-3": 12,
+    "med-4": 18,
+    "med-5": 30,
+    "med-6": 20,
+    "med-7": 55,
+    "med-8": 280,
+    "med-9": 450,
+    "med-10": 380
+  };
+  
+  const baseCost = medBaseCosts[medicationId] || 50;
+  const multiplier = chainMultiplier[pharmacy.chain] || 1.0;
+  
+  // Add some variation for different dosages
+  const dosageVariation = 1 + (Math.random() * 0.3 - 0.15);
+  
+  const basePrice = Math.round(baseCost * multiplier * dosageVariation);
+  const cashPrice = Math.round(basePrice * 1.3);
+  
+  const pricing = {
+    pharmacyId: pharmacy.id,
+    medicationId,
+    dosage,
+    form,
+    quantity: 30,
+    cashPrice,
+    basePrice
+  };
 
   // Determine copay based on tier
   let copay = 0;
@@ -191,14 +261,14 @@ export function getAllPricesForMedication(
   form: string,
   insuranceId: string,
   deductibleMet: boolean = false,
-  zip?: string
+  userLat?: number,
+  userLng?: number,
+  dynamicPharmacies?: Array<{ id: string; chain: string; name: string; address: string; city: string; state: string; zip: string; phone: string; lat: number; lng: number; hours: string; hasDelivery: boolean; hasDriveThru: boolean }>
 ): PriceResult[] {
-  console.log('[getAllPricesForMedication] Called with ZIP:', zip);
   const results: PriceResult[] = [];
-
-  // TEMPORARY: Use hardcoded pharmacies for all ZIPs until dynamic generation is fixed
-  const pharmaciesToUse = pharmacies;
-  console.log('[getAllPricesForMedication] Using', pharmaciesToUse.length, 'pharmacies for medication:', medicationId);
+  
+  // Use dynamic pharmacies if provided, otherwise use default hardcoded pharmacies
+  const pharmaciesToUse = dynamicPharmacies || pharmacies;
 
   pharmaciesToUse.forEach(pharmacy => {
     const result = calculateInsurancePrice(
@@ -211,6 +281,15 @@ export function getAllPricesForMedication(
     );
 
     if (result) {
+      // Calculate distance if user location provided
+      if (userLat !== undefined && userLng !== undefined) {
+        result.distance = calculateDistance(
+          userLat,
+          userLng,
+          pharmacy.lat,
+          pharmacy.lng
+        );
+      }
       results.push(result);
     }
   });

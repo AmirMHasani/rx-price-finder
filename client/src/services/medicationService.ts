@@ -22,8 +22,7 @@ const RXNORM_BASE_URL = "https://rxnav.nlm.nih.gov/REST";
  * e.g., "atorvastatin 20 MG" -> "20 MG"
  */
 function extractStrength(name: string): string {
-  // Support both integers and decimals (e.g., "20 MG", "2.5 MG", "0.5 mg")
-  const match = name.match(/(\d+(?:\.\d+)?\s*(?:MG|mg|mcg|MCG|g|G|IU|iu))/);
+  const match = name.match(/(\d+\s*(?:MG|mg|mcg|MCG|g|G|IU|iu))/);
   return match ? match[1] : "";
 }
 

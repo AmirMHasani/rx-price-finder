@@ -7,7 +7,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 
 import { insurancePlans, insuranceCarriers } from "@/data/insurance";
-import { FREQUENCIES, calculateTotalPills } from "@/data/frequencies";
 import { Search as SearchIcon, Pill, Shield, Loader2, X } from "lucide-react";
 import { useLocation } from "wouter";
 import { searchMedications, getMedicationDetails, type MedicationResult } from "@/services/medicationService";
@@ -26,12 +25,6 @@ export default function SearchWithAPI() {
   const [deductibleMet, setDeductibleMet] = useState(false);
   const [userZip, setUserZip] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
-  
-  // Prescription details
-  const [frequency, setFrequency] = useState("QD"); // Default to once daily
-  const [customPillsPerDay, setCustomPillsPerDay] = useState("1");
-  const [daysSupply, setDaysSupply] = useState("30"); // Default to 30 days
-  const [customDays, setCustomDays] = useState("30"); // Custom days input
   
   // Dosage and form options
   const [availableDosages, setAvailableDosages] = useState<string[]>([]);
@@ -107,21 +100,33 @@ export default function SearchWithAPI() {
     setSelectedDosage("");
     setSelectedForm("");
     
-    // Use pre-loaded dosages/forms if available (from common medications)
+    // Extract dosage from medication name
+    // e.g., "omeprazole 20 MG Delayed Release Oral Capsule" -> "20mg"
+    // Support decimal dosages like "Eliquis 2.5mg" or "hydrochlorothiazide 12.5mg"
+    const strengthMatch = medication.name.match(/(\d+\.?\d*)\s*(MG|mg|mcg|MCG|g|G|IU|iu)/i);
+    const extractedDosage = strengthMatch ? strengthMatch[1] + strengthMatch[2].toLowerCase() : null;
+    
+    // Use pre-loaded dosages from database if available
+    let dosages: string[] = [];
     if (medication.dosages && medication.dosages.length > 0) {
-      setAvailableDosages(medication.dosages);
-      setSelectedDosage(medication.dosages[0]);
-    } else {
-      // Extract dosage from medication name if not pre-loaded
-      // e.g., "omeprazole 20 MG Delayed Release Oral Capsule" -> "20mg"
-      const strengthMatch = medication.name.match(/(\d+)\s*(MG|mg|mcg|MCG|g|G|IU|iu)/i);
-      if (strengthMatch) {
-        const dosage = strengthMatch[1] + strengthMatch[2].toLowerCase();
-        setAvailableDosages([dosage]);
-        setSelectedDosage(dosage);
-      } else {
-        setAvailableDosages([]);
+      dosages = [...medication.dosages];
+    }
+    
+    // If we extracted a dosage from the name, ensure it's in the list
+    if (extractedDosage) {
+      if (!dosages.includes(extractedDosage)) {
+        // Add extracted dosage to the beginning of the list
+        dosages = [extractedDosage, ...dosages];
       }
+      setAvailableDosages(dosages);
+      setSelectedDosage(extractedDosage);
+    } else if (dosages.length > 0) {
+      // No extracted dosage, but we have database dosages
+      setAvailableDosages(dosages);
+      setSelectedDosage(dosages[0]);
+    } else {
+      // No dosages at all
+      setAvailableDosages([]);
     }
     
     if (medication.forms && medication.forms.length > 0) {
@@ -184,13 +189,6 @@ export default function SearchWithAPI() {
       return;
     }
 
-    const actualDays = daysSupply === 'custom' ? parseInt(customDays) : parseInt(daysSupply);
-    const totalPills = calculateTotalPills(
-      frequency,
-      actualDays,
-      frequency === 'PRN' ? parseInt(customPillsPerDay) : undefined
-    );
-
     const params = new URLSearchParams({
       medication: selectedMedication.name,
       rxcui: selectedMedication.rxcui,
@@ -199,10 +197,6 @@ export default function SearchWithAPI() {
       insurance: selectedInsurance,
       deductibleMet: deductibleMet.toString(),
       zip: userZip,
-      frequency: frequency,
-      daysSupply: actualDays.toString(),
-      customPillsPerDay: customPillsPerDay,
-      totalPills: totalPills.toString(),
     });
 
     setLocation(`/results?${params.toString()}`);
@@ -232,16 +226,16 @@ export default function SearchWithAPI() {
         <div className="max-w-4xl mx-auto">
           {/* Hero Section */}
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-foreground mb-4">
+            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4 leading-tight">
               Find the Best Price for Your Prescription
             </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
               Compare real insurance-based prices at local pharmacies. Enter your medication and insurance information below to see which pharmacy offers the lowest price with your coverage.
             </p>
           </div>
 
           {/* Search Form */}
-          <Card className="shadow-lg">
+          <Card className="shadow-xl border-2">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <SearchIcon className="w-5 h-5" />
@@ -403,89 +397,6 @@ export default function SearchWithAPI() {
               </div>
 
               {/* Insurance Section */}
-              {/* Prescription Details */}
-              <div className="space-y-4 pt-4 border-t border-border">
-                <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                  <Pill className="w-4 h-4" />
-                  Prescription Details
-                </div>
-
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="frequency">Frequency</Label>
-                    <Select value={frequency} onValueChange={setFrequency}>
-                      <SelectTrigger id="frequency">
-                        <SelectValue placeholder="Select frequency" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {FREQUENCIES.map(freq => (
-                          <SelectItem key={freq.code} value={freq.code}>
-                            {freq.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs text-muted-foreground">
-                      {FREQUENCIES.find(f => f.code === frequency)?.description}
-                    </p>
-                  </div>
-
-                  {frequency === 'PRN' && (
-                    <div className="space-y-2">
-                      <Label htmlFor="customPills">Pills Per Day (PRN)</Label>
-                      <Input
-                        id="customPills"
-                        type="number"
-                        min="1"
-                        max="20"
-                        value={customPillsPerDay}
-                        onChange={(e) => setCustomPillsPerDay(e.target.value)}
-                        placeholder="e.g., 2"
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        Average pills taken per day
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="space-y-2">
-                    <Label htmlFor="daysSupply">Days Supply</Label>
-                    <Select value={daysSupply} onValueChange={setDaysSupply}>
-                      <SelectTrigger id="daysSupply">
-                        <SelectValue placeholder="Select days supply" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="7">7 days</SelectItem>
-                        <SelectItem value="14">14 days</SelectItem>
-                        <SelectItem value="21">21 days</SelectItem>
-                        <SelectItem value="30">30 days</SelectItem>
-                        <SelectItem value="60">60 days</SelectItem>
-                        <SelectItem value="90">90 days</SelectItem>
-                        <SelectItem value="custom">Custom</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {daysSupply === 'custom' && (
-                      <Input
-                        id="customDays"
-                        type="number"
-                        min="1"
-                        max="365"
-                        value={customDays}
-                        onChange={(e) => setCustomDays(e.target.value)}
-                        placeholder="Enter number of days (1-365)"
-                      />
-                    )}
-                    <p className="text-xs text-muted-foreground">
-                      Total pills: {calculateTotalPills(
-                        frequency,
-                        daysSupply === 'custom' ? parseInt(customDays) : parseInt(daysSupply),
-                        frequency === 'PRN' ? parseInt(customPillsPerDay) : undefined
-                      )}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
               <div className="space-y-4 pt-4 border-t border-border">
                 <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
                   <Shield className="w-4 h-4" />
@@ -556,43 +467,49 @@ export default function SearchWithAPI() {
 
           {/* Features Section */}
           <div className="grid md:grid-cols-3 gap-6 mt-12">
-            <Card>
+            <Card className="hover:shadow-lg transition-shadow duration-300 border-2">
               <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Pill className="w-5 h-5 text-primary" />
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-3">
+                  <Pill className="w-6 h-6 text-blue-600" />
+                </div>
+                <CardTitle className="text-lg">
                   Real Medication Data
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground leading-relaxed">
                   Search from the official FDA and RxNorm medication databases with real drug names and information.
                 </p>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="hover:shadow-lg transition-shadow duration-300 border-2">
               <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Shield className="w-5 h-5 text-primary" />
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-3">
+                  <Shield className="w-6 h-6 text-green-600" />
+                </div>
+                <CardTitle className="text-lg">
                   Insurance-Based Pricing
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground leading-relaxed">
                   See actual prices based on your specific insurance plan, not just cash prices.
                 </p>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="hover:shadow-lg transition-shadow duration-300 border-2">
               <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <SearchIcon className="w-5 h-5 text-primary" />
+                <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center mb-3">
+                  <SearchIcon className="w-6 h-6 text-amber-600" />
+                </div>
+                <CardTitle className="text-lg">
                   Save Money
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground leading-relaxed">
                   Find the lowest price for your prescription and save hundreds of dollars per year.
                 </p>
               </CardContent>
