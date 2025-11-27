@@ -468,3 +468,25 @@
 - [ ] Test all design improvements
 - [ ] Verify mobile responsiveness
 - [ ] Save checkpoint and push to GitHub
+
+
+## IMPLEMENT SPANISH TRANSLATION (Nov 27, 2025)
+
+### Phase 1: SearchWithAPI Translation
+- [ ] Import useLanguage hook in SearchWithAPI.tsx
+- [ ] Replace all hardcoded English text with t() function calls
+- [ ] Test homepage switches to Spanish
+
+### Phase 2: Results Page Translation
+- [ ] Import useLanguage hook in Results.tsx
+- [ ] Replace all hardcoded English text with t() function calls
+- [ ] Test results page switches to Spanish
+
+### Phase 3: Testing
+- [ ] Test language toggle on homepage
+- [ ] Test language toggle on results page
+- [ ] Verify all text translates correctly
+
+### Phase 4: Save and Push
+- [ ] Save checkpoint
+- [ ] Push to GitHub

@@ -9,12 +9,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { insurancePlans, insuranceCarriers } from "@/data/insurance";
 import { Search as SearchIcon, Pill, Shield, Loader2, X } from "lucide-react";
 import { LanguageToggle } from "@/components/LanguageToggle";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useLocation } from "wouter";
 import { searchMedications, getMedicationDetails, type MedicationResult } from "@/services/medicationService";
 import { searchCommonMedications } from "@/data/commonMedications";
 import { getSearchHistory, clearSearchHistory, formatTimeAgo, type SearchHistoryItem } from "@/services/searchHistory";
 
 export default function SearchWithAPI() {
+  const { t } = useLanguage();
   const [, setLocation] = useLocation();
   const [medicationResults, setMedicationResults] = useState<MedicationResult[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -245,10 +247,10 @@ export default function SearchWithAPI() {
           {/* Hero Section */}
           <div className="text-center mb-12">
             <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4 leading-tight">
-              Find the Best Price for Your Prescription
+              {t('home.hero.title')}
             </h2>
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              Compare real insurance-based prices at local pharmacies. Enter your medication and insurance information below to see which pharmacy offers the lowest price with your coverage.
+              {t('home.hero.subtitle')}
             </p>
           </div>
 
@@ -257,10 +259,10 @@ export default function SearchWithAPI() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <SearchIcon className="w-5 h-5" />
-                Search for Your Medication
+                {t('home.form.searchTitle')}
               </CardTitle>
               <CardDescription>
-                Search from real medication database and insurance information to compare prices
+                {t('home.form.searchSubtitle')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -268,17 +270,17 @@ export default function SearchWithAPI() {
               <div className="space-y-4">
                 <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
                   <Pill className="w-4 h-4" />
-                  Medication Information
+                  {t('common.medicationInfo')}
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="medication-search">Medication Name</Label>
+                    <Label htmlFor="medication-search">{t('home.form.medicationName')}</Label>
                     <div className="space-y-2 relative">
                       <div className="relative">
                         <Input
                           id="medication-search"
-                          placeholder="Search medications (e.g., lipitor, metformin)..."
+                          placeholder={t('home.form.medicationPlaceholder')}
                           value={searchInput}
                           onChange={(e) => setSearchInput(e.target.value)}
                           onFocus={() => {
@@ -349,11 +351,11 @@ export default function SearchWithAPI() {
 
                   {/* Dosage Dropdown */}
                   <div className="space-y-2">
-                    <Label htmlFor="dosage">Dosage</Label>
+                    <Label htmlFor="dosage">{t('home.form.dosage')}</Label>
                     {availableDosages.length > 0 && !loadingDetails ? (
                       <Select value={selectedDosage} onValueChange={setSelectedDosage} disabled={!selectedMedication}>
                         <SelectTrigger id="dosage">
-                          <SelectValue placeholder="Select dosage" />
+                          <SelectValue placeholder={t('home.form.dosagePlaceholder')} />
                         </SelectTrigger>
                         <SelectContent>
                           {availableDosages.map((dosage) => (
@@ -366,7 +368,7 @@ export default function SearchWithAPI() {
                     ) : (
                       <Input
                         id="dosage"
-                        placeholder="e.g., 500mg, 10mg"
+                        placeholder={t('home.form.dosagePlaceholder')}
                         value={selectedDosage}
                         onChange={(e) => setSelectedDosage(e.target.value)}
                         disabled={!selectedMedication || loadingDetails}
@@ -376,11 +378,11 @@ export default function SearchWithAPI() {
 
                   {/* Form Dropdown */}
                   <div className="space-y-2">
-                    <Label htmlFor="form">Form</Label>
+                    <Label htmlFor="form">{t('home.form.form')}</Label>
                     {availableForms.length > 0 && !loadingDetails ? (
                       <Select value={selectedForm} onValueChange={setSelectedForm} disabled={!selectedMedication}>
                         <SelectTrigger id="form">
-                          <SelectValue placeholder="Select form" />
+                          <SelectValue placeholder={t('home.form.formPlaceholder')} />
                         </SelectTrigger>
                         <SelectContent>
                           {availableForms.map((form) => (
@@ -393,7 +395,7 @@ export default function SearchWithAPI() {
                     ) : (
                       <Input
                         id="form"
-                        placeholder="e.g., Tablet, Capsule"
+                        placeholder={t('home.form.formPlaceholder')}
                         value={selectedForm}
                         onChange={(e) => setSelectedForm(e.target.value)}
                         disabled={!selectedMedication || loadingDetails}
@@ -403,25 +405,25 @@ export default function SearchWithAPI() {
 
                   {/* Frequency Dropdown */}
                   <div className="space-y-2">
-                    <Label htmlFor="frequency">How often do you take it?</Label>
+                    <Label htmlFor="frequency">{t('home.form.frequency')}</Label>
                     <Select value={selectedFrequency} onValueChange={setSelectedFrequency}>
                       <SelectTrigger id="frequency">
                         <SelectValue placeholder="Select frequency" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="1">Once daily</SelectItem>
-                        <SelectItem value="2">Twice daily</SelectItem>
-                        <SelectItem value="3">Three times daily</SelectItem>
-                        <SelectItem value="4">Four times daily</SelectItem>
-                        <SelectItem value="0.5">Every other day</SelectItem>
-                        <SelectItem value="0.14">Once weekly</SelectItem>
+                        <SelectItem value="1">{t('home.frequency.onceDaily')}</SelectItem>
+                        <SelectItem value="2">{t('home.frequency.twiceDaily')}</SelectItem>
+                        <SelectItem value="3">{t('home.frequency.threeTimes')}</SelectItem>
+                        <SelectItem value="4">{t('home.frequency.fourTimes')}</SelectItem>
+                        <SelectItem value="0.5">{t('home.frequency.everyOtherDay')}</SelectItem>
+                        <SelectItem value="0.14">{t('home.frequency.onceWeekly')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   {/* Quantity Input */}
                   <div className="space-y-2">
-                    <Label htmlFor="quantity">How many days supply?</Label>
+                    <Label htmlFor="quantity">{t('home.form.quantity')}</Label>
                     <Input
                       id="quantity"
                       type="number"
@@ -432,12 +434,12 @@ export default function SearchWithAPI() {
                       max="365"
                     />
                     <p className="text-xs text-muted-foreground">
-                      Total pills: {Math.ceil(parseFloat(selectedFrequency) * parseFloat(quantity) || 0)}
+                      {t('home.form.totalPills')} {Math.ceil(parseFloat(selectedFrequency) * parseFloat(quantity) || 0)}
                     </p>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="zip">Your ZIP Code (Optional)</Label>
+                    <Label htmlFor="zip">{t('home.form.zipCode')}</Label>
                     <Input
                       id="zip"
                       placeholder="02108"
@@ -453,15 +455,15 @@ export default function SearchWithAPI() {
               <div className="space-y-4 pt-4 border-t border-border">
                 <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
                   <Shield className="w-4 h-4" />
-                  Insurance Information
+                  {t('common.insuranceInfo')}
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="insurance">Insurance Plan</Label>
+                    <Label htmlFor="insurance">{t('home.form.insurancePlan')}</Label>
                     <Select value={selectedInsurance} onValueChange={setSelectedInsurance}>
                       <SelectTrigger id="insurance">
-                        <SelectValue placeholder="Select your insurance plan" />
+                        <SelectValue placeholder={t('home.form.insurancePlaceholder')} />
                       </SelectTrigger>
                       <SelectContent>
                         {insuranceCarriers.map(carrier => {
@@ -488,7 +490,7 @@ export default function SearchWithAPI() {
                       htmlFor="deductible"
                       className="text-sm font-normal cursor-pointer"
                     >
-                      I have already met my deductible this year
+                      {t('home.form.deductibleMet')}
                     </Label>
                   </div>
                 </div>
@@ -513,7 +515,7 @@ export default function SearchWithAPI() {
                 className="w-full h-12 text-base"
               >
                 <SearchIcon className="w-4 h-4 mr-2" />
-                Compare Prices
+                {t('home.form.compareButton')}
               </Button>
             </CardContent>
           </Card>
@@ -523,7 +525,7 @@ export default function SearchWithAPI() {
         {searchHistory.length > 0 && (
           <div className="mt-12">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold">Recent Searches</h2>
+              <h2 className="text-xl font-bold">{t('home.recentSearches.title')}</h2>
               <Button
                 variant="ghost"
                 size="sm"
@@ -532,7 +534,7 @@ export default function SearchWithAPI() {
                   setSearchHistory([]);
                 }}
               >
-                Clear History
+                {t('home.recentSearches.clearHistory')}
               </Button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -553,7 +555,7 @@ export default function SearchWithAPI() {
                     <CardContent>
                       <div className="space-y-1 text-sm text-muted-foreground">
                         <div>{insurance?.carrier} - {insurance?.planName}</div>
-                        <div>ZIP: {item.zip}</div>
+                        <div>{t('home.recentSearches.zip')} {item.zip}</div>
                         <div className="text-xs">{formatTimeAgo(item.timestamp)}</div>
                       </div>
                     </CardContent>
@@ -572,12 +574,12 @@ export default function SearchWithAPI() {
                 <Pill className="w-6 h-6 text-blue-600" />
               </div>
               <CardTitle className="text-lg">
-                Real Medication Data
+                {t('home.features.realData.title')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Search from the official FDA and RxNorm medication databases with real drug names and information.
+                {t('home.features.realData.description')}
               </p>
             </CardContent>
           </Card>
@@ -588,12 +590,12 @@ export default function SearchWithAPI() {
                 <Shield className="w-6 h-6 text-green-600" />
               </div>
               <CardTitle className="text-lg">
-                Insurance-Based Pricing
+                {t('home.features.insurancePricing.title')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                See actual prices based on your specific insurance plan, not just cash prices.
+                {t('home.features.insurancePricing.description')}
               </p>
             </CardContent>
           </Card>
@@ -604,12 +606,12 @@ export default function SearchWithAPI() {
                 <SearchIcon className="w-6 h-6 text-amber-600" />
               </div>
               <CardTitle className="text-lg">
-                Save Money
+                {t('home.features.saveMoney.title')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Find the lowest price for your prescription and save hundreds of dollars per year.
+                {t('home.features.saveMoney.description')}
               </p>
             </CardContent>
           </Card>

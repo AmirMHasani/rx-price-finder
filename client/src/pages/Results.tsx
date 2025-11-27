@@ -11,11 +11,13 @@ import { MapView } from "@/components/Map";
 import { getMockMedicationId } from "@/services/medicationMappingService";
 import { generatePharmaciesForZip } from "@/services/pharmacyGenerator";
 import { LanguageToggle } from "@/components/LanguageToggle";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { getZipCodeLocation } from "@/services/zipCodeService";
 import { saveSearch } from "@/services/searchHistory";
 import { getMedicationAlternatives, type MedicationAlternative } from "@/services/alternativesService";
 
 export default function Results() {
+  const { t } = useLanguage();
   const [, setLocation] = useLocation();
   const searchParams = useSearch();
   const [results, setResults] = useState<PriceResult[]>([]);
@@ -212,7 +214,7 @@ export default function Results() {
               className="gap-2"
             >
               <ArrowLeft className="w-4 h-4" />
-              New Search
+              {t('results.header.newSearch')}
             </Button>
             <div className="flex items-center gap-4">
               <h1 className="text-2xl font-bold text-foreground">RxPriceFinder</h1>
@@ -228,21 +230,21 @@ export default function Results() {
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                 </svg>
-                Print
+                {t('results.header.print')}
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => {
                   navigator.clipboard.writeText(window.location.href);
-                  alert('Link copied to clipboard!');
+                  alert(t('results.header.linkCopied'));
                 }}
                 className="gap-2"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                 </svg>
-                Share
+                {t('results.header.share')}
               </Button>
             </div>
           </div>
@@ -275,10 +277,10 @@ export default function Results() {
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
-                    Consider These Alternatives
+                    {t('results.alternatives.title')}
                   </CardTitle>
                   <CardDescription>
-                    You may save money by switching to a generic or therapeutic alternative
+                    {t('results.alternatives.subtitle')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -290,7 +292,7 @@ export default function Results() {
                             <div className="flex items-center gap-2 mb-1">
                               <h4 className="font-semibold text-foreground">{alt.name}</h4>
                               <Badge variant={alt.type === "generic" ? "default" : "outline"} className="text-xs">
-                                {alt.type === "generic" ? "Generic" : "Alternative"}
+                                {alt.type === "generic" ? t('results.alternatives.generic') : t('results.alternatives.alternative')}
                               </Badge>
                             </div>
                             <p className="text-sm text-muted-foreground">{alt.description}</p>
@@ -298,9 +300,9 @@ export default function Results() {
                           {alt.estimatedSavings && alt.estimatedSavings > 0 && (
                             <div className="text-right ml-4">
                               <div className="text-lg font-bold text-green-600">
-                                Save {alt.estimatedSavings}%
+                                {t('results.alternatives.savePercent').replace('{{percent}}', alt.estimatedSavings.toString())}
                               </div>
-                              <div className="text-xs text-muted-foreground">estimated</div>
+                              <div className="text-xs text-muted-foreground">{t('results.alternatives.estimated')}</div>
                             </div>
                           )}
                         </div>
@@ -327,37 +329,37 @@ export default function Results() {
               return (
                 <Card className="mb-6 bg-gradient-to-r from-blue-50 to-green-50 border-2 border-blue-200">
                   <CardHeader>
-                    <CardTitle className="text-lg">Price Comparison Summary</CardTitle>
+                    <CardTitle className="text-lg">{t('results.priceSummary.title')}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <div>
-                        <div className="text-sm text-muted-foreground">Lowest Price</div>
+                        <div className="text-sm text-muted-foreground">{t('results.priceSummary.lowestPrice')}</div>
                         <div className="text-2xl font-bold text-green-600">${lowestPrice.toFixed(2)}</div>
                       </div>
                       <div>
-                        <div className="text-sm text-muted-foreground">Highest Price</div>
+                        <div className="text-sm text-muted-foreground">{t('results.priceSummary.highestPrice')}</div>
                         <div className="text-2xl font-bold text-red-600">${highestPrice.toFixed(2)}</div>
                       </div>
                       <div>
-                        <div className="text-sm text-muted-foreground">Average Price</div>
+                        <div className="text-sm text-muted-foreground">{t('results.priceSummary.averagePrice')}</div>
                         <div className="text-2xl font-bold text-blue-600">${avgPrice.toFixed(2)}</div>
                       </div>
                       <div>
-                        <div className="text-sm text-muted-foreground">Potential Savings</div>
+                        <div className="text-sm text-muted-foreground">{t('results.priceSummary.potentialSavings')}</div>
                         <div className="text-2xl font-bold text-green-600">${savings.toFixed(2)}</div>
                       </div>
                     </div>
                     <div className="mt-4 p-4 bg-white rounded-lg border border-blue-200">
-                      <div className="text-sm font-medium text-blue-900 mb-2">💡 Recommended Pharmacy</div>
+                      <div className="text-sm font-medium text-blue-900 mb-2">{t('results.priceSummary.recommended')}</div>
                       <div className="flex items-center justify-between">
                         <div>
                           <div className="font-bold">{recommended.pharmacy.name}</div>
-                          <div className="text-sm text-muted-foreground">{recommended.distance.toFixed(1)} miles away</div>
+                          <div className="text-sm text-muted-foreground">{t('results.priceSummary.milesAway').replace('{{distance}}', recommended.distance.toFixed(1))}</div>
                         </div>
                         <div className="text-right">
                           <div className="text-2xl font-bold text-green-600">${recommended.insurancePrice.toFixed(2)}</div>
-                          <div className="text-sm text-muted-foreground">Best value</div>
+                          <div className="text-sm text-muted-foreground">{t('results.priceSummary.bestValue')}</div>
                         </div>
                       </div>
                     </div>
@@ -373,22 +375,22 @@ export default function Results() {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {/* Distance Filter */}
                     <div>
-                      <label className="text-sm font-medium mb-2 block">Distance</label>
+                      <label className="text-sm font-medium mb-2 block">{t('results.filters.distance')}</label>
                       <select 
                         className="w-full p-2 border rounded-md"
                         value={distanceFilter}
                         onChange={(e) => setDistanceFilter(e.target.value)}
                       >
-                        <option value="all">All distances</option>
-                        <option value="1">Within 1 mile</option>
-                        <option value="5">Within 5 miles</option>
-                        <option value="10">Within 10 miles</option>
+                        <option value="all">{t('results.filters.allDistances')}</option>
+                        <option value="1">{t('results.filters.lessThan1Mile')}</option>
+                        <option value="5">{t('results.filters.lessThan5Miles')}</option>
+                        <option value="10">{t('results.filters.lessThan10Miles')}</option>
                       </select>
                     </div>
                     
                     {/* Feature Filters */}
                     <div>
-                      <label className="text-sm font-medium mb-2 block">Features</label>
+                      <label className="text-sm font-medium mb-2 block">{t('results.filters.features')}</label>
                       <div className="space-y-2">
                         <label className="flex items-center gap-2 text-sm">
                           <input 
@@ -402,7 +404,7 @@ export default function Results() {
                               }
                             }}
                           />
-                          24-Hour
+                          {t('results.filters.feature24Hour')}
                         </label>
                         <label className="flex items-center gap-2 text-sm">
                           <input 
@@ -416,7 +418,7 @@ export default function Results() {
                               }
                             }}
                           />
-                          Drive-Thru
+                          {t('results.filters.featureDriveThru')}
                         </label>
                         <label className="flex items-center gap-2 text-sm">
                           <input 
@@ -430,22 +432,22 @@ export default function Results() {
                               }
                             }}
                           />
-                          Delivery
+                          {t('results.filters.featureDelivery')}
                         </label>
                       </div>
                     </div>
                     
                     {/* Sort Options */}
                     <div>
-                      <label className="text-sm font-medium mb-2 block">Sort by</label>
+                      <label className="text-sm font-medium mb-2 block">{t('results.filters.sortBy')}</label>
                       <select 
                         className="w-full p-2 border rounded-md"
                         value={sortBy}
                         onChange={(e) => setSortBy(e.target.value)}
                       >
-                        <option value="price">Price: Low to High</option>
-                        <option value="distance">Distance: Near to Far</option>
-                        <option value="savings">Savings: High to Low</option>
+                        <option value="price">{t('results.filters.sortPriceLowHigh')}</option>
+                        <option value="distance">{t('results.filters.sortDistanceNearFar')}</option>
+                        <option value="savings">{t('results.filters.sortSavingsHighLow')}</option>
                       </select>
                     </div>
                   </div>
@@ -457,11 +459,11 @@ export default function Results() {
             {filteredAndSortedResults.length > 0 ? (
               <div className="space-y-4">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold">Found {filteredAndSortedResults.length} pharmacies</h2>
+                  <h2 className="text-xl font-bold">{t('results.pharmacies.found').replace('{{count}}', filteredAndSortedResults.length.toString())}</h2>
                   {potentialSavings > 0 && (
                     <Badge className="bg-green-100 text-green-800">
                       <TrendingDown className="w-4 h-4 mr-2" />
-                      Save up to ${potentialSavings}
+                      {t('results.pharmacies.saveUpTo').replace('{{amount}}', potentialSavings.toFixed(0))}
                     </Badge>
                   )}
                 </div>
@@ -489,7 +491,7 @@ export default function Results() {
                               </div>
                             </div>
                             {index === 0 && (
-                              <Badge className="bg-green-100 text-green-800">Lowest Price</Badge>
+                              <Badge className="bg-green-100 text-green-800">{t('results.pharmacies.lowestPrice')}</Badge>
                             )}
                           </div>
 
@@ -506,13 +508,13 @@ export default function Results() {
                               {result.pharmacy.hasDelivery && (
                                 <Badge variant="outline" className="text-xs">
                                   <Truck className="w-3 h-3 mr-1" />
-                                  Delivery
+                                  {t('results.filters.featureDelivery')}
                                 </Badge>
                               )}
                               {result.pharmacy.hasDriveThru && (
                                 <Badge variant="outline" className="text-xs">
                                   <Car className="w-3 h-3 mr-1" />
-                                  Drive-Thru
+                                  {t('results.filters.featureDriveThru')}
                                 </Badge>
                               )}
                             </div>

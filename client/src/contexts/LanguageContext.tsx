@@ -8,7 +8,8 @@ type Language = "en" | "es";
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: TranslationKeys;
+  t: (key: string) => string;
+  translations: TranslationKeys;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -32,10 +33,26 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     window.location.reload();
   };
 
-  const t = translations[language];
+  const currentTranslations = translations[language];
+  
+  // Translation function that accepts dot notation keys
+  const t = (key: string): string => {
+    const keys = key.split('.');
+    let value: any = currentTranslations;
+    
+    for (const k of keys) {
+      value = value?.[k];
+      if (value === undefined) {
+        console.warn(`Translation key not found: ${key}`);
+        return key;
+      }
+    }
+    
+    return typeof value === 'string' ? value : key;
+  };
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={{ language, setLanguage, t, translations: currentTranslations }}>
       {children}
     </LanguageContext.Provider>
   );
