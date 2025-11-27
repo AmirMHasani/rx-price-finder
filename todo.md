@@ -421,3 +421,27 @@
 - [x] Verify Spanish names are filtered (Glucophage, Kombiglyze, Jentadueto all English)
 - [x] Translation system ready for future use
 - [x] Ready to save checkpoint
+
+
+## ADD LANGUAGE TOGGLE UI (Nov 27, 2025)
+
+### Phase 1: Create Language Toggle Component ✅
+- [x] Create LanguageToggle.tsx component
+- [x] Add Languages icon from lucide-react
+- [x] Implement toggle button with current language indicator (EN/ES)
+- [x] Style the toggle button with outline variant
+
+### Phase 2: Add to Headers ✅
+- [x] Add language toggle to SearchWithAPI homepage header (top right)
+- [x] Add language toggle to Results page header (center, next to title)
+- [x] Toggle is visible and accessible on both pages
+
+### Phase 3: Test Language Switching
+- [ ] Test switching from English to Spanish
+- [ ] Test switching from Spanish to English
+- [ ] Verify page reloads with correct language
+- [ ] Verify all UI text translates correctly
+
+### Phase 4: Save and Deploy
+- [ ] Save checkpoint
+- [ ] Push to GitHub

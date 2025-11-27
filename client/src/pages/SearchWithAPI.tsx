@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 import { insurancePlans, insuranceCarriers } from "@/data/insurance";
 import { Search as SearchIcon, Pill, Shield, Loader2, X } from "lucide-react";
+import { LanguageToggle } from "@/components/LanguageToggle";
 import { useLocation } from "wouter";
 import { searchMedications, getMedicationDetails, type MedicationResult } from "@/services/medicationService";
 import { searchCommonMedications } from "@/data/commonMedications";
@@ -223,14 +224,17 @@ export default function SearchWithAPI() {
       {/* Header */}
       <header className="bg-white border-b border-border shadow-sm">
         <div className="container py-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-              <Pill className="w-6 h-6 text-primary-foreground" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                <Pill className="w-6 h-6 text-primary-foreground" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-foreground">RxPriceFinder</h1>
+                <p className="text-sm text-muted-foreground">Compare prescription prices with your insurance</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">RxPriceFinder</h1>
-              <p className="text-sm text-muted-foreground">Compare prescription prices with your insurance</p>
-            </div>
+            <LanguageToggle />
           </div>
         </div>
       </header>

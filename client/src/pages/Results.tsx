@@ -10,6 +10,7 @@ import { ArrowLeft, MapPin, Phone, Clock, Truck, Car, DollarSign, TrendingDown }
 import { MapView } from "@/components/Map";
 import { getMockMedicationId } from "@/services/medicationMappingService";
 import { generatePharmaciesForZip } from "@/services/pharmacyGenerator";
+import { LanguageToggle } from "@/components/LanguageToggle";
 import { getZipCodeLocation } from "@/services/zipCodeService";
 import { saveSearch } from "@/services/searchHistory";
 import { getMedicationAlternatives, type MedicationAlternative } from "@/services/alternativesService";
@@ -213,7 +214,10 @@ export default function Results() {
               <ArrowLeft className="w-4 h-4" />
               New Search
             </Button>
-            <h1 className="text-2xl font-bold text-foreground">RxPriceFinder</h1>
+            <div className="flex items-center gap-4">
+              <h1 className="text-2xl font-bold text-foreground">RxPriceFinder</h1>
+              <LanguageToggle />
+            </div>
             <div className="flex gap-2">
               <Button
                 variant="outline"
