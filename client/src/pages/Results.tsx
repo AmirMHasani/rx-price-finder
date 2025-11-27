@@ -201,7 +201,7 @@ export default function Results() {
   const potentialSavings = highestPrice - lowestPrice;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-indigo-50 to-purple-50">
       {/* Header */}
       <header className="bg-white border-b border-border shadow-sm">
         <div className="container py-6">
