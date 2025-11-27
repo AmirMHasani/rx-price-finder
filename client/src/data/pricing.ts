@@ -1,6 +1,7 @@
 import { medications } from "./medications";
 import { pharmacies } from "./pharmacies";
 import { insurancePlans } from "./insurance";
+import { getCouponPrice } from "../services/couponService";
 
 export interface MedicationTier {
   medicationId: string;
@@ -145,6 +146,11 @@ export interface PriceResult {
   totalCost: number;
   savings: number;
   distance?: number; // miles from user location
+  couponPrice?: number; // Price with coupon
+  couponProvider?: string; // e.g., "GoodRx", "SingleCare"
+  couponSavings?: number; // Savings vs cash price
+  bestPrice?: number; // Lower of insurance or coupon price
+  bestOption?: "insurance" | "coupon"; // Which is cheaper
 }
 
 export function calculateInsurancePrice(
@@ -290,6 +296,22 @@ export function getAllPricesForMedication(
           pharmacy.lng
         );
       }
+      
+      // Add coupon pricing
+      const pharmacyChain = pharmacy.name.split(" ")[0]; // Extract chain name (e.g., "CVS" from "CVS Pharmacy #123")
+      const coupon = getCouponPrice(medicationId, pharmacyChain, result.cashPrice);
+      
+      if (coupon) {
+        result.couponPrice = coupon.price;
+        result.couponProvider = coupon.provider;
+        result.couponSavings = coupon.savings;
+        result.bestPrice = Math.min(result.insurancePrice, coupon.price);
+        result.bestOption = coupon.price < result.insurancePrice ? "coupon" : "insurance";
+      } else {
+        result.bestPrice = result.insurancePrice;
+        result.bestOption = "insurance";
+      }
+      
       results.push(result);
     }
   });

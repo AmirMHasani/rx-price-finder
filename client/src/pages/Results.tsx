@@ -12,12 +12,14 @@ import { getMockMedicationId } from "@/services/medicationMappingService";
 import { generatePharmaciesForZip } from "@/services/pharmacyGenerator";
 import { getZipCodeLocation } from "@/services/zipCodeService";
 import { saveSearch } from "@/services/searchHistory";
+import { getMedicationAlternatives, type MedicationAlternative } from "@/services/alternativesService";
 
 export default function Results() {
   const [, setLocation] = useLocation();
   const searchParams = useSearch();
   const [results, setResults] = useState<PriceResult[]>([]);
   const [selectedPharmacy, setSelectedPharmacy] = useState<string | null>(null);
+  const [alternatives, setAlternatives] = useState<MedicationAlternative[]>([]);
   const [mapReady, setMapReady] = useState(false);
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [markers, setMarkers] = useState<google.maps.marker.AdvancedMarkerElement[]>([]);
@@ -95,6 +97,14 @@ export default function Results() {
       });
     }
   }, [medicationName, dosage, form, insuranceId, userZip]);
+
+  // Load medication alternatives
+  useEffect(() => {
+    if (mockMedicationId) {
+      const alts = getMedicationAlternatives(mockMedicationId);
+      setAlternatives(alts);
+    }
+  }, [mockMedicationId]);
 
   // Filter and sort results
   const filteredAndSortedResults = useMemo(() => {
@@ -251,6 +261,50 @@ export default function Results() {
                 </CardDescription>
               </CardHeader>
             </Card>
+
+            {/* Medication Alternatives */}
+            {alternatives.length > 0 && (
+              <Card className="mb-8 bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    Consider These Alternatives
+                  </CardTitle>
+                  <CardDescription>
+                    You may save money by switching to a generic or therapeutic alternative
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {alternatives.map((alt, index) => (
+                      <div key={index} className="bg-white p-4 rounded-lg border border-purple-200">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h4 className="font-semibold text-foreground">{alt.name}</h4>
+                              <Badge variant={alt.type === "generic" ? "default" : "outline"} className="text-xs">
+                                {alt.type === "generic" ? "Generic" : "Alternative"}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground">{alt.description}</p>
+                          </div>
+                          {alt.estimatedSavings && alt.estimatedSavings > 0 && (
+                            <div className="text-right ml-4">
+                              <div className="text-lg font-bold text-green-600">
+                                Save {alt.estimatedSavings}%
+                              </div>
+                              <div className="text-xs text-muted-foreground">estimated</div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Price Comparison Summary */}
             {filteredAndSortedResults.length > 0 && (() => {
@@ -457,30 +511,76 @@ export default function Results() {
                                 </Badge>
                               )}
                             </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="mt-3 w-full"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(result.pharmacy.address)}`;
+                                window.open(mapsUrl, '_blank');
+                              }}
+                            >
+                              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                              </svg>
+                              Get Directions
+                            </Button>
                           </div>
                         </div>
 
                         {/* Pricing Info */}
-                        <div className="bg-blue-50 p-4 rounded-lg">
-                          <div className="space-y-3">
-                            <div>
-                              <p className="text-sm text-muted-foreground">Cash Price</p>
-                              <p className="text-2xl font-bold text-foreground line-through opacity-50">
-                                ${result.cashPrice}
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-sm text-muted-foreground">With {insurance?.carrier}</p>
-                              <p className="text-3xl font-bold text-primary">
-                                ${result.insurancePrice}
-                              </p>
-                            </div>
-                            <div className="pt-2 border-t border-border">
-                              <p className="text-sm font-semibold text-green-700">
-                                Save ${result.savings}
-                              </p>
+                        <div className="space-y-3">
+                          {/* Insurance Pricing */}
+                          <div className="bg-blue-50 p-4 rounded-lg">
+                            <div className="space-y-3">
+                              <div>
+                                <p className="text-sm text-muted-foreground">Cash Price</p>
+                                <p className="text-2xl font-bold text-foreground line-through opacity-50">
+                                  ${result.cashPrice}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-sm text-muted-foreground">With {insurance?.carrier}</p>
+                                <p className="text-3xl font-bold text-primary">
+                                  ${result.insurancePrice}
+                                </p>
+                              </div>
+                              <div className="pt-2 border-t border-border">
+                                <p className="text-sm font-semibold text-green-700">
+                                  Save ${result.savings}
+                                </p>
+                              </div>
                             </div>
                           </div>
+                          
+                          {/* Coupon Pricing */}
+                          {result.couponPrice && (
+                            <div className={`p-4 rounded-lg ${
+                              result.bestOption === "coupon" 
+                                ? "bg-green-50 border-2 border-green-300" 
+                                : "bg-gray-50"
+                            }`}>
+                              <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <p className="text-sm font-medium text-muted-foreground">
+                                    With {result.couponProvider} Coupon
+                                  </p>
+                                  {result.bestOption === "coupon" && (
+                                    <Badge className="bg-green-600 text-white text-xs">
+                                      Best Price!
+                                    </Badge>
+                                  )}
+                                </div>
+                                <p className="text-2xl font-bold text-foreground">
+                                  ${result.couponPrice}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  Save ${result.couponSavings} vs cash price
+                                </p>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </CardContent>

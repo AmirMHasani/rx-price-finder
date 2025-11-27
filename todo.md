@@ -321,3 +321,45 @@
 1. **Property name mismatch**: Changed `finalPrice` to `insurancePrice` in price summary, sorting, and recommended pharmacy display
 2. **Price summary not showing**: Fixed null checks and property references
 3. **Sorting not working**: Updated to use `insurancePrice` and `cashPrice` properties
+
+
+## NEXT-STEP FEATURES (Nov 27, 2025)
+
+### Phase 1: Pharmacy Directions ✅
+- [x] Add "Get Directions" button to each pharmacy card
+- [x] Generate Google Maps URL with pharmacy address
+- [x] Open directions in new tab
+- [x] Add icon for visual clarity
+
+### Phase 2: Coupon Integration ✅
+- [x] Create coupon service for mock coupon data
+- [x] Add coupon pricing to pharmacy results
+- [x] Display coupon savings alongside insurance savings
+- [x] Show "Best Price!" badge when coupon is cheaper than insurance
+- [x] Highlight coupon cards with green border when they're the best option
+
+### Phase 3: Medication Alternatives ✅
+- [x] Create alternatives service
+- [x] Add generic equivalent display
+- [x] Add therapeutic alternatives section
+- [x] Display potential savings from switching (estimated %)
+- [x] Show badge for generic vs therapeutic alternatives
+- [x] Purple/pink gradient card design for visual distinction
+
+
+
+### Phase 4: Testing \u2705
+- [x] Test all features end-to-end with Lyrica medication
+- [x] Verify Get Directions button appears on pharmacy cards
+- [x] Verify coupon pricing displays correctly with "Best Price!" badge
+- [x] Verify alternatives show for Lyrica (Gabapentin with 85% savings)
+- [x] Test filters and sorting work correctly
+- [x] All features working perfectly
+
+**Test Results:**
+- ✅ Medication Alternatives: Purple/pink gradient card showing Gabapentin as alternative with 85% estimated savings
+- ✅ Price Comparison Summary: Shows lowest ($261), highest ($480), average ($370.88), and potential savings ($219)
+- ✅ Coupon Integration: Green-bordered cards with "Best Price!" badge when coupon beats insurance (e.g., RxSaver $168.54 vs insurance $261)
+- ✅ Get Directions: Red button on each pharmacy card
+- ✅ Filters: Distance, 24-Hour, Drive-Thru, Delivery all working
+- ✅ Sorting: Price Low to High working correctly
