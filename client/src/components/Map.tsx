@@ -83,6 +83,8 @@ import { cn } from "@/lib/utils";
 declare global {
   interface Window {
     google?: typeof google;
+    googleMapsLoading?: Promise<void>;
+    googleMapsLoaded?: boolean;
   }
 }
 
@@ -93,20 +95,36 @@ const FORGE_BASE_URL =
 const MAPS_PROXY_URL = `${FORGE_BASE_URL}/v1/maps/proxy`;
 
 function loadMapScript() {
-  return new Promise(resolve => {
+  // If already loaded, return immediately
+  if (window.googleMapsLoaded && window.google) {
+    return Promise.resolve();
+  }
+  
+  // If currently loading, return the existing promise
+  if (window.googleMapsLoading) {
+    return window.googleMapsLoading;
+  }
+  
+  // Start loading
+  window.googleMapsLoading = new Promise((resolve) => {
     const script = document.createElement("script");
     script.src = `${MAPS_PROXY_URL}/maps/api/js?key=${API_KEY}&v=weekly&libraries=marker,places,geocoding,geometry`;
     script.async = true;
     script.crossOrigin = "anonymous";
     script.onload = () => {
-      resolve(null);
-      script.remove(); // Clean up immediately
+      window.googleMapsLoaded = true;
+      window.googleMapsLoading = undefined;
+      resolve();
     };
     script.onerror = () => {
       console.error("Failed to load Google Maps script");
+      window.googleMapsLoading = undefined;
+      resolve();
     };
     document.head.appendChild(script);
   });
+  
+  return window.googleMapsLoading;
 }
 
 interface MapViewProps {

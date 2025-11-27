@@ -254,3 +254,37 @@
 - [x] Frequency and quantity fields working correctly
 - [x] Total pills calculation working
 - [x] All features verified and functional
+
+
+## FIX GOOGLE MAPS ERROR (Nov 25, 2025)
+- [x] Fix "Google Maps JavaScript API included multiple times" error on results page
+- [x] Ensure Maps API is only loaded once with global flag
+- [x] Prevent Map component from causing re-renders
+
+
+## HIGH-IMPACT FEATURES (Nov 25, 2025)
+
+### Phase 1: Pharmacy Filtering & Sorting ✅
+- [x] Add distance filter (< 1 mile, < 5 miles, < 10 miles, All)
+- [x] Add feature filters (24-hour, Drive-thru, Delivery)
+- [x] Add sort options (Price: Low to High, Distance: Near to Far, Savings: High to Low)
+- [x] Update Results page with filter/sort UI
+
+### Phase 2: Price Comparison Summary Card ✅
+- [x] Create summary card component
+- [x] Calculate lowest vs highest price
+- [x] Calculate total potential savings
+- [x] Calculate average price
+- [x] Show recommended pharmacy
+
+### Phase 3: Print/Share Results ✅
+- [x] Add print button with print-friendly styling
+- [x] Add share URL button (copy to clipboard)
+- [x] Note: PDF download not implemented (would require external library)
+
+### Phase 4: Recent Searches History ✅
+- [x] Create localStorage service for search history
+- [x] Save searches on results page load
+- [x] Display recent searches on homepage
+- [x] Add click to re-run search
+- [x] Add clear history button

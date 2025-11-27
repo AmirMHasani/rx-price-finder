@@ -560,55 +560,56 @@ export default function SearchWithAPI() {
           </div>
         )}
 
-        {/* Features Section */}
-        <div className="grid md:grid-cols-3 gap-6 mt-12">
+        {/* Feature Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16">
           <Card className="hover:shadow-lg transition-shadow duration-300 border-2">
-            <CardHeader>
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-3">
-                <Pill className="w-6 h-6 text-blue-600" />
-              </div>
-              <CardTitle className="text-lg">
-                Real Medication Data
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Search from the official FDA and RxNorm medication databases with real drug names and information.
-              </p>
-            </CardContent>
-          </Card>
+              <CardHeader>
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-3">
+                  <Pill className="w-6 h-6 text-blue-600" />
+                </div>
+                <CardTitle className="text-lg">
+                  Real Medication Data
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Search from the official FDA and RxNorm medication databases with real drug names and information.
+                </p>
+              </CardContent>
+            </Card>
 
-          <Card className="hover:shadow-lg transition-shadow duration-300 border-2">
-            <CardHeader>
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-3">
-                <Shield className="w-6 h-6 text-green-600" />
-              </div>
-              <CardTitle className="text-lg">
-                Insurance-Based Pricing
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                See actual prices based on your specific insurance plan, not just cash prices.
-              </p>
-            </CardContent>
-          </Card>
+            <Card className="hover:shadow-lg transition-shadow duration-300 border-2">
+              <CardHeader>
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-3">
+                  <Shield className="w-6 h-6 text-green-600" />
+                </div>
+                <CardTitle className="text-lg">
+                  Insurance-Based Pricing
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  See actual prices based on your specific insurance plan, not just cash prices.
+                </p>
+              </CardContent>
+            </Card>
 
-          <Card className="hover:shadow-lg transition-shadow duration-300 border-2">
-            <CardHeader>
-              <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center mb-3">
-                <SearchIcon className="w-6 h-6 text-amber-600" />
-              </div>
-              <CardTitle className="text-lg">
-                Save Money
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Find the lowest price for your prescription and save hundreds of dollars per year.
-              </p>
-            </CardContent>
-          </Card>
+            <Card className="hover:shadow-lg transition-shadow duration-300 border-2">
+              <CardHeader>
+                <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center mb-3">
+                  <SearchIcon className="w-6 h-6 text-amber-600" />
+                </div>
+                <CardTitle className="text-lg">
+                  Save Money
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Find the lowest price for your prescription and save hundreds of dollars per year.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </main>
     </div>
