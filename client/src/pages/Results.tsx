@@ -119,12 +119,12 @@ export default function Results() {
     // Apply sorting
     filtered.sort((a, b) => {
       if (sortBy === "price") {
-        return a.finalPrice - b.finalPrice;
+        return a.insurancePrice - b.insurancePrice;
       } else if (sortBy === "distance") {
         return a.distance - b.distance;
       } else if (sortBy === "savings") {
-        const savingsA = a.retailPrice - a.finalPrice;
-        const savingsB = b.retailPrice - b.finalPrice;
+        const savingsA = a.cashPrice - a.insurancePrice;
+        const savingsB = b.cashPrice - b.insurancePrice;
         return savingsB - savingsA; // Higher savings first
       }
       return 0;
@@ -254,12 +254,16 @@ export default function Results() {
 
             {/* Price Comparison Summary */}
             {filteredAndSortedResults.length > 0 && (() => {
-              const prices = filteredAndSortedResults.map(r => r.finalPrice);
+              const prices = filteredAndSortedResults.map(r => r.insurancePrice).filter(p => p != null && !isNaN(p));
+              if (prices.length === 0) return null;
+              
               const lowestPrice = Math.min(...prices);
               const highestPrice = Math.max(...prices);
               const avgPrice = prices.reduce((a, b) => a + b, 0) / prices.length;
               const savings = highestPrice - lowestPrice;
               const recommended = filteredAndSortedResults[0]; // Best overall (already sorted)
+              
+              if (!recommended || recommended.insurancePrice == null) return null;
               
               return (
                 <Card className="mb-6 bg-gradient-to-r from-blue-50 to-green-50 border-2 border-blue-200">
@@ -293,7 +297,7 @@ export default function Results() {
                           <div className="text-sm text-muted-foreground">{recommended.distance.toFixed(1)} miles away</div>
                         </div>
                         <div className="text-right">
-                          <div className="text-2xl font-bold text-green-600">${recommended.finalPrice.toFixed(2)}</div>
+                          <div className="text-2xl font-bold text-green-600">${recommended.insurancePrice.toFixed(2)}</div>
                           <div className="text-sm text-muted-foreground">Best value</div>
                         </div>
                       </div>
