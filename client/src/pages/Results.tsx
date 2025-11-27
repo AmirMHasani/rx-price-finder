@@ -25,11 +25,13 @@ export default function Results() {
   const [markers, setMarkers] = useState<google.maps.marker.AdvancedMarkerElement[]>([]);
   
   // Filter and sort state
+
   const [distanceFilter, setDistanceFilter] = useState<string>("all");
   const [featureFilters, setFeatureFilters] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<string>("price");
 
   const params = useMemo(() => new URLSearchParams(searchParams), [searchParams]);
+  const userZip = params.get("zip") || "02108"; // Default to Boston if no ZIP provided
   const medicationName = params.get("medication") || "";
   const rxcui = params.get("rxcui") || "";
   const dosage = params.get("dosage") || "";
@@ -39,7 +41,6 @@ export default function Results() {
   const totalPills = parseInt(params.get("totalPills") || "30");
   const insuranceId = params.get("insurance") || "";
   const deductibleMet = params.get("deductibleMet") === "true";
-  const userZip = params.get("zip") || "02108"; // Default to Boston if no ZIP provided
   
   // Get user's location from ZIP code for map centering
   const userLocation = useMemo(() => {
