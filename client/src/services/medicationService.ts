@@ -169,6 +169,7 @@ export async function searchMedications(searchTerm: string): Promise<MedicationR
   try {
     console.log(`Searching for: ${searchTerm}`);
     
+    // Add language filter to ensure only English drug names are returned
     const response = await fetch(
       `${RXNORM_BASE_URL}/drugs.json?name=${encodeURIComponent(searchTerm)}`
     );
@@ -206,6 +207,22 @@ export async function searchMedications(searchTerm: string): Promise<MedicationR
       for (const prop of group.conceptProperties) {
         const name = prop.name;
         const rxcui = prop.rxcui;
+
+        // Skip Spanish drug names (they often contain specific Spanish words)
+        const spanishIndicators = [
+          ' de ', ' del ', ' la ', ' el ', ' los ', ' las ',
+          'comprimido', 'cápsula', 'tableta', 'jarabe', 'solución',
+          'inyectable', 'suspensión', 'crema', 'pomada'
+        ];
+        const nameLower = name.toLowerCase();
+        const hasSpanishIndicator = spanishIndicators.some(indicator => 
+          nameLower.includes(indicator)
+        );
+        
+        if (hasSpanishIndicator) {
+          console.log(`Skipping Spanish drug name: ${name}`);
+          continue;
+        }
 
         // Skip if we've already seen this medication
         const nameKey = name.toLowerCase();
