@@ -1,31 +1,47 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import NotFound from "@/pages/NotFound";
-import TestPlaces from "@/pages/TestPlaces";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
-import SearchWithAPI from "./pages/SearchWithAPI";
-import Results from "./pages/Results";
-import Auth from "./pages/Auth";
-import Dashboard from "./pages/Dashboard";
-import TabsTest from "./pages/TabsTest";
+import { Spinner } from "./components/ui/spinner";
+
+// Lazy load route components for code splitting
+const SearchWithAPI = lazy(() => import("./pages/SearchWithAPI"));
+const Results = lazy(() => import("./pages/Results"));
+const Auth = lazy(() => import("./pages/Auth"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const TestPlaces = lazy(() => import("./pages/TestPlaces"));
+const TabsTest = lazy(() => import("./pages/TabsTest"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+
+// Loading fallback component
+function LoadingFallback() {
+  return (
+    <div className="flex items-center justify-center min-h-screen">
+      <Spinner className="w-8 h-8" />
+    </div>
+  );
+}
+
 function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
-    <Switch>
-      <Route path={"/"} component={SearchWithAPI} />
-      <Route path="/auth" component={Auth} />
-      <Route path="/dashboard" component={Dashboard} />
-      <Route path="/results" component={Results} />
-      <Route path="/test-places" component={TestPlaces} />
-      <Route path="/tabs-test" component={TabsTest} />
-      <Route path="/404" component={NotFound} />
-      {/* Final fallback route */}
-      <Route component={NotFound} />
-    </Switch>
+    <Suspense fallback={<LoadingFallback />}>
+      <Switch>
+        <Route path={"/"} component={SearchWithAPI} />
+        <Route path="/auth" component={Auth} />
+        <Route path="/dashboard" component={Dashboard} />
+        <Route path="/results" component={Results} />
+        <Route path="/test-places" component={TestPlaces} />
+        <Route path="/tabs-test" component={TabsTest} />
+        <Route path="/404" component={NotFound} />
+        {/* Final fallback route */}
+        <Route component={NotFound} />
+      </Switch>
+    </Suspense>
   );
 }
 
