@@ -168,14 +168,19 @@ export default function Results() {
 
     results.forEach((result, index) => {
       const position = { lat: result.pharmacy.lat, lng: result.pharmacy.lng };
+      const isSelected = selectedPharmacy === result.pharmacy.id;
+      const isLowestPrice = index === 0;
       
       // Create custom marker content
       const markerContent = document.createElement("div");
-      markerContent.className = "relative";
+      markerContent.className = "relative cursor-pointer";
       
       const priceLabel = document.createElement("div");
-      priceLabel.className = index === 0 
+      // Green for selected, gold for lowest price (if not selected), blue for others
+      priceLabel.className = isSelected
         ? "bg-green-600 text-white px-3 py-1.5 rounded-full font-bold text-sm shadow-lg border-2 border-white"
+        : isLowestPrice
+        ? "bg-amber-500 text-white px-3 py-1.5 rounded-full font-bold text-sm shadow-lg border-2 border-white"
         : "bg-blue-600 text-white px-3 py-1.5 rounded-full font-bold text-sm shadow-lg border-2 border-white";
       priceLabel.textContent = `$${result.insurancePrice}`;
       
@@ -190,6 +195,11 @@ export default function Results() {
 
       marker.addListener("click", () => {
         setSelectedPharmacy(result.pharmacy.id);
+        // Scroll to pharmacy card
+        const pharmacyCard = document.getElementById(`pharmacy-${result.pharmacy.id}`);
+        if (pharmacyCard) {
+          pharmacyCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
       });
 
       newMarkers.push(marker);
@@ -198,7 +208,7 @@ export default function Results() {
 
     setMarkers(newMarkers);
     map.fitBounds(bounds);
-  }, [mapReady, map, results]);
+  }, [mapReady, map, results, selectedPharmacy]);
 
   const lowestPrice = results.length > 0 ? Math.min(...results.map(r => r.insurancePrice)) : 0;
   const highestPrice = results.length > 0 ? Math.max(...results.map(r => r.insurancePrice)) : 0;
@@ -473,9 +483,10 @@ export default function Results() {
                 {filteredAndSortedResults.map((result, index) => (
                   <Card
                     key={result.pharmacy.id}
+                    id={`pharmacy-${result.pharmacy.id}`}
                     className={`cursor-pointer transition-all ${
                       selectedPharmacy === result.pharmacy.id
-                        ? "ring-2 ring-primary"
+                        ? "ring-2 ring-primary shadow-lg"
                         : "hover:shadow-md"
                     }`}
                     onClick={() => setSelectedPharmacy(result.pharmacy.id)}

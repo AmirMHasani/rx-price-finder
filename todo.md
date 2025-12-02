@@ -490,3 +490,14 @@
 ### Phase 4: Save and Push
 - [ ] Save checkpoint
 - [ ] Push to GitHub
+
+
+## MAP & COST PLUS FIXES (Current Session)
+- [ ] Fix map marker coordinates to match actual pharmacy locations (not random)
+- [ ] Add selected pharmacy highlighting (change marker color when pharmacy card is clicked)
+- [ ] Ensure only selected pharmacy shows green marker, not just lowest price pharmacy
+- [ ] Verify Cost Plus API is being called on results page
+- [ ] Check if CostPlusCard component is rendering in sidebar
+- [ ] Confirm real Cost Plus pricing data is displayed (not mock data)
+- [ ] Test map marker positioning with real pharmacy coordinates
+- [ ] Test pharmacy selection interaction with map markers
