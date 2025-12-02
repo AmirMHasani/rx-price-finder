@@ -38,9 +38,18 @@ export function SafetyInfoTab({ medicationName, rxcui }: SafetyInfoTabProps) {
       try {
         setSafetyData(prev => ({ ...prev, loading: true, error: null }));
 
-        // OpenFDA API endpoint for drug labels
-        const searchTerm = encodeURIComponent(medicationName.toLowerCase());
-        const url = `https://api.fda.gov/drug/label.json?search=openfda.generic_name:"${searchTerm}"+OR+openfda.brand_name:"${searchTerm}"&limit=1`;
+        // Extract drug name from full medication string (e.g., "atorvastatin 20 MG Oral Tablet [Lipitor]" -> "atorvastatin" and "Lipitor")
+        const brandMatch = medicationName.match(/\[([^\]]+)\]/);
+        const brandName = brandMatch ? brandMatch[1] : '';
+        const genericName = medicationName.split(' ')[0]; // First word is usually the generic name
+        
+        // Try brand name first, then generic name
+        let url = '';
+        if (brandName) {
+          url = `https://api.fda.gov/drug/label.json?search=openfda.brand_name:"${encodeURIComponent(brandName)}"&limit=1`;
+        } else {
+          url = `https://api.fda.gov/drug/label.json?search=openfda.generic_name:"${encodeURIComponent(genericName)}"&limit=1`;
+        }
 
         const response = await fetch(url);
         
