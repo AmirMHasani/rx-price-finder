@@ -878,3 +878,10 @@
 - [x] Fix sorting to use best price for "Price: Low to High"
 - [x] Test with multiple medications to verify price variations work
 - [x] Push fixes to GitHub
+
+
+## Phase 23: Fix React Key Warning and Markdown Rendering (Dec 2, 2025)
+- [x] Add key prop to Card components in Results.tsx map function
+- [x] Import Streamdown component for Markdown rendering
+- [x] Replace plain text rendering with Streamdown in SafetyInfoTab
+- [x] All Markdown asterisks now render as bold text

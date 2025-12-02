@@ -676,6 +676,7 @@ export default function Results() {
 
                 {filteredAndSortedResults.slice(0, showAllPharmacies ? filteredAndSortedResults.length : 5).map((result, index) => (
                   <Card
+                    key={result.pharmacy.id}
                     id={`pharmacy-${result.pharmacy.id}`}
                     className={`cursor-pointer transition-all duration-300 border-2 ${
                       selectedPharmacy === result.pharmacy.id
