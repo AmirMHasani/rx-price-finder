@@ -1122,3 +1122,14 @@
 - [x] Fix tab alignment and styling in Results page
 - [x] Ensure consistent spacing and icon alignment across all tabs
 - [x] Test tab appearance on different screen sizes
+
+## Tab Improvements & Medication Images
+
+- [x] Replace emoji icons with lucide-react SVG icons in tabs
+- [x] Implement tab state persistence to localStorage
+- [ ] Add loading skeletons for Safety Info tab content
+- [ ] Add loading skeletons for Alternatives tab content
+- [ ] Add loading skeletons for About Data tab content
+- [x] Add medication images to Results page header
+- [x] Implement image fallback for medications without images
+- [x] Test all improvements across different medications

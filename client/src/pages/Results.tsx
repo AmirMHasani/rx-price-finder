@@ -8,7 +8,7 @@ import { medications } from "@/data/medications";
 import { insurancePlans } from "@/data/insurance";
 import { PriceResult } from "@/data/pricing"; // Old type, keeping for compatibility
 import { PharmacyPricing } from "@/services/realPricingService"; // New type for real pricing
-import { ArrowLeft, MapPin, Phone, Clock, Truck, Car, DollarSign, TrendingDown } from "lucide-react";
+import { ArrowLeft, MapPin, Phone, Clock, Truck, Car, DollarSign, TrendingDown, Shield, Pill, BarChart3 } from "lucide-react";
 import { MapView } from "@/components/Map";
 // Removed: getMockMedicationId - now using real Cost Plus API pricing
 import { generatePharmaciesForZip } from "@/services/pharmacyGenerator";
@@ -26,6 +26,7 @@ import { getPharmacyFeatures, getPharmacyHours } from "@/data/pharmacyFeatures";
 import { SafetyInfoTab } from "@/components/SafetyInfoTab";
 import { AIAlternativesTab } from "@/components/AIAlternativesTab";
 import { fetchRealPricing } from "@/services/realPricingService";
+import { getMedicationImage } from "@/services/medicationImageService";
 
 // Helper function to get clean pharmacy display name for map markers
 const getPharmacyDisplayName = (pharmacy: RealPharmacy): string => {
@@ -71,6 +72,15 @@ export default function Results() {
     console.log('🔵 [MARKER DEBUG] selectedPharmacy state changed to:', selectedPharmacy);
   }, [selectedPharmacy]);
   const [alternatives, setAlternatives] = useState<MedicationAlternative[]>([]);
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    // Load saved tab from localStorage
+    return localStorage.getItem('rx-price-active-tab') || 'prices';
+  });
+
+  // Save active tab to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('rx-price-active-tab', activeTab);
+  }, [activeTab]);
   const [mapReady, setMapReady] = useState(false);
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [markers, setMarkers] = useState<google.maps.marker.AdvancedMarkerElement[]>([]);
@@ -422,30 +432,45 @@ export default function Results() {
         {/* Medication Info Card - Always visible */}
         <Card className="mb-4 sm:mb-8 shadow-sm">
           <CardHeader className="pb-3 sm:pb-4 px-4 sm:px-6 pt-4 sm:pt-6">
-            <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900">{medicationName}</CardTitle>
-            <CardDescription className="text-sm sm:text-base mt-1 sm:mt-2 space-y-0.5 sm:space-y-1">
-              <div className="text-xs sm:text-sm">{dosage} {form} • {frequency === "1" ? "Once daily" : frequency === "2" ? "Twice daily" : frequency === "3" ? "Three times daily" : frequency === "4" ? "Four times daily" : frequency === "0.5" ? "Every other day" : "Once weekly"}</div>
-              <div className="text-xs sm:text-sm">{quantity} days supply ({totalPills} pills)</div>
-              <div className="font-medium text-blue-600 text-xs sm:text-sm">{insurance?.carrier} - {insurance?.planName}</div>
-            </CardDescription>
+            <div className="flex items-start gap-4">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                <img 
+                  src={getMedicationImage(medicationName)} 
+                  alt={medicationName}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    // Fallback to generic image if specific image fails to load
+                    e.currentTarget.src = '/medication-images/generic-pills.jpg';
+                  }}
+                />
+              </div>
+              <div className="flex-1 min-w-0">
+                <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900">{medicationName}</CardTitle>
+                <CardDescription className="text-sm sm:text-base mt-1 sm:mt-2 space-y-0.5 sm:space-y-1">
+                  <div className="text-xs sm:text-sm">{dosage} {form} • {frequency === "1" ? "Once daily" : frequency === "2" ? "Twice daily" : frequency === "3" ? "Three times daily" : frequency === "4" ? "Four times daily" : frequency === "0.5" ? "Every other day" : "Once weekly"}</div>
+                  <div className="text-xs sm:text-sm">{quantity} days supply ({totalPills} pills)</div>
+                  <div className="font-medium text-blue-600 text-xs sm:text-sm">{insurance?.carrier} - {insurance?.planName}</div>
+                </CardDescription>
+              </div>
+            </div>
           </CardHeader>
         </Card>
 
         {/* Main Content with Tabs */}
-        <Tabs defaultValue="prices" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="mb-6 grid grid-cols-4 w-full bg-gray-100 shadow-sm p-1 rounded-xl gap-1">
             <TabsTrigger 
               value="prices" 
               className="flex items-center justify-center gap-2 text-xs sm:text-sm px-2 sm:px-4 py-2 sm:py-3 font-semibold rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=inactive]:bg-transparent data-[state=inactive]:text-gray-700 data-[state=inactive]:hover:bg-white transition-all"
             >
-              <span>💰</span>
+              <DollarSign className="w-4 h-4" />
               <span>Prices</span>
             </TabsTrigger>
             <TabsTrigger 
               value="safety" 
               className="flex items-center justify-center gap-2 text-xs sm:text-sm px-2 sm:px-4 py-2 sm:py-3 font-semibold rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=inactive]:bg-transparent data-[state=inactive]:text-gray-700 data-[state=inactive]:hover:bg-white transition-all"
             >
-              <span>🛡️</span>
+              <Shield className="w-4 h-4" />
               <span className="hidden sm:inline">Safety Info</span>
               <span className="sm:hidden">Safety</span>
             </TabsTrigger>
@@ -453,7 +478,7 @@ export default function Results() {
               value="alternatives" 
               className="flex items-center justify-center gap-2 text-xs sm:text-sm px-2 sm:px-4 py-2 sm:py-3 font-semibold rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=inactive]:bg-transparent data-[state=inactive]:text-gray-700 data-[state=inactive]:hover:bg-white transition-all"
             >
-              <span>💊</span>
+              <Pill className="w-4 h-4" />
               <span className="hidden sm:inline">Alternatives</span>
               <span className="sm:hidden">Alts</span>
             </TabsTrigger>
@@ -461,7 +486,7 @@ export default function Results() {
               value="data" 
               className="flex items-center justify-center gap-2 text-xs sm:text-sm px-2 sm:px-4 py-2 sm:py-3 font-semibold rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=inactive]:bg-transparent data-[state=inactive]:text-gray-700 data-[state=inactive]:hover:bg-white transition-all"
             >
-              <span>📊</span>
+              <BarChart3 className="w-4 h-4" />
               <span className="hidden sm:inline">About Data</span>
               <span className="sm:hidden">Data</span>
             </TabsTrigger>
