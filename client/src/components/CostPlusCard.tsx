@@ -22,15 +22,32 @@ export function CostPlusCard({ medicationName, strength, quantity, averageRetail
       setError(false);
       
       try {
-        const result = await searchCostPlusMedication(medicationName, strength, quantity);
+        console.log('🔍 [COST PLUS] Searching for:', { medicationName, strength, quantity });
+        
+        // Try with full parameters first
+        let result = await searchCostPlusMedication(medicationName, strength, quantity);
+        
+        // If no result, try without strength (get any available strength)
+        if (!result) {
+          console.log('⚠️ [COST PLUS] No exact match, trying without strength...');
+          result = await searchCostPlusMedication(medicationName, undefined, quantity);
+        }
+        
+        // If still no result, try without quantity
+        if (!result) {
+          console.log('⚠️ [COST PLUS] Still no match, trying medication name only...');
+          result = await searchCostPlusMedication(medicationName);
+        }
         
         if (result) {
+          console.log('✅ [COST PLUS] Found:', result.medication_name, result.strength);
           setDrugData(result);
         } else {
+          console.log('❌ [COST PLUS] No results found for', medicationName);
           setError(true);
         }
       } catch (err) {
-        console.error('Error fetching Cost Plus data:', err);
+        console.error('❌ [COST PLUS] Error fetching data:', err);
         setError(true);
       } finally {
         setLoading(false);

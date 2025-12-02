@@ -544,7 +544,12 @@ export default function Results() {
             {filteredAndSortedResults.length > 0 ? (
               <div className="space-y-4">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold">{t('results.pharmacies.found').replace('{{count}}', filteredAndSortedResults.length.toString())}</h2>
+                  <div className="flex items-center gap-3">
+                    <h2 className="text-xl font-bold">{t('results.pharmacies.found').replace('{{count}}', filteredAndSortedResults.length.toString())}</h2>
+                    <Badge className="bg-green-600 text-white">
+                      ✅ Real Locations
+                    </Badge>
+                  </div>
                   {potentialSavings > 0 && (
                     <Badge className="bg-green-100 text-green-800">
                       <TrendingDown className="w-4 h-4 mr-2" />
@@ -740,20 +745,12 @@ export default function Results() {
             {filteredAndSortedResults.length > 0 && (() => {
               const avgPrice = filteredAndSortedResults.reduce((sum, r) => sum + (r.insurancePrice || 0), 0) / filteredAndSortedResults.length;
               return (
-                <div className="relative">
-                  {/* Real Data Badge */}
-                  <div className="absolute -top-2 -right-2 z-10">
-                    <Badge className="bg-green-600 text-white shadow-lg">
-                      ✅ Real API Data
-                    </Badge>
-                  </div>
-                  <CostPlusCard
-                    medicationName={medicationName}
-                    strength={dosage}
-                    quantity={totalPills}
-                    averageRetailPrice={avgPrice}
-                  />
-                </div>
+                <CostPlusCard
+                  medicationName={medicationName}
+                  strength={dosage}
+                  quantity={totalPills}
+                  averageRetailPrice={avgPrice}
+                />
               );
             })()}
 
