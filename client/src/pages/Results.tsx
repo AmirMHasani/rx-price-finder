@@ -45,10 +45,10 @@ export default function Results() {
   // Removed activeTab state - using accordions instead
   
   // Filter and sort state
-
   const [distanceFilter, setDistanceFilter] = useState<string>("all");
   const [featureFilters, setFeatureFilters] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<string>("price");
+  const [showAllPharmacies, setShowAllPharmacies] = useState(false);
 
   const params = useMemo(() => new URLSearchParams(searchParams), [searchParams]);
   const userZip = params.get("zip") || "02108"; // Default to Boston if no ZIP provided
@@ -470,8 +470,8 @@ export default function Results() {
             {/* Filter and Sort Controls */}
             {results.length > 0 && (
               <Card className="mb-6">
-                <CardContent className="pt-6">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <CardContent className="p-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {/* Distance Filter */}
                     <div>
                       <label className="text-sm font-medium mb-2 block">{t('results.filters.distance')}</label>
@@ -635,7 +635,7 @@ export default function Results() {
                   )}
                 </div>
 
-                {filteredAndSortedResults.slice(0, 5).map((result, index) => (
+                {filteredAndSortedResults.slice(0, showAllPharmacies ? filteredAndSortedResults.length : 5).map((result, index) => (
                   <Card
                     key={result.pharmacy.id}
                     id={`pharmacy-${result.pharmacy.id}`}
@@ -649,130 +649,100 @@ export default function Results() {
                       setSelectedPharmacy(result.pharmacy.id);
                     }}
                   >
-                    <CardContent className="py-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* Pharmacy Info */}
-                        <div>
-                          <div className="flex items-start justify-between mb-2">
-                            <div>
-                              <h3 className="font-bold text-lg">{result.pharmacy.name}</h3>
-                              <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
-                                <MapPin className="w-4 h-4" />
-                                {result.pharmacy.address}
+                    <CardContent className="p-4">
+                      <div className="flex flex-col md:flex-row gap-4 items-start">
+                        {/* Left: Pharmacy Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start gap-2 mb-2">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h3 className="font-bold text-base">{result.pharmacy.name}</h3>
+                                {index === 0 && (
+                                  <Badge className="bg-green-100 text-green-800 text-xs">Lowest</Badge>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                <MapPin className="w-3 h-3 flex-shrink-0" />
+                                <span className="truncate">{result.pharmacy.address}</span>
                               </div>
                             </div>
-                            {index === 0 && (
-                              <Badge className="bg-green-100 text-green-800">{t('results.pharmacies.lowestPrice')}</Badge>
-                            )}
                           </div>
 
-                          <div className="space-y-1 text-sm">
-                            {result.pharmacy.phone && (
-                              <div className="flex items-center gap-2">
-                                <Phone className="w-4 h-4 text-muted-foreground" />
-                                <a 
-                                  href={`tel:${result.pharmacy.phone}`}
-                                  className="text-primary hover:underline"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  {result.pharmacy.phone}
-                                </a>
-                              </div>
+                          <div className="flex flex-wrap gap-2 items-center text-xs">
+                            {result.pharmacy.hasDelivery && (
+                              <Badge variant="outline" className="text-xs py-0">
+                                <Truck className="w-3 h-3 mr-1" />
+                                Delivery
+                              </Badge>
                             )}
-                            {result.pharmacy.hours && (
-                              <div className="flex items-center gap-2">
-                                <Clock className="w-4 h-4 text-muted-foreground" />
-                                <span>{result.pharmacy.hours}</span>
-                              </div>
+                            {result.pharmacy.hasDriveThru && (
+                              <Badge variant="outline" className="text-xs py-0">
+                                <Car className="w-3 h-3 mr-1" />
+                                Drive-Thru
+                              </Badge>
                             )}
-                            <div className="flex gap-2 mt-3">
-                              {result.pharmacy.hasDelivery && (
-                                <Badge variant="outline" className="text-xs">
-                                  <Truck className="w-3 h-3 mr-1" />
-                                  {t('results.filters.featureDelivery')}
-                                </Badge>
-                              )}
-                              {result.pharmacy.hasDriveThru && (
-                                <Badge variant="outline" className="text-xs">
-                                  <Car className="w-3 h-3 mr-1" />
-                                  {t('results.filters.featureDriveThru')}
-                                </Badge>
-                              )}
-                            </div>
                             <Button
-                              variant="outline"
+                              variant="ghost"
                               size="sm"
-                              className="mt-3 w-full"
+                              className="h-6 px-2 text-xs"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(result.pharmacy.address)}`;
                                 window.open(mapsUrl, '_blank');
                               }}
                             >
-                              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
                               </svg>
-                              Get Directions
+                              Directions
                             </Button>
                           </div>
                         </div>
 
-                        {/* Pricing Info */}
-                        <div className="space-y-3">
+                        {/* Right: Pricing Info */}
+                        <div className="md:w-64 flex-shrink-0">
                           {/* Insurance Pricing */}
-                          <div className="bg-blue-50 p-4 rounded-lg relative">
-                            {/* Estimated Price Badge */}
-                            <div className="absolute top-2 right-2">
-                              <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-300">
-                                📊 Estimated
+                          <div className="bg-blue-50 p-3 rounded-lg">
+                            <div className="flex items-baseline justify-between mb-1">
+                              <p className="text-xs text-muted-foreground">With Insurance</p>
+                              <Badge variant="outline" className="text-[10px] h-4 px-1 bg-amber-50 text-amber-700 border-amber-300">
+                                Est.
                               </Badge>
                             </div>
-                            <div className="space-y-3">
-                              <div>
-                                <p className="text-sm text-muted-foreground">Cash Price</p>
-                                <p className="text-2xl font-bold text-foreground line-through opacity-50">
-                                  ${result.cashPrice}
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-sm text-muted-foreground">With {insurance?.carrier}</p>
-                                <p className="text-3xl font-bold text-primary">
-                                  ${result.insurancePrice}
-                                </p>
-                              </div>
-                              <div className="pt-2 border-t border-border">
-                                <p className="text-sm font-semibold text-green-700">
-                                  Save ${result.savings}
-                                </p>
-                              </div>
-                            </div>
+                            <p className="text-2xl font-bold text-primary mb-1">
+                              ${result.insurancePrice}
+                            </p>
+                            <p className="text-xs text-muted-foreground line-through">
+                              ${result.cashPrice} cash
+                            </p>
+                            <p className="text-xs font-semibold text-green-700 mt-1">
+                              Save ${result.savings}
+                            </p>
                           </div>
                           
                           {/* Coupon Pricing */}
                           {result.couponPrice && (
-                            <div className={`p-4 rounded-lg ${
+                            <div className={`p-3 rounded-lg mt-2 ${
                               result.bestOption === "coupon" 
-                                ? "bg-green-50 border-2 border-green-300" 
+                                ? "bg-green-50 border border-green-300" 
                                 : "bg-gray-50"
                             }`}>
-                              <div className="space-y-2">
-                                <div className="flex items-center justify-between">
-                                  <p className="text-sm font-medium text-muted-foreground">
-                                    With {result.couponProvider} Coupon
-                                  </p>
-                                  {result.bestOption === "coupon" && (
-                                    <Badge className="bg-green-600 text-white text-xs">
-                                      Best Price!
-                                    </Badge>
-                                  )}
-                                </div>
-                                <p className="text-2xl font-bold text-foreground">
-                                  ${result.couponPrice}
+                              <div className="flex items-center justify-between mb-1">
+                                <p className="text-xs font-medium text-muted-foreground">
+                                  {result.couponProvider}
                                 </p>
-                                <p className="text-xs text-muted-foreground">
-                                  Save ${result.couponSavings} vs cash price
-                                </p>
+                                {result.bestOption === "coupon" && (
+                                  <Badge className="bg-green-600 text-white text-[10px] h-4 px-1">
+                                    Best!
+                                  </Badge>
+                                )}
                               </div>
+                              <p className="text-xl font-bold text-foreground">
+                                ${result.couponPrice}
+                              </p>
+                              <p className="text-[10px] text-muted-foreground">
+                                Save ${result.couponSavings}
+                              </p>
                             </div>
                           )}
                         </div>
@@ -780,6 +750,34 @@ export default function Results() {
                     </CardContent>
                   </Card>
                 ))}
+                
+                {/* Load More Button */}
+                {!showAllPharmacies && filteredAndSortedResults.length > 5 && (
+                  <div className="flex justify-center mt-4">
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowAllPharmacies(true)}
+                      className="w-full md:w-auto"
+                    >
+                      Load More ({filteredAndSortedResults.length - 5} more pharmacies)
+                    </Button>
+                  </div>
+                )}
+                
+                {/* Cost Plus Drugs Card */}
+                {(() => {
+                  const avgPrice = filteredAndSortedResults.reduce((sum, r) => sum + (r.insurancePrice || 0), 0) / filteredAndSortedResults.length;
+                  return (
+                    <div className="mt-4">
+                      <CostPlusCard
+                        medicationName={medicationName}
+                        strength={dosage}
+                        quantity={totalPills}
+                        averageRetailPrice={avgPrice}
+                      />
+                    </div>
+                  );
+                })()}
               </div>
             ) : (
               <Card>
@@ -882,18 +880,7 @@ export default function Results() {
               </CardContent>
             </Card>
 
-            {/* Cost Plus Drugs Card */}
-            {filteredAndSortedResults.length > 0 && (() => {
-              const avgPrice = filteredAndSortedResults.reduce((sum, r) => sum + (r.insurancePrice || 0), 0) / filteredAndSortedResults.length;
-              return (
-                <CostPlusCard
-                  medicationName={medicationName}
-                  strength={dosage}
-                  quantity={totalPills}
-                  averageRetailPrice={avgPrice}
-                />
-              );
-            })()}
+
           </div>
         </div>
           </TabsContent>

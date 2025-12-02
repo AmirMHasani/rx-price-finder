@@ -52,6 +52,34 @@ export function CostPlusCard({ medicationName, strength, quantity, averageRetail
           result = await searchCostPlusMedication(medicationName.toLowerCase());
         }
         
+        // If still no result, try common brand-to-generic mappings
+        if (!result) {
+          console.log('⚠️ [COST PLUS] Trying brand-to-generic mapping...');
+          const brandToGeneric: Record<string, string> = {
+            'lipitor': 'atorvastatin',
+            'crestor': 'rosuvastatin',
+            'zocor': 'simvastatin',
+            'norvasc': 'amlodipine',
+            'glucophage': 'metformin',
+            'synthroid': 'levothyroxine',
+            'zoloft': 'sertraline',
+            'prozac': 'fluoxetine',
+            'lexapro': 'escitalopram',
+            'xanax': 'alprazolam',
+            'ambien': 'zolpidem',
+            'viagra': 'sildenafil',
+            'cialis': 'tadalafil',
+            'prilosec': 'omeprazole',
+            'nexium': 'esomeprazole',
+          };
+          
+          const genericName = brandToGeneric[medicationName.toLowerCase()];
+          if (genericName) {
+            console.log(`⚠️ [COST PLUS] Trying generic equivalent: ${genericName}`);
+            result = await searchCostPlusMedication(genericName, strength, quantity);
+          }
+        }
+        
         if (result) {
           console.log('✅ [COST PLUS] Found:', result.medication_name, result.strength);
           setDrugData(result);
