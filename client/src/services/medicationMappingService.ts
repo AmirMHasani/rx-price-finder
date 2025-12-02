@@ -15,7 +15,7 @@ const medicationMappings: MedicationMapping[] = [
     mockId: "med-1",
     brandNames: ["Lipitor"],
     genericNames: ["atorvastatin"],
-    rxcuis: ["617318", "859424", "617310", "859419", "153165"]
+    rxcuis: ["617318", "859424", "617310", "859419", "153165", "617314"]
   },
   {
     mockId: "med-2",
