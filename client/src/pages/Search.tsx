@@ -9,6 +9,8 @@ import { medications } from "@/data/medications";
 import { insurancePlans, insuranceCarriers } from "@/data/insurance";
 import { Search as SearchIcon, Pill, Shield } from "lucide-react";
 import { useLocation } from "wouter";
+import { UserMenu } from "@/components/UserMenu";
+import { LanguageToggle } from "@/components/LanguageToggle";
 
 export default function Search() {
   const [, setLocation] = useLocation();
@@ -46,13 +48,19 @@ export default function Search() {
       {/* Header */}
       <header className="bg-white border-b border-border shadow-sm">
         <div className="container py-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-              <Pill className="w-6 h-6 text-primary-foreground" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                <Pill className="w-6 h-6 text-primary-foreground" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-foreground">RxPriceFinder</h1>
+                <p className="text-sm text-muted-foreground">Compare prescription prices with your insurance</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">RxPriceFinder</h1>
-              <p className="text-sm text-muted-foreground">Compare prescription prices with your insurance</p>
+            <div className="flex items-center gap-2">
+              <LanguageToggle />
+              <UserMenu />
             </div>
           </div>
         </div>
