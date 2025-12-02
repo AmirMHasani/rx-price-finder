@@ -21,6 +21,7 @@ import { findTherapeuticAlternatives } from "@/services/rxclassApi";
 import { CostPlusCard } from "@/components/CostPlusCard";
 import { PharmacyTransparencyCard } from "@/components/PharmacyTransparencyCard";
 import { DataTransparencyBanner } from "@/components/DataTransparencyBanner";
+import { getPharmacyFeatures, getPharmacyHours } from "@/data/pharmacyFeatures";
 import { SafetyInfoTab } from "@/components/SafetyInfoTab";
 import { AIAlternativesTab } from "@/components/AIAlternativesTab";
 
@@ -136,8 +137,15 @@ export default function Results() {
         phone: rp.phone || '(555) 000-0000',
         hours: rp.openNow ? 'Open now' : 'Hours vary',
         chain: rp.chain || 'independent',
-        hasDelivery: Math.random() > 0.5,
-        hasDriveThru: Math.random() > 0.5,
+        // Get features based on pharmacy chain
+        ...(() => {
+          const features = getPharmacyFeatures(rp.chain || 'independent');
+          return {
+            hasDelivery: features.hasDelivery,
+            hasDriveThru: features.hasDriveThru,
+            hours: getPharmacyHours(features.has24Hour),
+          };
+        })(),
       }));
       
       // Use the mapped mock medication ID for pricing data

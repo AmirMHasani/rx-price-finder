@@ -525,3 +525,11 @@
 - Pharmacy addresses are randomly generated templates (e.g., "469 Oak Street")
 - Coordinates are random offsets from ZIP center, not actual pharmacy locations
 - Need real pharmacy data from Google Places API or similar service
+
+
+## PHASE 5 ENHANCEMENTS: UI Improvements & Feature Additions (Dec 2, 2025)
+- [x] Implement two-tier insurance selection UI (carrier selection → plan selection)
+- [x] Add enhanced pharmacy filters: 24-hour, drive-thru, delivery (using pharmacy chain data)
+- [x] Remove duplicate "Consider These Alternatives" box from results page (already removed)
+- [x] Test all new features end-to-end (15/15 tests passing)
+- [x] Create checkpoint with Phase 5 improvements

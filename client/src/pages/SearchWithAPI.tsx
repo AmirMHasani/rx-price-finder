@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 
-import { INSURANCE_PLAN_OPTIONS, InsurancePlanType } from "@/data/insurancePlans";
+import { InsurancePlanType } from "@/data/insurancePlans";
+import { INSURANCE_CARRIERS, getCarrierPlans } from "@/data/insuranceCarriers";
 import { Search as SearchIcon, Pill, Shield, Loader2, X } from "lucide-react";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -27,6 +28,7 @@ export default function SearchWithAPI() {
   const [selectedForm, setSelectedForm] = useState("");
   const [selectedFrequency, setSelectedFrequency] = useState("1"); // Default to once daily
   const [quantity, setQuantity] = useState("30"); // Default to 30 days
+  const [selectedCarrier, setSelectedCarrier] = useState<string>("");
   const [selectedInsurance, setSelectedInsurance] = useState<InsurancePlanType | "">(""  );
   const [deductibleMet, setDeductibleMet] = useState(false);
   const [userZip, setUserZip] = useState("");
@@ -459,16 +461,49 @@ export default function SearchWithAPI() {
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="insurance">{t('home.form.insurancePlan')}</Label>
-                    <Select value={selectedInsurance} onValueChange={(value) => setSelectedInsurance(value as InsurancePlanType | "")}>
-                      <SelectTrigger id="insurance">
-                        <SelectValue placeholder={t('home.form.insurancePlaceholder')} />
+                  {/* Step 1: Select Insurance Carrier */}
+                  <div className="space-y-2">
+                    <Label htmlFor="carrier">{t('home.form.insuranceCarrier')}</Label>
+                    <Select 
+                      value={selectedCarrier} 
+                      onValueChange={(value) => {
+                        setSelectedCarrier(value);
+                        setSelectedInsurance(""); // Reset plan when carrier changes
+                      }}
+                    >
+                      <SelectTrigger id="carrier">
+                        <SelectValue placeholder={t('home.form.carrierPlaceholder')} />
                       </SelectTrigger>
                       <SelectContent>
-                        {INSURANCE_PLAN_OPTIONS.map(option => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
+                        {INSURANCE_CARRIERS.map(carrier => (
+                          <SelectItem key={carrier.id} value={carrier.id}>
+                            {carrier.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Step 2: Select Specific Plan (only shown after carrier is selected) */}
+                  <div className="space-y-2">
+                    <Label htmlFor="insurance">{t('home.form.insurancePlan')}</Label>
+                    <Select 
+                      value={selectedInsurance} 
+                      onValueChange={(value) => setSelectedInsurance(value as InsurancePlanType | "")}
+                      disabled={!selectedCarrier}
+                    >
+                      <SelectTrigger id="insurance">
+                        <SelectValue placeholder={selectedCarrier ? t('home.form.insurancePlaceholder') : t('home.form.selectCarrierFirst')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {selectedCarrier && INSURANCE_CARRIERS.find(c => c.id === selectedCarrier)?.plans.map(plan => (
+                          <SelectItem key={plan.id} value={plan.id}>
+                            <div>
+                              <div className="font-medium">{plan.name}</div>
+                              {plan.description && (
+                                <div className="text-xs text-muted-foreground">{plan.description}</div>
+                              )}
+                            </div>
                           </SelectItem>
                         ))}
                       </SelectContent>
