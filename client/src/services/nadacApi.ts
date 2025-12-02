@@ -47,7 +47,11 @@ export async function searchNADACPricing(medicationName: string): Promise<NADACR
     const response = await fetch(`${NADAC_API_BASE}/${NADAC_DATASET_ID}/0?${params.toString()}`);
     
     if (!response.ok) {
-      console.error('NADAC API error:', response.status);
+      // Silently handle 404s - medication not in NADAC database
+      if (response.status === 404) {
+        return null;
+      }
+      console.warn('NADAC API error:', response.status);
       return null;
     }
     

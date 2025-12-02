@@ -98,7 +98,8 @@ export async function fetchRealPharmacies(
           phone: place.formatted_phone_number,
           rating: place.rating,
           userRatingsTotal: place.user_ratings_total,
-          openNow: place.opening_hours?.open_now,
+          // openNow removed - deprecated field, use PlacesService.getDetails() with isOpen() instead
+          openNow: undefined,
           chain,
         };
       })
