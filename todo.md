@@ -812,3 +812,16 @@
 - [x] Test with medications on Cost Plus: atorvastatin ($5.46), trazodone ($5.45)
 - [x] Verify Cost Plus API integration works correctly
 - [ ] Add "Estimated Pricing" badge UI (optional enhancement for future)
+
+
+## PHASE 16: Add 4-Tier Pricing Display (Dec 2, 2025)
+- [x] Add cash price calculation (50% markup over wholesale)
+- [x] Add RxPrice membership pricing (cheaper than cash at select pharmacies)
+- [x] Update PharmacyPricing interface to include cashPrice and membershipPrice
+- [x] Implement pharmacy-specific membership discounts (Costco 35% off, CVS 15% off)
+- [x] Update pharmacy card UI to show all 4 prices: RxPrice Member, Coupon, Insurance, Cash
+- [x] Design clear visual hierarchy with color-coded badges (purple, green, blue, gray)
+- [x] Add price comparison highlighting (🏆 Best badge on lowest price)
+- [x] Implement responsive 2x2 mobile grid, 4-column desktop layout
+- [x] Add savings display for each pricing tier
+- [x] Calculate and display best option savings vs cash price

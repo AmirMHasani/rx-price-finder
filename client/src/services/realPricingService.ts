@@ -11,27 +11,35 @@ export interface PharmacyPricing {
   pharmacy: RealPharmacy;
   costPlusWholesale: number;
   cashPrice: number;
-  insurancePrice: number;
+  membershipPrice: number;  // RxPrice membership pricing
   couponPrice?: number;
   couponProvider?: string;
+  insurancePrice: number;
   savings: number;
   couponSavings?: number;
-  bestOption: 'insurance' | 'coupon';
+  membershipSavings: number;
+  bestOption: 'membership' | 'coupon' | 'insurance' | 'cash';
   distance?: number;
 }
 
 /**
- * Pharmacy markup multipliers (how much they mark up over wholesale)
+ * Cash price markup (50% over wholesale as requested)
  */
-const PHARMACY_MARKUPS: Record<string, number> = {
-  'costco': 1.15,        // Costco: 15% markup (lowest)
-  'walmart': 1.20,       // Walmart: 20% markup
-  'kroger': 1.25,        // Kroger: 25% markup
-  'target': 1.30,        // Target: 30% markup
-  'walgreens': 1.40,     // Walgreens: 40% markup
-  'cvs': 1.45,           // CVS: 45% markup (highest)
-  'rite aid': 1.35,      // Rite Aid: 35% markup
-  'default': 1.30,       // Default: 30% markup
+const CASH_PRICE_MARKUP = 1.50;
+
+/**
+ * RxPrice membership discount multipliers (discount off cash price)
+ * Some pharmacies offer better membership pricing than others
+ */
+const MEMBERSHIP_DISCOUNTS: Record<string, number> = {
+  'costco': 0.65,        // Costco: 35% off cash (best membership deal)
+  'walmart': 0.70,       // Walmart: 30% off cash
+  'kroger': 0.75,        // Kroger: 25% off cash
+  'target': 0.75,        // Target: 25% off cash
+  'walgreens': 0.85,     // Walgreens: 15% off cash
+  'cvs': 0.85,           // CVS: 15% off cash (worst membership deal)
+  'rite aid': 0.80,      // Rite Aid: 20% off cash
+  'default': 0.80,       // Default: 20% off cash
 };
 
 /**
@@ -54,18 +62,18 @@ const COUPON_DISCOUNTS: Record<string, number> = {
 };
 
 /**
- * Get pharmacy markup multiplier based on pharmacy name
+ * Get membership discount multiplier based on pharmacy name
  */
-function getPharmacyMarkup(pharmacyName: string): number {
+function getMembershipDiscount(pharmacyName: string): number {
   const lowerName = pharmacyName.toLowerCase();
   
-  for (const [key, markup] of Object.entries(PHARMACY_MARKUPS)) {
+  for (const [key, discount] of Object.entries(MEMBERSHIP_DISCOUNTS)) {
     if (lowerName.includes(key)) {
-      return markup;
+      return discount;
     }
   }
   
-  return PHARMACY_MARKUPS.default;
+  return MEMBERSHIP_DISCOUNTS.default;
 }
 
 /**
@@ -178,14 +186,15 @@ export async function fetchRealPricing(
     
     // Calculate pricing for each pharmacy
     const pricingResults: PharmacyPricing[] = pharmacies.map(pharmacy => {
-      // Calculate cash price with pharmacy-specific markup
-      const markup = getPharmacyMarkup(pharmacy.name);
-      const cashPrice = Math.round(wholesalePrice * markup * 100) / 100;
+      // 1. Calculate cash price (50% markup over wholesale)
+      const cashPrice = Math.round(wholesalePrice * CASH_PRICE_MARKUP * 100) / 100;
       
-      // Calculate insurance copay
-      const insurancePrice = Math.round(calculateInsuranceCopay(cashPrice, medicationTier, deductibleMet) * 100) / 100;
+      // 2. Calculate RxPrice membership price (discount off cash price)
+      const membershipDiscount = getMembershipDiscount(pharmacy.name);
+      const membershipPrice = Math.round(cashPrice * membershipDiscount * 100) / 100;
+      const membershipSavings = Math.round((cashPrice - membershipPrice) * 100) / 100;
       
-      // Calculate coupon price (not all pharmacies accept all coupons)
+      // 3. Calculate coupon price (not all pharmacies accept all coupons)
       const acceptsCoupons = Math.random() > 0.3; // 70% of pharmacies accept coupons
       let couponPrice: number | undefined;
       let couponProvider: string | undefined;
@@ -198,19 +207,33 @@ export async function fetchRealPricing(
         couponSavings = Math.round(coupon.savings * 100) / 100;
       }
       
-      // Determine best option
-      const bestOption = (couponPrice && couponPrice < insurancePrice) ? 'coupon' : 'insurance';
+      // 4. Calculate insurance copay
+      const insurancePrice = Math.round(calculateInsuranceCopay(cashPrice, medicationTier, deductibleMet) * 100) / 100;
+      
+      // Determine best option (lowest price)
+      const prices = [
+        { type: 'membership' as const, price: membershipPrice },
+        { type: 'coupon' as const, price: couponPrice || Infinity },
+        { type: 'insurance' as const, price: insurancePrice },
+        { type: 'cash' as const, price: cashPrice }
+      ];
+      const bestOption = prices.reduce((best, current) => 
+        current.price < best.price ? current : best
+      ).type;
+      
       const savings = Math.round((cashPrice - insurancePrice) * 100) / 100;
       
       return {
         pharmacy,
         costPlusWholesale: wholesalePrice,
         cashPrice,
-        insurancePrice,
+        membershipPrice,
+        membershipSavings,
         couponPrice,
         couponProvider,
-        savings,
         couponSavings,
+        insurancePrice,
+        savings,
         bestOption,
         distance: pharmacy.distance
       };
