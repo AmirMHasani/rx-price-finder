@@ -773,3 +773,16 @@
 - [x] Fill empty space below pharmacy name with horizontal pricing
 - [x] Test all changes to ensure no empty spaces remain
 - [x] Verify professional appearance and proper alignment
+
+
+## PHASE 13: Replace Mock Pricing with Real Cost Plus API Data (Dec 2, 2025)
+- [x] Create new realPricingService.ts to fetch Cost Plus prices for any medication
+- [x] Implement realistic pharmacy markup calculations (20-50% over Cost Plus wholesale)
+- [x] Implement realistic insurance copay calculations based on medication tier
+- [x] Add pharmacy-specific markup variations (Costco lower, CVS higher, etc.)
+- [x] Update Results page to fetch real pricing instead of using mock data
+- [x] Fix decimal precision issues in pricing calculations
+- [x] Test with multiple medications: atorvastatin ($5.00-$5.54), metformin ($5.00-$5.40)
+- [x] Verify all pharmacies show realistic prices based on Cost Plus wholesale
+- [x] Verify insurance copays are realistic based on medication tier
+- [ ] Remove mock pricing data files (pricing.ts, medicationMappingService.ts) - keeping for now as fallback

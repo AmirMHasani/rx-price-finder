@@ -6,10 +6,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { medications } from "@/data/medications";
 import { insurancePlans } from "@/data/insurance";
-import { getAllPricesForMedication, PriceResult } from "@/data/pricing";
+import { PriceResult } from "@/data/pricing"; // Only importing type, not using getAllPricesForMedication anymore
 import { ArrowLeft, MapPin, Phone, Clock, Truck, Car, DollarSign, TrendingDown } from "lucide-react";
 import { MapView } from "@/components/Map";
-import { getMockMedicationId } from "@/services/medicationMappingService";
+// Removed: getMockMedicationId - now using real Cost Plus API pricing
 import { generatePharmaciesForZip } from "@/services/pharmacyGenerator";
 import { fetchRealPharmacies, calculateDistance, type RealPharmacy } from "@/services/realPharmacyService";
 import { LanguageToggle } from "@/components/LanguageToggle";
@@ -68,14 +68,11 @@ export default function Results() {
     return getZipCodeLocation(userZip);
   }, [userZip]);
 
-  // Map RXCUI to mock medication ID
-  const mockMedicationId = useMemo(() => {
-    return getMockMedicationId(rxcui, medicationName);
-  }, [rxcui, medicationName]);
+  // No longer need mock medication ID - using real pricing from Cost Plus API
 
   // Create medication object from URL parameters
   const medication = {
-    id: mockMedicationId,
+    id: 'real', // No longer using mock IDs
     name: medicationName,
     genericName: medicationName,
     dosages: [dosage],
@@ -119,51 +116,68 @@ export default function Results() {
 
   // Generate pricing when we have real pharmacies
   useEffect(() => {
-    if (medicationName && dosage && form && insuranceId && mockMedicationId && realPharmacies.length > 0) {
-      console.log('💰 [RESULTS] Generating pricing for', realPharmacies.length, 'pharmacies');
-      
-      // Get user's location for distance calculation
-      const userLocation = getZipCodeLocation(userZip);
-      
-      // Convert real pharmacies to mock pharmacy format for pricing
-      const pharmaciesForPricing = realPharmacies.map(rp => ({
-        id: rp.placeId,
-        name: rp.name,
-        address: rp.address,
-        city: '', // Not provided by Places API
-        state: '', // Not provided by Places API
-        zip: userZip,
-        lat: rp.lat,
-        lng: rp.lng,
-        phone: rp.phone, // Only show if available from Google Places
-        hours: undefined, // Will be set by getPharmacyHours() below
-        chain: rp.chain || 'independent',
-        // Get features based on pharmacy chain
-        ...(() => {
-          const features = getPharmacyFeatures(rp.chain || 'independent');
-          return {
-            hasDelivery: features.hasDelivery,
-            hasDriveThru: features.hasDriveThru,
-            hours: getPharmacyHours(features.has24Hour),
-          };
-        })(),
-      }));
-      
-      // Use the mapped mock medication ID for pricing data
-      const priceResults = getAllPricesForMedication(
-        mockMedicationId,
-        dosage,
-        form,
-        insuranceId,
-        deductibleMet,
-        userLocation.lat,
-        userLocation.lng,
-        pharmaciesForPricing
-      );
-      setResults(priceResults);
-      console.log('✅ [RESULTS] Generated pricing for', priceResults.length, 'pharmacies');
+    async function fetchPricing() {
+      if (medicationName && dosage && form && insuranceId && realPharmacies.length > 0) {
+        console.log('💰 [RESULTS] Fetching real pricing for', realPharmacies.length, 'pharmacies');
+        
+        // Get user's location for distance calculation
+        const userLocation = getZipCodeLocation(userZip);
+        
+        // Convert real pharmacies to format needed for pricing
+        const pharmaciesForPricing = realPharmacies.map(rp => ({
+          id: rp.placeId,
+          name: rp.name,
+          address: rp.address,
+          city: '', // Not provided by Places API
+          state: '', // Not provided by Places API
+          zip: userZip,
+          lat: rp.lat,
+          lng: rp.lng,
+          phone: rp.phone,
+          hours: undefined,
+          chain: rp.chain || 'independent',
+          // Get features based on pharmacy chain
+          ...(() => {
+            const features = getPharmacyFeatures(rp.chain || 'independent');
+            return {
+              hasDelivery: features.hasDelivery,
+              hasDriveThru: features.hasDriveThru,
+              hours: getPharmacyHours(features.has24Hour),
+            };
+          })(),
+        }));
+        
+        // Fetch real pricing from Cost Plus API
+        const { fetchRealPricing } = await import('@/services/realPricingService');
+        const realPricing = await fetchRealPricing(
+          medicationName,
+          dosage,
+          totalPills,
+          pharmaciesForPricing,
+          insuranceId,
+          deductibleMet
+        );
+        
+        // Convert to PriceResult format
+        const priceResults = realPricing.map(p => ({
+          pharmacy: p.pharmacy,
+          cashPrice: p.cashPrice,
+          insurancePrice: p.insurancePrice,
+          couponPrice: p.couponPrice,
+          couponProvider: p.couponProvider,
+          savings: p.savings,
+          couponSavings: p.couponSavings,
+          bestOption: p.bestOption,
+          distance: p.distance
+        }));
+        
+        setResults(priceResults);
+        console.log('✅ [RESULTS] Fetched real pricing for', priceResults.length, 'pharmacies');
+      }
     }
-  }, [medicationName, dosage, form, insuranceId, deductibleMet, mockMedicationId, realPharmacies, userZip]);
+    
+    fetchPricing();
+  }, [medicationName, dosage, form, insuranceId, deductibleMet, totalPills, realPharmacies, userZip]);
 
   // Save search to history
   useEffect(() => {
@@ -197,15 +211,14 @@ export default function Results() {
           estimatedSavings: 10,
         }));
         setAlternatives(formattedAlts);
-      } else if (mockMedicationId) {
-        // Fallback to manual mappings if RxClass API returns nothing
-        const manualAlts = getMedicationAlternatives(mockMedicationId);
-        setAlternatives(manualAlts);
+      } else {
+        // No alternatives found from RxClass API
+        setAlternatives([]);
       }
     }
     
     loadAlternatives();
-  }, [medicationName, mockMedicationId]);
+  }, [medicationName]);
 
   // Filter and sort results
   const filteredAndSortedResults = useMemo(() => {
