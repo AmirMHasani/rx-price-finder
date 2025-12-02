@@ -260,12 +260,18 @@ export default function Results() {
     // Apply sorting
     filtered.sort((a, b) => {
       if (sortBy === "price") {
-        return a.insurancePrice - b.insurancePrice;
+        // Sort by best price (lowest of all options)
+        const bestPriceA = getBestPrice(a);
+        const bestPriceB = getBestPrice(b);
+        return bestPriceA - bestPriceB;
       } else if (sortBy === "distance") {
         return (a.distance || 0) - (b.distance || 0);
       } else if (sortBy === "savings") {
-        const savingsA = a.cashPrice - a.insurancePrice;
-        const savingsB = b.cashPrice - b.insurancePrice;
+        // Savings = cash price - best price
+        const bestPriceA = getBestPrice(a);
+        const bestPriceB = getBestPrice(b);
+        const savingsA = a.cashPrice - bestPriceA;
+        const savingsB = b.cashPrice - bestPriceB;
         return savingsB - savingsA; // Higher savings first
       }
       return 0;
@@ -493,7 +499,7 @@ export default function Results() {
                           <div className="text-xs sm:text-sm text-muted-foreground">{t('results.priceSummary.milesAway').replace('{{distance}}', recommended.distance?.toFixed(1) || '0.0')}</div>
                         </div>
                         <div className="text-left sm:text-right">
-                          <div className="text-xl sm:text-2xl font-bold text-green-600">${recommended.insurancePrice?.toFixed(2) || '0.00'}</div>
+                          <div className="text-xl sm:text-2xl font-bold text-green-600">${getBestPrice(recommended).toFixed(2)}</div>
                           <div className="text-xs sm:text-sm text-muted-foreground">{t('results.priceSummary.bestValue')}</div>
                         </div>
                       </div>

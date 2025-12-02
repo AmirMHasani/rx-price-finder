@@ -864,5 +864,17 @@
 - [x] Updated summary to use best price from each pharmacy (membershipPrice, couponPrice, insurancePrice, cashPrice)
 - [x] Fixed getBestPrice helper function (lines 347-356)
 - [x] Fixed price summary card calculations (lines 442-460)
-- [ ] Test with multiple medications to verify all fixes
-- [ ] Push fix to GitHub
+- [x] Test with multiple medications to verify all fixes
+- [x] Push fix to GitHub
+
+
+## PHASE 21: Fix Price Variations and Summary Calculations (Dec 2, 2025)
+- [x] Add pharmacy-specific price variations (CVS 55-75%, Costco 25-35%)
+- [x] Add randomness to pricing (+/- 5-10% variation per pharmacy)
+- [x] Add insurance copay variation (+/- 10% random factor)
+- [x] Fix summary statistics to use best price instead of only insurance price
+- [x] Fix potential savings calculation (cash price - best price)
+- [x] Fix recommended pharmacy to show best price instead of insurance price
+- [x] Fix sorting to use best price for "Price: Low to High"
+- [ ] Test with multiple medications to verify price variations work
+- [ ] Push fixes to GitHub

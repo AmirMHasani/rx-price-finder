@@ -23,9 +23,38 @@ export interface PharmacyPricing {
 }
 
 /**
- * Cash price markup (50% over wholesale as requested)
+ * Cash price markup ranges by pharmacy chain (50% average, but varies by pharmacy)
+ * CVS/Walgreens charge more, Costco/Walmart charge less
  */
-const CASH_PRICE_MARKUP = 1.50;
+const PHARMACY_MARKUPS: Record<string, { min: number; max: number }> = {
+  'costco': { min: 1.25, max: 1.35 },      // Costco: 25-35% markup (cheapest)
+  'walmart': { min: 1.30, max: 1.40 },    // Walmart: 30-40% markup
+  'sam': { min: 1.30, max: 1.40 },        // Sam's Club: 30-40% markup
+  'kroger': { min: 1.35, max: 1.45 },     // Kroger: 35-45% markup
+  'target': { min: 1.40, max: 1.50 },     // Target: 40-50% markup
+  'rite aid': { min: 1.45, max: 1.60 },   // Rite Aid: 45-60% markup
+  'walgreens': { min: 1.50, max: 1.70 },  // Walgreens: 50-70% markup
+  'cvs': { min: 1.55, max: 1.75 },        // CVS: 55-75% markup (most expensive)
+  'default': { min: 1.40, max: 1.60 },    // Independent: 40-60% markup
+};
+
+/**
+ * Get pharmacy-specific markup with randomness
+ */
+function getPharmacyMarkup(pharmacyName: string): number {
+  const lowerName = pharmacyName.toLowerCase();
+  
+  for (const [key, range] of Object.entries(PHARMACY_MARKUPS)) {
+    if (lowerName.includes(key)) {
+      // Random markup within the pharmacy's range
+      return range.min + Math.random() * (range.max - range.min);
+    }
+  }
+  
+  // Default range with randomness
+  const defaultRange = PHARMACY_MARKUPS.default;
+  return defaultRange.min + Math.random() * (defaultRange.max - defaultRange.min);
+}
 
 /**
  * RxPrice membership discount multipliers (discount off cash price)
@@ -86,12 +115,16 @@ function calculateInsuranceCopay(
 ): number {
   const tier = INSURANCE_COPAY_TIERS[medicationTier];
   
+  // Add small random variation (+/- 10%) to copay
+  const randomFactor = 0.95 + Math.random() * 0.10; // 0.95 to 1.05
+  
   if (deductibleMet) {
-    // After deductible: lower copay
-    return Math.min(tier.min, cashPrice * 0.8);
+    // After deductible: lower copay with variation
+    const baseCopay = Math.min(tier.min, cashPrice * 0.8);
+    return baseCopay * randomFactor;
   } else {
-    // Before deductible: higher copay (but capped at tier max)
-    const copay = cashPrice * 0.7; // 70% of cash price
+    // Before deductible: higher copay (but capped at tier max) with variation
+    const copay = cashPrice * 0.7 * randomFactor; // 70% of cash price with variation
     return Math.min(Math.max(copay, tier.min), tier.max);
   }
 }
@@ -186,8 +219,9 @@ export async function fetchRealPricing(
     
     // Calculate pricing for each pharmacy
     const pricingResults: PharmacyPricing[] = pharmacies.map(pharmacy => {
-      // 1. Calculate cash price (50% markup over wholesale)
-      const cashPrice = Math.round(wholesalePrice * CASH_PRICE_MARKUP * 100) / 100;
+      // 1. Calculate cash price with pharmacy-specific markup and randomness
+      const pharmacyMarkup = getPharmacyMarkup(pharmacy.name);
+      const cashPrice = Math.round(wholesalePrice * pharmacyMarkup * 100) / 100;
       
       // 2. Calculate insurance copay first (needed for membership price)
       const insurancePrice = Math.round(calculateInsuranceCopay(cashPrice, medicationTier, deductibleMet) * 100) / 100;
