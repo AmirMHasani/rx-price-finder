@@ -436,31 +436,34 @@ export default function Results() {
           <TabsList className="mb-6 grid grid-cols-4 w-full bg-gray-100 shadow-sm p-1 rounded-xl gap-1">
             <TabsTrigger 
               value="prices" 
-              className="text-xs sm:text-sm px-2 sm:px-4 py-2 sm:py-3 font-semibold rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=inactive]:bg-transparent data-[state=inactive]:text-gray-700 data-[state=inactive]:hover:bg-white transition-all"
+              className="flex items-center justify-center gap-2 text-xs sm:text-sm px-2 sm:px-4 py-2 sm:py-3 font-semibold rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=inactive]:bg-transparent data-[state=inactive]:text-gray-700 data-[state=inactive]:hover:bg-white transition-all"
             >
-              <span className="sm:hidden">💰 Prices</span>
-              <span className="hidden sm:inline">💰 Prices</span>
+              <span>💰</span>
+              <span>Prices</span>
             </TabsTrigger>
             <TabsTrigger 
               value="safety" 
-              className="text-xs sm:text-sm px-2 sm:px-4 py-2 sm:py-3 font-semibold rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=inactive]:bg-transparent data-[state=inactive]:text-gray-700 data-[state=inactive]:hover:bg-white transition-all"
+              className="flex items-center justify-center gap-2 text-xs sm:text-sm px-2 sm:px-4 py-2 sm:py-3 font-semibold rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=inactive]:bg-transparent data-[state=inactive]:text-gray-700 data-[state=inactive]:hover:bg-white transition-all"
             >
-              <span className="sm:hidden">🛡️ Safety</span>
-              <span className="hidden sm:inline">🛡️ Safety Info</span>
+              <span>🛡️</span>
+              <span className="hidden sm:inline">Safety Info</span>
+              <span className="sm:hidden">Safety</span>
             </TabsTrigger>
             <TabsTrigger 
               value="alternatives" 
-              className="text-xs sm:text-sm px-2 sm:px-4 py-2 sm:py-3 font-semibold rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=inactive]:bg-transparent data-[state=inactive]:text-gray-700 data-[state=inactive]:hover:bg-white transition-all"
+              className="flex items-center justify-center gap-2 text-xs sm:text-sm px-2 sm:px-4 py-2 sm:py-3 font-semibold rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=inactive]:bg-transparent data-[state=inactive]:text-gray-700 data-[state=inactive]:hover:bg-white transition-all"
             >
-              <span className="sm:hidden">💊 Alts</span>
-              <span className="hidden sm:inline">💊 Alternatives</span>
+              <span>💊</span>
+              <span className="hidden sm:inline">Alternatives</span>
+              <span className="sm:hidden">Alts</span>
             </TabsTrigger>
             <TabsTrigger 
               value="data" 
-              className="text-xs sm:text-sm px-2 sm:px-4 py-2 sm:py-3 font-semibold rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=inactive]:bg-transparent data-[state=inactive]:text-gray-700 data-[state=inactive]:hover:bg-white transition-all"
+              className="flex items-center justify-center gap-2 text-xs sm:text-sm px-2 sm:px-4 py-2 sm:py-3 font-semibold rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=inactive]:bg-transparent data-[state=inactive]:text-gray-700 data-[state=inactive]:hover:bg-white transition-all"
             >
-              <span className="sm:hidden">📊 Data</span>
-              <span className="hidden sm:inline">📊 About Data</span>
+              <span>📊</span>
+              <span className="hidden sm:inline">About Data</span>
+              <span className="sm:hidden">Data</span>
             </TabsTrigger>
           </TabsList>
 
