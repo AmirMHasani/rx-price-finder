@@ -876,5 +876,5 @@
 - [x] Fix potential savings calculation (cash price - best price)
 - [x] Fix recommended pharmacy to show best price instead of insurance price
 - [x] Fix sorting to use best price for "Price: Low to High"
-- [ ] Test with multiple medications to verify price variations work
-- [ ] Push fixes to GitHub
+- [x] Test with multiple medications to verify price variations work
+- [x] Push fixes to GitHub

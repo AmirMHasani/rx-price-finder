@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Pricing Service</title>
+</head>
+<body>
+    <h1>Testing Pricing Service</h1>
+    <div id="output"></div>
+    
+    <script type="module">
+        // Test the pricing service directly
+        async function testPricing() {
+            const output = document.getElementById('output');
+            output.innerHTML = '<p>Loading...</p>';
+            
+            try {
+                // Import the service
+                const { fetchRealPricing } = await import('./client/src/services/realPricingService.ts');
+                
+                // Create a test pharmacy
+                const testPharmacies = [{
+                    id: 'test-1',
+                    name: 'CVS Pharmacy',
+                    address: '123 Main St',
+                    lat: 42.3601,
+                    lng: -71.0589,
+                    chain: 'cvs',
+                    distance: 1.0
+                }];
+                
+                // Test with atorvastatin
+                const result = await fetchRealPricing(
+                    'atorvastatin',
+                    '20mg',
+                    30,
+                    testPharmacies,
+                    'medicaid',
+                    false
+                );
+                
+                output.innerHTML = '<pre>' + JSON.stringify(result, null, 2) + '</pre>';
+            } catch (error) {
+                output.innerHTML = '<p style="color: red;">Error: ' + error.message + '</p><pre>' + error.stack + '</pre>';
+            }
+        }
+        
+        testPricing();
+    </script>
+</body>
+</html>

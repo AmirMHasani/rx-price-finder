@@ -26,6 +26,17 @@ import { SafetyInfoTab } from "@/components/SafetyInfoTab";
 import { AIAlternativesTab } from "@/components/AIAlternativesTab";
 import { fetchRealPricing } from "@/services/realPricingService";
 
+// Calculate best price for each pharmacy (lowest of member, coupon, insurance, cash)
+const getBestPrice = (r: any) => {
+  const prices = [
+    r.membershipPrice,
+    r.couponPrice,
+    r.insurancePrice,
+    r.cashPrice
+  ].filter((p): p is number => p != null && p > 0);
+  return prices.length > 0 ? Math.min(...prices) : r.insurancePrice;
+};
+
 export default function Results() {
   const { t } = useLanguage();
   const [, setLocation] = useLocation();
@@ -349,17 +360,6 @@ export default function Results() {
     setMarkers(newMarkers);
     map.fitBounds(bounds);
   }, [mapReady, map, filteredAndSortedResults, selectedPharmacy]);
-
-  // Calculate best price for each pharmacy (lowest of member, coupon, insurance, cash)
-  const getBestPrice = (r: any) => {
-    const prices = [
-      r.membershipPrice,
-      r.couponPrice,
-      r.insurancePrice,
-      r.cashPrice
-    ].filter((p): p is number => p != null && p > 0);
-    return prices.length > 0 ? Math.min(...prices) : r.insurancePrice;
-  };
   
   const lowestPrice = results.length > 0 ? Math.min(...results.map(getBestPrice)) : 0;
   const highestPrice = results.length > 0 ? Math.max(...results.map(getBestPrice)) : 0;
