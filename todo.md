@@ -843,5 +843,14 @@
 - [x] Fixed summary section: lowestPrice, highestPrice, avgPrice, savings
 - [x] Fixed pharmacy cards: membershipPrice, couponPrice, insurancePrice, cashPrice
 - [x] Fixed savings calculations with proper null handling
-- [ ] Test fix on production site
-- [ ] Push fix to GitHub
+- [x] Test fix on production site
+- [x] Push fix to GitHub
+
+
+## PHASE 19: Pricing Display UI Improvements (Dec 2, 2025)
+- [x] Move "Best" badge from above price to below price in pharmacy cards
+- [x] Remove individual "Save $X" text under each price tier
+- [x] Keep only the main "Best option saves $X vs cash" text under the whole pricing box
+- [x] Fix member price calculation - make it 20% discount from insurance price (not zero)
+- [x] Hide Cost Plus Drugs section when medication is not available (returns null)
+- [x] All UI improvements complete

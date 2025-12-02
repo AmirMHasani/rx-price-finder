@@ -714,29 +714,21 @@ export default function Results() {
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
                             {/* RxPrice Membership */}
                             <div className="space-y-1">
-                              {result.bestOption === "membership" && (
-                                <Badge className="bg-purple-600 text-white text-[10px] px-1.5 py-0.5 mb-1">
-                                  🏆 Best
-                                </Badge>
-                              )}
                               <p className="text-[10px] sm:text-xs font-medium text-gray-600">RxPrice Member</p>
                               <p className={`font-bold ${
                                 result.bestOption === "membership" ? "text-lg sm:text-xl text-purple-600" : "text-base sm:text-lg text-gray-700"
                               }`}>
                                 ${result.membershipPrice?.toFixed(2) || '0.00'}
                               </p>
-                              <p className="text-[9px] sm:text-[10px] text-green-600 font-medium">
-                                Save ${result.membershipSavings?.toFixed(2) || '0.00'}
-                              </p>
+                              {result.bestOption === "membership" && (
+                                <Badge className="bg-purple-600 text-white text-[10px] px-1.5 py-0.5">
+                                  🏆 Best
+                                </Badge>
+                              )}
                             </div>
                             
                             {/* Coupon Price */}
                             <div className="space-y-1">
-                              {result.bestOption === "coupon" && result.couponPrice && (
-                                <Badge className="bg-green-600 text-white text-[10px] px-1.5 py-0.5 mb-1">
-                                  🏆 Best
-                                </Badge>
-                              )}
                               <p className="text-[10px] sm:text-xs font-medium text-gray-600">
                                 {result.couponProvider ? `${result.couponProvider}` : "Coupon"}
                               </p>
@@ -747,9 +739,11 @@ export default function Results() {
                                   }`}>
                                     ${result.couponPrice.toFixed(2)}
                                   </p>
-                                  <p className="text-[9px] sm:text-[10px] text-green-600 font-medium">
-                                    Save ${result.couponSavings?.toFixed(2)}
-                                  </p>
+                                  {result.bestOption === "coupon" && (
+                                    <Badge className="bg-green-600 text-white text-[10px] px-1.5 py-0.5">
+                                      🏆 Best
+                                    </Badge>
+                                  )}
                                 </>
                               ) : (
                                 <p className="text-[10px] sm:text-xs text-gray-500 italic">Not accepted</p>
@@ -758,38 +752,32 @@ export default function Results() {
                             
                             {/* Insurance Price */}
                             <div className="space-y-1">
-                              {result.bestOption === "insurance" && (
-                                <Badge className="bg-blue-600 text-white text-[10px] px-1.5 py-0.5 mb-1">
-                                  🏆 Best
-                                </Badge>
-                              )}
                               <p className="text-[10px] sm:text-xs font-medium text-gray-600">Insurance</p>
                               <p className={`font-bold ${
                                 result.bestOption === "insurance" ? "text-lg sm:text-xl text-blue-600" : "text-base sm:text-lg text-gray-700"
                               }`}>
                                 ${result.insurancePrice?.toFixed(2) || '0.00'}
                               </p>
-                              <p className="text-[9px] sm:text-[10px] text-green-600 font-medium">
-                                Save ${result.savings?.toFixed(2) || '0.00'}
-                              </p>
+                              {result.bestOption === "insurance" && (
+                                <Badge className="bg-blue-600 text-white text-[10px] px-1.5 py-0.5">
+                                  🏆 Best
+                                </Badge>
+                              )}
                             </div>
                             
                             {/* Cash Price */}
                             <div className="space-y-1">
-                              {result.bestOption === "cash" && (
-                                <Badge className="bg-gray-600 text-white text-[10px] px-1.5 py-0.5 mb-1">
-                                  🏆 Best
-                                </Badge>
-                              )}
                               <p className="text-[10px] sm:text-xs font-medium text-gray-600">Cash Price</p>
                               <p className={`font-bold ${
                                 result.bestOption === "cash" ? "text-lg sm:text-xl text-gray-700" : "text-base sm:text-lg text-gray-500"
                               }`}>
                                 ${result.cashPrice?.toFixed(2) || '0.00'}
                               </p>
-                              <p className="text-[9px] sm:text-[10px] text-gray-500">
-                                Retail price
-                              </p>
+                              {result.bestOption === "cash" && (
+                                <Badge className="bg-gray-600 text-white text-[10px] px-1.5 py-0.5">
+                                  🏆 Best
+                                </Badge>
+                              )}
                             </div>
                           </div>
                           

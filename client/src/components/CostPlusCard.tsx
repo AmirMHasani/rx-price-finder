@@ -126,21 +126,8 @@ export function CostPlusCard({ medicationName, strength, quantity, averageRetail
   }
 
   if (error || !drugData) {
-    return (
-      <Card className="border-2 border-gray-200">
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            📦 Cost Plus Drugs (Online)
-          </CardTitle>
-          <CardDescription>Not available for this medication</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            This medication is not currently available through Cost Plus Drugs.
-          </p>
-        </CardContent>
-      </Card>
-    );
+    // Hide the card entirely when medication is not available
+    return null;
   }
 
   const formatted = formatCostPlusDrug(drugData);

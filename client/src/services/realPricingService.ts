@@ -189,12 +189,14 @@ export async function fetchRealPricing(
       // 1. Calculate cash price (50% markup over wholesale)
       const cashPrice = Math.round(wholesalePrice * CASH_PRICE_MARKUP * 100) / 100;
       
-      // 2. Calculate RxPrice membership price (discount off cash price)
-      const membershipDiscount = getMembershipDiscount(pharmacy.name);
-      const membershipPrice = Math.round(cashPrice * membershipDiscount * 100) / 100;
+      // 2. Calculate insurance copay first (needed for membership price)
+      const insurancePrice = Math.round(calculateInsuranceCopay(cashPrice, medicationTier, deductibleMet) * 100) / 100;
+      
+      // 3. Calculate RxPrice membership price (20% discount off insurance price)
+      const membershipPrice = Math.round(insurancePrice * 0.80 * 100) / 100;
       const membershipSavings = Math.round((cashPrice - membershipPrice) * 100) / 100;
       
-      // 3. Calculate coupon price (not all pharmacies accept all coupons)
+      // 4. Calculate coupon price (not all pharmacies accept all coupons)
       const acceptsCoupons = Math.random() > 0.3; // 70% of pharmacies accept coupons
       let couponPrice: number | undefined;
       let couponProvider: string | undefined;
@@ -206,9 +208,6 @@ export async function fetchRealPricing(
         couponProvider = coupon.provider;
         couponSavings = Math.round(coupon.savings * 100) / 100;
       }
-      
-      // 4. Calculate insurance copay
-      const insurancePrice = Math.round(calculateInsuranceCopay(cashPrice, medicationTier, deductibleMet) * 100) / 100;
       
       // Determine best option (lowest price)
       const prices = [
