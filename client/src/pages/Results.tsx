@@ -181,7 +181,8 @@ export default function Results() {
           realPharmacies,
           insuranceId,
           deductibleMet,
-          rxcui  // Pass RXCUI for insurance formulary lookup
+          rxcui,  // Pass RXCUI for insurance formulary lookup
+          userZip  // Pass user ZIP code for regional pricing
         );
         
         // Use PharmacyPricing directly (no conversion needed)

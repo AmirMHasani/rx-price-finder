@@ -13,6 +13,7 @@ import { calculateInsuranceCopay as calculateTierBasedCopay, getDrugTier } from 
 import { INSURANCE_CARRIERS } from '../data/insuranceCarriers';
 import { getBrandMedicationData, type BrandMedicationData } from '../data/brandMedications';
 import { searchCMSRegionalPricingByZip, type CMSRegionalPricingResult } from './cmsRegionalPricingApi';
+import { detectDosingFrequency, calculateActualQuantity, type DosingInfo } from '../utils/dosingFrequency';
 
 export interface PharmacyPricing {
   pharmacy: RealPharmacy;
@@ -264,12 +265,27 @@ export async function fetchRealPricing(
   pharmacies: RealPharmacy[],
   insurancePlan: string,
   deductibleMet: boolean,
-  rxcui?: string
+  rxcui?: string,
+  zipCode?: string
 ): Promise<PharmacyPricing[]> {
   try {
     // Clean medication name for API searches
     const cleanName = cleanMedicationName(medicationName);
     console.log('💰 [REAL PRICING] Fetching pricing for:', cleanName, strength, quantity);
+    
+    // STEP 0: Detect dosing frequency for non-daily medications (injectables, etc.)
+    // Extract form from medication name if present (e.g., "Pen Injector", "Inhaler")
+    const formMatch = medicationName.match(/\[(.*?)\]/); // Extract text in brackets
+    const medicationForm = formMatch ? formMatch[1] : undefined;
+    const dosingInfo = detectDosingFrequency(cleanName, medicationForm);
+    
+    // Calculate actual quantity needed based on dosing frequency
+    // For weekly medications: 30 days → 4 doses, not 30 doses
+    const actualQuantity = calculateActualQuantity(quantity, dosingInfo);
+    
+    if (actualQuantity !== quantity) {
+      console.log(`📊 [DOSING] Adjusted quantity: ${quantity} → ${actualQuantity} (${dosingInfo.description})`);
+    }
     
     // STEP 1: Check if this is a known brand medication in our database
     const brandData = getBrandMedicationData(cleanName);
@@ -281,7 +297,7 @@ export async function fetchRealPricing(
     
     if (brandData) {
       // Known brand medication - use database pricing (most accurate for expensive brands)
-      wholesalePrice = Math.round(brandData.wholesalePricePerUnit * quantity * 100) / 100;
+      wholesalePrice = Math.round(brandData.wholesalePricePerUnit * actualQuantity * 100) / 100;
       medicationTier = brandData.tier;
       isBrandMedication = true;
       usingEstimate = false;
@@ -319,14 +335,14 @@ export async function fetchRealPricing(
             if (isBrandMedication) {
               // For brand drugs: Part D price IS the retail price (no markup needed)
               // Use NADAC as wholesale for calculating pharmacy margins
-              wholesalePrice = Math.round(nadacUnitPrice * quantity * 100) / 100;
+              wholesalePrice = Math.round(nadacUnitPrice * actualQuantity * 100) / 100;
               medicationTier = 'tier3'; // Brand medications are tier 3+
               isBrandMedication = true; // Mark as brand
               console.log('✅ [REAL PRICING] BRAND DRUG detected - NADAC wholesale: $' + wholesalePrice);
-              console.log('   Part D retail: $' + (partDUnitPrice * quantity).toFixed(2) + ' (will be used as cash price baseline)');
+              console.log('   Part D retail: $' + (partDUnitPrice * actualQuantity).toFixed(2) + ' (will be used as cash price baseline)');
             } else {
               // For generic drugs: Use Part D as wholesale baseline
-              wholesalePrice = Math.round(partDUnitPrice * quantity * 100) / 100;
+              wholesalePrice = Math.round(partDUnitPrice * actualQuantity * 100) / 100;
               medicationTier = 'tier2';
               console.log('✅ [REAL PRICING] GENERIC - Combined CMS: $' + wholesalePrice);
             }
@@ -335,7 +351,7 @@ export async function fetchRealPricing(
             usingEstimate = false;
           } else {
             // Only NADAC available - use it with conservative markup
-            wholesalePrice = Math.round(nadacUnitPrice * quantity * 1.15 * 100) / 100; // 15% markup
+            wholesalePrice = Math.round(nadacUnitPrice * actualQuantity * 1.15 * 100) / 100; // 15% markup
             medicationTier = nadacData.otc === 'Y' ? 'tier1' : 'tier2';
             usingEstimate = false;
             console.log('✅ [REAL PRICING] NADAC only (with 15% markup): $' + wholesalePrice);
@@ -347,14 +363,14 @@ export async function fetchRealPricing(
           
           if (isBrandMedication) {
             // Brand drug: use 20% of Part D price as wholesale estimate
-            wholesalePrice = Math.round(partDUnitPrice * quantity * 0.20 * 100) / 100;
+            wholesalePrice = Math.round(partDUnitPrice * actualQuantity * 0.20 * 100) / 100;
             medicationTier = 'tier3';
             isBrandMedication = true; // Mark as brand
             console.log('✅ [REAL PRICING] BRAND (Part D only): wholesale estimate $' + wholesalePrice);
-            console.log('   Part D retail: $' + (partDUnitPrice * quantity).toFixed(2));
+            console.log('   Part D retail: $' + (partDUnitPrice * actualQuantity).toFixed(2));
           } else {
             // Generic: use Part D as wholesale
-            wholesalePrice = Math.round(partDUnitPrice * quantity * 100) / 100;
+            wholesalePrice = Math.round(partDUnitPrice * actualQuantity * 100) / 100;
             medicationTier = 'tier2';
             console.log('✅ [REAL PRICING] GENERIC (Part D only): $' + wholesalePrice);
           }
@@ -362,11 +378,11 @@ export async function fetchRealPricing(
         } else {
           // LAYER 3.5: Try CMS Regional Pricing (historic Medicare Part D data by state)
           console.log('💰 [REAL PRICING] Trying CMS Regional Pricing API...');
-          const cmsRegionalData = await searchCMSRegionalPricingByZip(cleanName, '02108'); // TODO: Use actual ZIP from user
+          const cmsRegionalData = await searchCMSRegionalPricingByZip(cleanName, zipCode || null);
           
           if (cmsRegionalData && cmsRegionalData.pricePerUnit > 0) {
             // Use CMS regional pricing data
-            wholesalePrice = Math.round(cmsRegionalData.pricePerUnit * quantity * 100) / 100;
+            wholesalePrice = Math.round(cmsRegionalData.pricePerUnit * actualQuantity * 100) / 100;
             
             // Detect brand vs generic from price
             isBrandMedication = cmsRegionalData.pricePerUnit > 5;
@@ -388,7 +404,7 @@ export async function fetchRealPricing(
         // Parse wholesale price from Cost Plus
         wholesalePrice = costPlusData.requested_quote 
           ? parseCostPlusPrice(costPlusData.requested_quote)
-          : parseCostPlusPrice(costPlusData.unit_price) * quantity;
+          : parseCostPlusPrice(costPlusData.unit_price) * actualQuantity;
         medicationTier = getMedicationTier(costPlusData);
         usingEstimate = false;
       }

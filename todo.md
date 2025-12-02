@@ -1094,3 +1094,12 @@
 - [x] Integrate regional pricing into pricing algorithm as Layer 3.5 fallback
 - [x] Test regional pricing with multiple medications
 - [x] Update API_RELIABILITY_REPORT.md with new fallback layer
+
+## Performance & Accuracy Improvements
+
+- [x] Implement API response caching for CMS regional pricing (24-hour cache)
+- [x] Update realPricingService to use actual user ZIP code instead of hardcoded '02108'
+- [x] Implement dosing frequency detection for injectable medications (weekly/monthly)
+- [x] Test caching performance improvement (target: <100ms for cached results)
+- [x] Test with Ozempic to verify injectable pricing fix
+- [x] Create final checkpoint with all improvements

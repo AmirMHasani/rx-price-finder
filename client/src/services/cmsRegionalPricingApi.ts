@@ -10,6 +10,57 @@
 
 const CMS_GEO_API_BASE = 'https://data.cms.gov/data-api/v1/dataset/c8ea3f8e-3a09-4fea-86f2-8902fb4b0920/data';
 
+// Cache for CMS API responses (24-hour TTL)
+interface CacheEntry {
+  data: CMSRegionalPricingResult;
+  timestamp: number;
+}
+
+const cmsCache = new Map<string, CacheEntry>();
+const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
+/**
+ * Generate cache key from medication name and state
+ */
+function getCacheKey(medicationName: string, stateCode: string | null): string {
+  return `${medicationName.toLowerCase()}:${stateCode || 'national'}`;
+}
+
+/**
+ * Get cached result if available and not expired
+ */
+function getCachedResult(medicationName: string, stateCode: string | null): CMSRegionalPricingResult | null {
+  const key = getCacheKey(medicationName, stateCode);
+  const cached = cmsCache.get(key);
+  
+  if (!cached) {
+    return null;
+  }
+  
+  const age = Date.now() - cached.timestamp;
+  if (age > CACHE_TTL) {
+    // Cache expired, remove it
+    cmsCache.delete(key);
+    console.log(`🗑️ [CMS CACHE] Expired cache for "${medicationName}" (${stateCode || 'national'})`);
+    return null;
+  }
+  
+  console.log(`✅ [CMS CACHE] Hit for "${medicationName}" (${stateCode || 'national'}) - age: ${Math.round(age / 1000 / 60)}min`);
+  return cached.data;
+}
+
+/**
+ * Store result in cache
+ */
+function setCachedResult(medicationName: string, stateCode: string | null, result: CMSRegionalPricingResult): void {
+  const key = getCacheKey(medicationName, stateCode);
+  cmsCache.set(key, {
+    data: result,
+    timestamp: Date.now(),
+  });
+  console.log(`💾 [CMS CACHE] Stored "${medicationName}" (${stateCode || 'national'})`);
+}
+
 export interface CMSRegionalPricingResult {
   state: string;
   stateCode: string;
@@ -95,6 +146,12 @@ export async function searchCMSRegionalPricing(
   stateCode: string | null = null
 ): Promise<CMSRegionalPricingResult | null> {
   try {
+    // Check cache first
+    const cached = getCachedResult(medicationName, stateCode);
+    if (cached) {
+      return cached;
+    }
+    
     console.log(`🗺️ [CMS REGIONAL] Searching for "${medicationName}" in state: ${stateCode || 'National'}`);
     
     // Search with pagination (dataset has 115,936 records, need to search in batches)
@@ -168,6 +225,9 @@ export async function searchCMSRegionalPricing(
         console.log(`   Price per unit: $${pricePerUnit.toFixed(4)}`);
         console.log(`   Price per 30-day fill: $${pricePerFill.toFixed(2)}`);
         console.log(`   Based on ${total30DayFills.toFixed(0)} fills, $${totalDrugCost.toFixed(2)} total cost`);
+        
+        // Store in cache for future requests
+        setCachedResult(medicationName, stateCode, result);
         
         return result;
       }
