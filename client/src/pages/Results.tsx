@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useLocation, useSearch } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { medications } from "@/data/medications";
 import { insurancePlans } from "@/data/insurance";
@@ -41,7 +41,7 @@ export default function Results() {
   const [markers, setMarkers] = useState<google.maps.marker.AdvancedMarkerElement[]>([]);
   const [realPharmacies, setRealPharmacies] = useState<RealPharmacy[]>([]);
   const [loadingPharmacies, setLoadingPharmacies] = useState(false);
-  const [activeTab, setActiveTab] = useState<string>("prices");
+  // Removed activeTab state - using accordions instead
   
   // Filter and sort state
 
@@ -391,16 +391,8 @@ export default function Results() {
           </CardHeader>
         </Card>
 
-        {/* Tabbed Content */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-6">
-            <TabsTrigger value="prices">Prices & Pharmacies</TabsTrigger>
-            <TabsTrigger value="safety">Safety Information</TabsTrigger>
-            <TabsTrigger value="alternatives">AI Alternatives</TabsTrigger>
-          </TabsList>
-
-          {/* Prices Tab */}
-          <TabsContent value="prices">
+        {/* Main Content */}
+        <div className="w-full">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Main Column */}
               <div className="lg:col-span-2">
@@ -952,18 +944,30 @@ export default function Results() {
             })()}
           </div>
         </div>
-      </TabsContent>
 
-      {/* Safety Information Tab */}
-      <TabsContent value="safety">
-        <SafetyInfoTab medicationName={medicationName} rxcui={rxcui} />
-      </TabsContent>
+      {/* Additional Information Sections */}
+      <div className="mt-8">
+        <Accordion type="multiple" className="w-full">
+          <AccordionItem value="safety">
+            <AccordionTrigger className="text-lg font-semibold">
+              🛡️ Safety Information & Warnings
+            </AccordionTrigger>
+            <AccordionContent>
+              <SafetyInfoTab medicationName={medicationName} rxcui={rxcui} />
+            </AccordionContent>
+          </AccordionItem>
 
-      {/* AI Alternatives Tab */}
-      <TabsContent value="alternatives">
-        <AIAlternativesTab medicationName={medicationName} dosage={dosage} />
-      </TabsContent>
-    </Tabs>
+          <AccordionItem value="alternatives">
+            <AccordionTrigger className="text-lg font-semibold">
+              💊 Alternative Medications
+            </AccordionTrigger>
+            <AccordionContent>
+              <AIAlternativesTab medicationName={medicationName} dosage={dosage} />
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      </div>
+    </div>
       </div>
     </div>
   );

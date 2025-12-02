@@ -208,14 +208,10 @@
     box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.07), 0 4px 6px -4px rgb(0 0 0 / 0.05);
   }
 
-  /* Smooth transitions */
-  .transition-smooth {
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  
-  .transition-smooth-slow {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
+  /* Smooth transitions - use Tailwind's built-in transition utilities instead:
+   * transition-all duration-200 ease-out
+   * transition-all duration-300 ease-out
+   */
 
   /* Card hover effects */
   .card-hover {

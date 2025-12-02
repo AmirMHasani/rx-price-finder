@@ -11,6 +11,7 @@ import SearchWithAPI from "./pages/SearchWithAPI";
 import Results from "./pages/Results";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import TabsTest from "./pages/TabsTest";
 
 function Router() {
   return (
@@ -20,6 +21,7 @@ function Router() {
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/results" component={Results} />
       <Route path="/test-places" component={TestPlaces} />
+      <Route path="/tabs-test" component={TabsTest} />
       <Route path="/404" component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
