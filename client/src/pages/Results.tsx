@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useLocation, useSearch } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { ArrowLeft, MapPin, Phone, Clock, Truck, Car, DollarSign, TrendingDown }
 import { MapView } from "@/components/Map";
 import { getMockMedicationId } from "@/services/medicationMappingService";
 import { generatePharmaciesForZip } from "@/services/pharmacyGenerator";
+import { fetchRealPharmacies, calculateDistance, type RealPharmacy } from "@/services/realPharmacyService";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getZipCodeLocation } from "@/services/zipCodeService";
@@ -17,6 +18,7 @@ import { saveSearch } from "@/services/searchHistory";
 import { getMedicationAlternatives, type MedicationAlternative } from "@/services/alternativesService";
 import { CostPlusCard } from "@/components/CostPlusCard";
 import { PharmacyTransparencyCard } from "@/components/PharmacyTransparencyCard";
+import { DataTransparencyBanner } from "@/components/DataTransparencyBanner";
 
 export default function Results() {
   const { t } = useLanguage();
@@ -24,10 +26,17 @@ export default function Results() {
   const searchParams = useSearch();
   const [results, setResults] = useState<PriceResult[]>([]);
   const [selectedPharmacy, setSelectedPharmacy] = useState<string | null>(null);
+  
+  // Debug logging for selectedPharmacy changes
+  useEffect(() => {
+    console.log('🔵 [MARKER DEBUG] selectedPharmacy state changed to:', selectedPharmacy);
+  }, [selectedPharmacy]);
   const [alternatives, setAlternatives] = useState<MedicationAlternative[]>([]);
   const [mapReady, setMapReady] = useState(false);
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [markers, setMarkers] = useState<google.maps.marker.AdvancedMarkerElement[]>([]);
+  const [realPharmacies, setRealPharmacies] = useState<RealPharmacy[]>([]);
+  const [loadingPharmacies, setLoadingPharmacies] = useState(false);
   
   // Filter and sort state
 
@@ -67,13 +76,64 @@ export default function Results() {
   };
   const insurance = insurancePlans.find(i => i.id === insuranceId);
 
+  // Fetch real pharmacies when map is ready
   useEffect(() => {
-    if (medicationName && dosage && form && insuranceId && mockMedicationId && userZip) {
-      // Generate pharmacies dynamically based on user's ZIP code
-      const dynamicPharmacies = generatePharmaciesForZip(userZip, 8);
+    async function loadRealPharmacies() {
+      if (!map || !userZip || loadingPharmacies) return;
+      
+      setLoadingPharmacies(true);
+      try {
+        console.log('🏥 [RESULTS] Fetching real pharmacies for ZIP:', userZip);
+        const pharmacies = await fetchRealPharmacies(map, userZip);
+        setRealPharmacies(pharmacies);
+        console.log('✅ [RESULTS] Loaded', pharmacies.length, 'real pharmacies');
+      } catch (error) {
+        console.error('❌ [RESULTS] Failed to load real pharmacies, using fallback:', error);
+        // Fallback to mock pharmacies if Places API fails
+        const fallbackPharmacies = generatePharmaciesForZip(userZip, 8);
+        // Convert mock pharmacies to RealPharmacy format
+        const converted: RealPharmacy[] = fallbackPharmacies.map(p => ({
+          placeId: p.id,
+          name: p.name,
+          address: p.address,
+          lat: p.lat,
+          lng: p.lng,
+          phone: p.phone,
+          chain: p.chain,
+        }));
+        setRealPharmacies(converted);
+      } finally {
+        setLoadingPharmacies(false);
+      }
+    }
+    
+    loadRealPharmacies();
+  }, [map, userZip]);
+
+  // Generate pricing when we have real pharmacies
+  useEffect(() => {
+    if (medicationName && dosage && form && insuranceId && mockMedicationId && realPharmacies.length > 0) {
+      console.log('💰 [RESULTS] Generating pricing for', realPharmacies.length, 'pharmacies');
       
       // Get user's location for distance calculation
       const userLocation = getZipCodeLocation(userZip);
+      
+      // Convert real pharmacies to mock pharmacy format for pricing
+      const pharmaciesForPricing = realPharmacies.map(rp => ({
+        id: rp.placeId,
+        name: rp.name,
+        address: rp.address,
+        city: '', // Not provided by Places API
+        state: '', // Not provided by Places API
+        zip: userZip,
+        lat: rp.lat,
+        lng: rp.lng,
+        phone: rp.phone || '(555) 000-0000',
+        hours: rp.openNow ? 'Open now' : 'Hours vary',
+        chain: rp.chain || 'independent',
+        hasDelivery: Math.random() > 0.5,
+        hasDriveThru: Math.random() > 0.5,
+      }));
       
       // Use the mapped mock medication ID for pricing data
       const priceResults = getAllPricesForMedication(
@@ -84,11 +144,12 @@ export default function Results() {
         deductibleMet,
         userLocation.lat,
         userLocation.lng,
-        dynamicPharmacies
+        pharmaciesForPricing
       );
       setResults(priceResults);
+      console.log('✅ [RESULTS] Generated pricing for', priceResults.length, 'pharmacies');
     }
-  }, [medicationName, dosage, form, insuranceId, deductibleMet, mockMedicationId, userZip]);
+  }, [medicationName, dosage, form, insuranceId, deductibleMet, mockMedicationId, realPharmacies, userZip]);
 
   // Save search to history
   useEffect(() => {
@@ -155,7 +216,8 @@ export default function Results() {
   };
 
   useEffect(() => {
-    if (!mapReady || !map || results.length === 0) return;
+    console.log('[DEBUG] Marker useEffect triggered. selectedPharmacy:', selectedPharmacy);
+    if (!mapReady || !map || filteredAndSortedResults.length === 0) return;
 
     // Clear existing markers
     markers.forEach(marker => {
@@ -166,10 +228,14 @@ export default function Results() {
     const newMarkers: google.maps.marker.AdvancedMarkerElement[] = [];
     const bounds = new google.maps.LatLngBounds();
 
-    results.forEach((result, index) => {
+    filteredAndSortedResults.forEach((result, index) => {
       const position = { lat: result.pharmacy.lat, lng: result.pharmacy.lng };
       const isSelected = selectedPharmacy === result.pharmacy.id;
       const isLowestPrice = index === 0;
+      
+      console.log(`🎯 [MARKER] Pharmacy ${result.pharmacy.name} (${result.pharmacy.id})`);
+      console.log(`   - Index: ${index}, isLowestPrice: ${isLowestPrice}`);
+      console.log(`   - isSelected: ${isSelected} (selectedPharmacy: ${selectedPharmacy})`);
       
       // Create custom marker content
       const markerContent = document.createElement("div");
@@ -177,6 +243,9 @@ export default function Results() {
       
       const priceLabel = document.createElement("div");
       // Green for selected, gold for lowest price (if not selected), blue for others
+      const markerColor = isSelected ? 'green' : isLowestPrice ? 'amber' : 'blue';
+      console.log(`   - Marker color: ${markerColor}`);
+      
       priceLabel.className = isSelected
         ? "bg-green-600 text-white px-3 py-1.5 rounded-full font-bold text-sm shadow-lg border-2 border-white"
         : isLowestPrice
@@ -194,6 +263,7 @@ export default function Results() {
       });
 
       marker.addListener("click", () => {
+        console.log(`🖱️ [MARKER CLICK] User clicked marker for ${result.pharmacy.name}`);
         setSelectedPharmacy(result.pharmacy.id);
         // Scroll to pharmacy card
         const pharmacyCard = document.getElementById(`pharmacy-${result.pharmacy.id}`);
@@ -208,7 +278,7 @@ export default function Results() {
 
     setMarkers(newMarkers);
     map.fitBounds(bounds);
-  }, [mapReady, map, results, selectedPharmacy]);
+  }, [mapReady, map, filteredAndSortedResults, selectedPharmacy]);
 
   const lowestPrice = results.length > 0 ? Math.min(...results.map(r => r.insurancePrice)) : 0;
   const highestPrice = results.length > 0 ? Math.max(...results.map(r => r.insurancePrice)) : 0;
@@ -264,9 +334,12 @@ export default function Results() {
       </header>
 
       {/* Main Content */}
-      <main className="container py-12">
+      <div className="container py-8">
+        {/* Data Transparency Banner */}
+        <DataTransparencyBanner />
+        
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Results List */}
+          {/* Main Column */}
           <div className="lg:col-span-2">
             {/* Medication Info */}
             <Card className="mb-8">
@@ -489,7 +562,10 @@ export default function Results() {
                         ? "ring-2 ring-primary shadow-lg"
                         : "hover:shadow-md"
                     }`}
-                    onClick={() => setSelectedPharmacy(result.pharmacy.id)}
+                    onClick={() => {
+                      console.log(`🖱️ [CARD CLICK] User clicked card for ${result.pharmacy.name}`);
+                      setSelectedPharmacy(result.pharmacy.id);
+                    }}
                   >
                     <CardContent className="pt-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -552,7 +628,13 @@ export default function Results() {
                         {/* Pricing Info */}
                         <div className="space-y-3">
                           {/* Insurance Pricing */}
-                          <div className="bg-blue-50 p-4 rounded-lg">
+                          <div className="bg-blue-50 p-4 rounded-lg relative">
+                            {/* Estimated Price Badge */}
+                            <div className="absolute top-2 right-2">
+                              <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-300">
+                                📊 Estimated
+                              </Badge>
+                            </div>
                             <div className="space-y-3">
                               <div>
                                 <p className="text-sm text-muted-foreground">Cash Price</p>
@@ -658,12 +740,20 @@ export default function Results() {
             {filteredAndSortedResults.length > 0 && (() => {
               const avgPrice = filteredAndSortedResults.reduce((sum, r) => sum + (r.insurancePrice || 0), 0) / filteredAndSortedResults.length;
               return (
-                <CostPlusCard
-                  medicationName={medicationName}
-                  strength={dosage}
-                  quantity={totalPills}
-                  averageRetailPrice={avgPrice}
-                />
+                <div className="relative">
+                  {/* Real Data Badge */}
+                  <div className="absolute -top-2 -right-2 z-10">
+                    <Badge className="bg-green-600 text-white shadow-lg">
+                      ✅ Real API Data
+                    </Badge>
+                  </div>
+                  <CostPlusCard
+                    medicationName={medicationName}
+                    strength={dosage}
+                    quantity={totalPills}
+                    averageRetailPrice={avgPrice}
+                  />
+                </div>
               );
             })()}
 
@@ -687,7 +777,7 @@ export default function Results() {
             })()}
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

@@ -501,3 +501,27 @@
 - [ ] Confirm real Cost Plus pricing data is displayed (not mock data)
 - [ ] Test map marker positioning with real pharmacy coordinates
 - [ ] Test pharmacy selection interaction with map markers
+
+
+## URGENT FIXES (Dec 2, 2025) - USER REPORTED
+
+### Map Marker Color Not Updating When Clicking Pharmacy Cards
+- [ ] Debug why markers don't change color when clicking pharmacy cards
+- [ ] Check if selectedPharmacy state is updating correctly  
+- [ ] Verify useEffect dependencies trigger marker recreation
+- [ ] Test marker color update logic with console logs
+- [ ] Fix marker recreation to respond to selectedPharmacy changes
+
+### Pharmacy Addresses Point to Wrong Locations
+- [ ] CRITICAL: Mock addresses (e.g., "469 Oak Street") point to random houses, not real pharmacies
+- [ ] Implement Google Places API to search for real pharmacies near ZIP code
+- [ ] Create Places API service to search for "pharmacy" near user location
+- [ ] Extract real pharmacy names, addresses, phone numbers, and coordinates
+- [ ] Update pharmacy generator to use real Places API data instead of mock generation
+- [ ] Test with multiple ZIP codes to verify real pharmacy locations
+- [ ] Update "Get Directions" to use accurate coordinates
+
+**Root Cause:** 
+- Pharmacy addresses are randomly generated templates (e.g., "469 Oak Street")
+- Coordinates are random offsets from ZIP center, not actual pharmacy locations
+- Need real pharmacy data from Google Places API or similar service
