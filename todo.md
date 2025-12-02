@@ -834,3 +834,14 @@
 - [x] Improve medication dropdown accessibility - add ARIA roles, focus management, keyboard navigation
 - [x] Replace atob with Buffer.from() in OAuth handling for Node.js compatibility
 - [x] All code review fixes implemented successfully
+
+
+## PHASE 18: Fix toFixed() TypeError in Results Page (Dec 2, 2025)
+- [x] Find all .toFixed() calls in Results.tsx (15 instances found)
+- [x] Identify which price values can be undefined (membershipPrice, couponPrice, insurancePrice, cashPrice, savings, etc.)
+- [x] Add null/undefined checks before .toFixed() calls (added ?. operator and || '0.00' fallbacks)
+- [x] Fixed summary section: lowestPrice, highestPrice, avgPrice, savings
+- [x] Fixed pharmacy cards: membershipPrice, couponPrice, insurancePrice, cashPrice
+- [x] Fixed savings calculations with proper null handling
+- [ ] Test fix on production site
+- [ ] Push fix to GitHub

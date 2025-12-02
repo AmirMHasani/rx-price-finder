@@ -447,19 +447,19 @@ export default function Results() {
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                       <div>
                         <div className="text-xs sm:text-sm text-muted-foreground">{t('results.priceSummary.lowestPrice')}</div>
-                        <div className="text-xl sm:text-2xl font-bold text-green-600">${lowestPrice.toFixed(2)}</div>
+                        <div className="text-xl sm:text-2xl font-bold text-green-600">${lowestPrice?.toFixed(2) || '0.00'}</div>
                       </div>
                       <div>
                         <div className="text-xs sm:text-sm text-muted-foreground">{t('results.priceSummary.highestPrice')}</div>
-                        <div className="text-xl sm:text-2xl font-bold text-red-600">${highestPrice.toFixed(2)}</div>
+                        <div className="text-xl sm:text-2xl font-bold text-red-600">${highestPrice?.toFixed(2) || '0.00'}</div>
                       </div>
                       <div>
                         <div className="text-xs sm:text-sm text-muted-foreground">{t('results.priceSummary.averagePrice')}</div>
-                        <div className="text-xl sm:text-2xl font-bold text-blue-600">${avgPrice.toFixed(2)}</div>
+                        <div className="text-xl sm:text-2xl font-bold text-blue-600">${avgPrice?.toFixed(2) || '0.00'}</div>
                       </div>
                       <div>
                         <div className="text-xs sm:text-sm text-muted-foreground">{t('results.priceSummary.potentialSavings')}</div>
-                        <div className="text-xl sm:text-2xl font-bold text-green-600">${savings.toFixed(2)}</div>
+                        <div className="text-xl sm:text-2xl font-bold text-green-600">${savings?.toFixed(2) || '0.00'}</div>
                       </div>
                     </div>
                     <div className="p-3 sm:p-4 bg-white rounded-lg border border-blue-200">
@@ -470,7 +470,7 @@ export default function Results() {
                           <div className="text-xs sm:text-sm text-muted-foreground">{t('results.priceSummary.milesAway').replace('{{distance}}', recommended.distance?.toFixed(1) || '0.0')}</div>
                         </div>
                         <div className="text-left sm:text-right">
-                          <div className="text-xl sm:text-2xl font-bold text-green-600">${recommended.insurancePrice.toFixed(2)}</div>
+                          <div className="text-xl sm:text-2xl font-bold text-green-600">${recommended.insurancePrice?.toFixed(2) || '0.00'}</div>
                           <div className="text-xs sm:text-sm text-muted-foreground">{t('results.priceSummary.bestValue')}</div>
                         </div>
                       </div>
@@ -640,7 +640,7 @@ export default function Results() {
                   {potentialSavings > 0 && (
                     <Badge className="bg-green-100 text-green-800">
                       <TrendingDown className="w-4 h-4 mr-2" />
-                      {t('results.pharmacies.saveUpTo').replace('{{amount}}', potentialSavings.toFixed(0))}
+                      {t('results.pharmacies.saveUpTo').replace('{{amount}}', potentialSavings?.toFixed(0) || '0')}
                     </Badge>
                   )}
                 </div>
@@ -723,10 +723,10 @@ export default function Results() {
                               <p className={`font-bold ${
                                 result.bestOption === "membership" ? "text-lg sm:text-xl text-purple-600" : "text-base sm:text-lg text-gray-700"
                               }`}>
-                                ${result.membershipPrice.toFixed(2)}
+                                ${result.membershipPrice?.toFixed(2) || '0.00'}
                               </p>
                               <p className="text-[9px] sm:text-[10px] text-green-600 font-medium">
-                                Save ${result.membershipSavings.toFixed(2)}
+                                Save ${result.membershipSavings?.toFixed(2) || '0.00'}
                               </p>
                             </div>
                             
@@ -767,10 +767,10 @@ export default function Results() {
                               <p className={`font-bold ${
                                 result.bestOption === "insurance" ? "text-lg sm:text-xl text-blue-600" : "text-base sm:text-lg text-gray-700"
                               }`}>
-                                ${result.insurancePrice.toFixed(2)}
+                                ${result.insurancePrice?.toFixed(2) || '0.00'}
                               </p>
                               <p className="text-[9px] sm:text-[10px] text-green-600 font-medium">
-                                Save ${result.savings.toFixed(2)}
+                                Save ${result.savings?.toFixed(2) || '0.00'}
                               </p>
                             </div>
                             
@@ -785,7 +785,7 @@ export default function Results() {
                               <p className={`font-bold ${
                                 result.bestOption === "cash" ? "text-lg sm:text-xl text-gray-700" : "text-base sm:text-lg text-gray-500"
                               }`}>
-                                ${result.cashPrice.toFixed(2)}
+                                ${result.cashPrice?.toFixed(2) || '0.00'}
                               </p>
                               <p className="text-[9px] sm:text-[10px] text-gray-500">
                                 Retail price
@@ -797,10 +797,10 @@ export default function Results() {
                           <div className="mt-3 pt-3 border-t border-gray-200 flex items-center justify-between">
                             <p className="text-xs sm:text-sm font-semibold text-green-700">
                               ✓ Best option saves ${(
-                                result.cashPrice - Math.min(
-                                  result.membershipPrice,
+                                (result.cashPrice || 0) - Math.min(
+                                  result.membershipPrice || Infinity,
                                   result.couponPrice || Infinity,
-                                  result.insurancePrice
+                                  result.insurancePrice || Infinity
                                 )
                               ).toFixed(2)} vs cash
                             </p>
