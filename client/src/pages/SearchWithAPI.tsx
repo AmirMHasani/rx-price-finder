@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 
-import { insurancePlans, insuranceCarriers } from "@/data/insurance";
+import { INSURANCE_PLAN_OPTIONS, InsurancePlanType } from "@/data/insurancePlans";
 import { Search as SearchIcon, Pill, Shield, Loader2, X } from "lucide-react";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -27,7 +27,7 @@ export default function SearchWithAPI() {
   const [selectedForm, setSelectedForm] = useState("");
   const [selectedFrequency, setSelectedFrequency] = useState("1"); // Default to once daily
   const [quantity, setQuantity] = useState("30"); // Default to 30 days
-  const [selectedInsurance, setSelectedInsurance] = useState("");
+  const [selectedInsurance, setSelectedInsurance] = useState<InsurancePlanType | "">(""  );
   const [deductibleMet, setDeductibleMet] = useState(false);
   const [userZip, setUserZip] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
@@ -44,7 +44,7 @@ export default function SearchWithAPI() {
   const [loadingDetails, setLoadingDetails] = useState(false);
   
   const searchTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
-  const selectedIns = insurancePlans.find(i => i.id === selectedInsurance);
+  // Insurance plan is now handled by the new system
 
   // Debounced search - waits 300ms after user stops typing
   useEffect(() => {
@@ -461,21 +461,16 @@ export default function SearchWithAPI() {
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2 md:col-span-2">
                     <Label htmlFor="insurance">{t('home.form.insurancePlan')}</Label>
-                    <Select value={selectedInsurance} onValueChange={setSelectedInsurance}>
+                    <Select value={selectedInsurance} onValueChange={(value) => setSelectedInsurance(value as InsurancePlanType | "")}>
                       <SelectTrigger id="insurance">
                         <SelectValue placeholder={t('home.form.insurancePlaceholder')} />
                       </SelectTrigger>
                       <SelectContent>
-                        {insuranceCarriers.map(carrier => {
-                          const carrierPlans = insurancePlans.filter(p => p.carrier === carrier);
-                          if (carrierPlans.length === 0) return null;
-                          
-                          return carrierPlans.map(plan => (
-                            <SelectItem key={plan.id} value={plan.id}>
-                              {plan.carrier} - {plan.planName} ({plan.planType})
-                            </SelectItem>
-                          ));
-                        })}
+                        {INSURANCE_PLAN_OPTIONS.map(option => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -495,17 +490,7 @@ export default function SearchWithAPI() {
                   </div>
                 </div>
 
-                {selectedIns && (
-                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-md">
-                    <p className="text-sm font-medium text-blue-900 mb-2">Insurance Plan Details:</p>
-                    <div className="grid grid-cols-2 gap-2 text-xs text-blue-800">
-                      <div>Tier 1 Copay: ${selectedIns.tier1Copay}</div>
-                      <div>Tier 2 Copay: ${selectedIns.tier2Copay}</div>
-                      <div>Tier 3 Copay: ${selectedIns.tier3Copay}</div>
-                      <div>Tier 4 Copay: ${selectedIns.tier4Copay}</div>
-                    </div>
-                  </div>
-                )}
+
               </div>
 
               {/* Submit Button */}
@@ -539,7 +524,7 @@ export default function SearchWithAPI() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {searchHistory.map((item) => {
-                const insurance = insurancePlans.find(i => i.id === item.insurance);
+                // Insurance info is now displayed differently
                 return (
                   <Card
                     key={item.id}
@@ -554,7 +539,7 @@ export default function SearchWithAPI() {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-1 text-sm text-muted-foreground">
-                        <div>{insurance?.carrier} - {insurance?.planName}</div>
+                        <div>{item.insurance}</div>
                         <div>{t('home.recentSearches.zip')} {item.zip}</div>
                         <div className="text-xs">{formatTimeAgo(item.timestamp)}</div>
                       </div>

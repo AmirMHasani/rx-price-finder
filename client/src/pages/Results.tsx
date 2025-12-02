@@ -15,6 +15,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { getZipCodeLocation } from "@/services/zipCodeService";
 import { saveSearch } from "@/services/searchHistory";
 import { getMedicationAlternatives, type MedicationAlternative } from "@/services/alternativesService";
+import { CostPlusCard } from "@/components/CostPlusCard";
+import { PharmacyTransparencyCard } from "@/components/PharmacyTransparencyCard";
 
 export default function Results() {
   const { t } = useLanguage();
@@ -117,15 +119,15 @@ export default function Results() {
     // Apply distance filter
     if (distanceFilter !== "all") {
       const maxDistance = parseFloat(distanceFilter);
-      filtered = filtered.filter(r => r.distance <= maxDistance);
+      filtered = filtered.filter(r => (r.distance || 0) <= maxDistance);
     }
     
     // Apply feature filters
     if (featureFilters.length > 0) {
       filtered = filtered.filter(r => {
-        if (featureFilters.includes("24hour") && !r.pharmacy.hours24) return false;
-        if (featureFilters.includes("driveThru") && !r.pharmacy.driveThru) return false;
-        if (featureFilters.includes("delivery") && !r.pharmacy.delivery) return false;
+        if (featureFilters.includes("24hour") && !r.pharmacy.hours?.includes('24')) return false;
+        if (featureFilters.includes("driveThru") && !r.pharmacy.hasDriveThru) return false;
+        if (featureFilters.includes("delivery") && !r.pharmacy.hasDelivery) return false;
         return true;
       });
     }
@@ -135,7 +137,7 @@ export default function Results() {
       if (sortBy === "price") {
         return a.insurancePrice - b.insurancePrice;
       } else if (sortBy === "distance") {
-        return a.distance - b.distance;
+        return (a.distance || 0) - (b.distance || 0);
       } else if (sortBy === "savings") {
         const savingsA = a.cashPrice - a.insurancePrice;
         const savingsB = b.cashPrice - b.insurancePrice;
@@ -355,7 +357,7 @@ export default function Results() {
                       <div className="flex items-center justify-between">
                         <div>
                           <div className="font-bold">{recommended.pharmacy.name}</div>
-                          <div className="text-sm text-muted-foreground">{t('results.priceSummary.milesAway').replace('{{distance}}', recommended.distance.toFixed(1))}</div>
+                          <div className="text-sm text-muted-foreground">{t('results.priceSummary.milesAway').replace('{{distance}}', recommended.distance?.toFixed(1) || '0.0')}</div>
                         </div>
                         <div className="text-right">
                           <div className="text-2xl font-bold text-green-600">${recommended.insurancePrice.toFixed(2)}</div>
@@ -624,8 +626,9 @@ export default function Results() {
             )}
           </div>
 
-          {/* Map */}
-          <div className="lg:col-span-1">
+          {/* Sidebar */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* Map */}
             <Card className="sticky top-4">
               <CardHeader>
                 <CardTitle>Pharmacy Locations</CardTitle>
@@ -639,6 +642,38 @@ export default function Results() {
                 />
               </CardContent>
             </Card>
+
+            {/* Cost Plus Drugs Card */}
+            {filteredAndSortedResults.length > 0 && (() => {
+              const avgPrice = filteredAndSortedResults.reduce((sum, r) => sum + (r.insurancePrice || 0), 0) / filteredAndSortedResults.length;
+              return (
+                <CostPlusCard
+                  medicationName={medicationName}
+                  strength={dosage}
+                  quantity={totalPills}
+                  averageRetailPrice={avgPrice}
+                />
+              );
+            })()}
+
+            {/* Pharmacy Transparency Card */}
+            {filteredAndSortedResults.length > 0 && (() => {
+              const prices = filteredAndSortedResults.map(r => r.insurancePrice).filter(p => p != null && !isNaN(p));
+              if (prices.length === 0) return null;
+              
+              const lowestPrice = Math.min(...prices);
+              const highestPrice = Math.max(...prices);
+              const avgPrice = prices.reduce((a, b) => a + b, 0) / prices.length;
+              
+              return (
+                <PharmacyTransparencyCard
+                  medicationName={medicationName}
+                  averageRetailPrice={avgPrice}
+                  lowestRetailPrice={lowestPrice}
+                  highestRetailPrice={highestPrice}
+                />
+              );
+            })()}
           </div>
         </div>
       </main>
