@@ -467,121 +467,31 @@ export default function Results() {
               );
             })()}
 
-            {/* Filter and Sort Controls */}
+            {/* Filter and Sort Controls - Compact Single Row */}
             {results.length > 0 && (
               <Card className="mb-6">
                 <CardContent className="p-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="flex flex-wrap items-end gap-3">
                     {/* Distance Filter */}
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">{t('results.filters.distance')}</label>
+                    <div className="flex-1 min-w-[140px]">
+                      <label className="text-xs font-medium mb-1 block text-gray-600">Distance</label>
                       <select 
-                        className="w-full p-2 border rounded-md"
+                        className="w-full p-2 text-sm border rounded-md bg-white"
                         value={distanceFilter}
                         onChange={(e) => setDistanceFilter(e.target.value)}
                       >
-                        <option value="all">{t('results.filters.allDistances')}</option>
-                        <option value="1">{t('results.filters.lessThan1Mile')}</option>
-                        <option value="5">{t('results.filters.lessThan5Miles')}</option>
-                        <option value="10">{t('results.filters.lessThan10Miles')}</option>
+                        <option value="all">All distances</option>
+                        <option value="1">&lt; 1 mile</option>
+                        <option value="5">&lt; 5 miles</option>
+                        <option value="10">&lt; 10 miles</option>
                       </select>
                     </div>
                     
-                    {/* Feature Filters */}
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">{t('results.filters.features')}</label>
-                      <div className="space-y-2">
-                        <label className="flex items-center gap-3 text-sm cursor-pointer hover:text-blue-600 transition-colors">
-                          <input 
-                            type="checkbox"
-                            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" 
-                            checked={featureFilters.includes("24hour")}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setFeatureFilters([...featureFilters, "24hour"]);
-                              } else {
-                                setFeatureFilters(featureFilters.filter(f => f !== "24hour"));
-                              }
-                            }}
-                          />
-                          {t('results.filters.feature24Hour')}
-                        </label>
-                        <label className="flex items-center gap-3 text-sm cursor-pointer hover:text-blue-600 transition-colors">
-                          <input 
-                            type="checkbox"
-                            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" 
-                            checked={featureFilters.includes("driveThru")}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setFeatureFilters([...featureFilters, "driveThru"]);
-                              } else {
-                                setFeatureFilters(featureFilters.filter(f => f !== "driveThru"));
-                              }
-                            }}
-                          />
-                          {t('results.filters.featureDriveThru')}
-                        </label>
-                        <label className="flex items-center gap-3 text-sm cursor-pointer hover:text-blue-600 transition-colors">
-                          <input 
-                            type="checkbox"
-                            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" 
-                            checked={featureFilters.includes("delivery")}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setFeatureFilters([...featureFilters, "delivery"]);
-                              } else {
-                                setFeatureFilters(featureFilters.filter(f => f !== "delivery"));
-                              }
-                            }}
-                          />
-                          {t('results.filters.featureDelivery')}
-                        </label>
-                      </div>
-                    </div>
-                    
-                    {/* ZIP Code Filter */}
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Change Location</label>
-                      <div className="flex gap-2">
-                        <input 
-                          type="text"
-                          placeholder="Enter ZIP code"
-                          className="flex-1 p-2 border rounded-md"
-                          defaultValue={userZip}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              const newZip = (e.target as HTMLInputElement).value;
-                              if (newZip && /^\d{5}$/.test(newZip)) {
-                                // Update URL with new ZIP
-                                const newParams = new URLSearchParams(searchParams);
-                                newParams.set('zip', newZip);
-                                setLocation(`/results?${newParams.toString()}`);
-                              }
-                            }
-                          }}
-                        />
-                        <Button 
-                          size="sm"
-                          onClick={(e) => {
-                            const input = (e.currentTarget.previousElementSibling as HTMLInputElement);
-                            const newZip = input.value;
-                            if (newZip && /^\d{5}$/.test(newZip)) {
-                              const newParams = new URLSearchParams(searchParams);
-                              newParams.set('zip', newZip);
-                              setLocation(`/results?${newParams.toString()}`);
-                            }
-                          }}
-                        >
-                          Update
-                        </Button>
-                      </div>
-                    </div>
-
                     {/* Pharmacy Chain Filter */}
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Pharmacy Chain</label>
+                    <div className="flex-1 min-w-[140px]">
+                      <label className="text-xs font-medium mb-1 block text-gray-600">Pharmacy</label>
                       <select 
-                        className="w-full p-2 border rounded-md"
+                        className="w-full p-2 text-sm border rounded-md bg-white"
                         onChange={(e) => {
                           const chain = e.target.value;
                           if (chain === 'all') {
@@ -592,28 +502,112 @@ export default function Results() {
                         }}
                       >
                         <option value="all">All Pharmacies</option>
-                        <option value="cvs">CVS Pharmacy</option>
+                        <option value="cvs">CVS</option>
                         <option value="walgreens">Walgreens</option>
-                        <option value="walmart">Walmart Pharmacy</option>
-                        <option value="costco">Costco Pharmacy</option>
+                        <option value="walmart">Walmart</option>
+                        <option value="costco">Costco</option>
                         <option value="riteaid">Rite Aid</option>
-                        <option value="kroger">Kroger Pharmacy</option>
-                        <option value="target">Target Pharmacy</option>
+                        <option value="kroger">Kroger</option>
+                        <option value="target">Target</option>
                       </select>
                     </div>
                     
                     {/* Sort Options */}
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">{t('results.filters.sortBy')}</label>
+                    <div className="flex-1 min-w-[140px]">
+                      <label className="text-xs font-medium mb-1 block text-gray-600">Sort by</label>
                       <select 
-                        className="w-full p-2 border rounded-md"
+                        className="w-full p-2 text-sm border rounded-md bg-white"
                         value={sortBy}
                         onChange={(e) => setSortBy(e.target.value)}
                       >
-                        <option value="price">{t('results.filters.sortPriceLowHigh')}</option>
-                        <option value="distance">{t('results.filters.sortDistanceNearFar')}</option>
-                        <option value="savings">{t('results.filters.sortSavingsHighLow')}</option>
+                        <option value="price">Price: Low to High</option>
+                        <option value="distance">Distance: Near to Far</option>
+                        <option value="savings">Savings: High to Low</option>
                       </select>
+                    </div>
+                    
+                    {/* Feature Filters - Inline Checkboxes */}
+                    <div className="flex items-center gap-3 ml-2">
+                      <label className="flex items-center gap-1.5 text-xs cursor-pointer hover:text-blue-600 transition-colors whitespace-nowrap">
+                        <input 
+                          type="checkbox"
+                          className="w-3.5 h-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500" 
+                          checked={featureFilters.includes("24hour")}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setFeatureFilters([...featureFilters, "24hour"]);
+                            } else {
+                              setFeatureFilters(featureFilters.filter(f => f !== "24hour"));
+                            }
+                          }}
+                        />
+                        24-Hour
+                      </label>
+                      <label className="flex items-center gap-1.5 text-xs cursor-pointer hover:text-blue-600 transition-colors whitespace-nowrap">
+                        <input 
+                          type="checkbox"
+                          className="w-3.5 h-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500" 
+                          checked={featureFilters.includes("driveThru")}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setFeatureFilters([...featureFilters, "driveThru"]);
+                            } else {
+                              setFeatureFilters(featureFilters.filter(f => f !== "driveThru"));
+                            }
+                          }}
+                        />
+                        Drive-Thru
+                      </label>
+                      <label className="flex items-center gap-1.5 text-xs cursor-pointer hover:text-blue-600 transition-colors whitespace-nowrap">
+                        <input 
+                          type="checkbox"
+                          className="w-3.5 h-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500" 
+                          checked={featureFilters.includes("delivery")}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setFeatureFilters([...featureFilters, "delivery"]);
+                            } else {
+                              setFeatureFilters(featureFilters.filter(f => f !== "delivery"));
+                            }
+                          }}
+                        />
+                        Delivery
+                      </label>
+                    </div>
+                    
+                    {/* ZIP Code Filter */}
+                    <div className="flex items-center gap-2 ml-auto">
+                      <input 
+                        type="text"
+                        placeholder="ZIP code"
+                        className="w-24 p-2 text-sm border rounded-md"
+                        defaultValue={userZip}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            const newZip = (e.target as HTMLInputElement).value;
+                            if (newZip && /^\d{5}$/.test(newZip)) {
+                              const newParams = new URLSearchParams(searchParams);
+                              newParams.set('zip', newZip);
+                              setLocation(`/results?${newParams.toString()}`);
+                            }
+                          }
+                        }}
+                      />
+                      <Button 
+                        size="sm"
+                        className="h-9"
+                        onClick={(e) => {
+                          const input = (e.currentTarget.previousElementSibling as HTMLInputElement);
+                          const newZip = input.value;
+                          if (newZip && /^\d{5}$/.test(newZip)) {
+                            const newParams = new URLSearchParams(searchParams);
+                            newParams.set('zip', newZip);
+                            setLocation(`/results?${newParams.toString()}`);
+                          }
+                        }}
+                      >
+                        Update
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
@@ -652,86 +646,83 @@ export default function Results() {
                     }}
                   >
                     <CardContent className="p-4">
-                      <div className="flex flex-col md:flex-row gap-4 items-start">
-                            {/* Left: Pharmacy Info */}
-                        <div className="flex-1 space-y-3">
-                          {/* Header with Name and Lowest Badge */}
-                          <div>
-                            <div className="flex items-center gap-3 mb-2">
-                              <h3 className="font-bold text-lg text-foreground">{result.pharmacy.name}</h3>
-                              {index === 0 && (
-                                <Badge className="bg-green-500 text-white text-xs px-2 py-0.5">
-                                  ⭐ Lowest Price
-                                </Badge>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <MapPin className="w-4 h-4 flex-shrink-0" />
-                              <span className="truncate">{result.pharmacy.address}</span>
-                            </div>
-                          </div>
-
-                          {/* Features and Actions */}
-                          <div className="flex flex-wrap gap-2 items-center">
-                            {result.pharmacy.hasDelivery && (
-                              <Badge variant="outline" className="text-xs px-2 py-1 border-blue-300 text-blue-700">
-                                <Truck className="w-3 h-3 mr-1.5" />
-                                Delivery
+                      <div className="space-y-3">
+                        {/* Top Row: Pharmacy Name and Badge */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <h3 className="font-bold text-lg text-foreground">{result.pharmacy.name}</h3>
+                            {index === 0 && (
+                              <Badge className="bg-green-500 text-white text-xs px-2 py-0.5">
+                                ⭐ Lowest Price
                               </Badge>
                             )}
-                            {result.pharmacy.hasDriveThru && (
-                              <Badge variant="outline" className="text-xs px-2 py-1 border-purple-300 text-purple-700">
-                                <Car className="w-3 h-3 mr-1.5" />
-                                Drive-Thru
-                              </Badge>
-                            )}
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="h-8 px-3 text-xs"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(result.pharmacy.address)}`;
-                                window.open(mapsUrl, '_blank');
-                              }}
-                            >
-                              <svg className="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                              </svg>
-                              Get Directions
-                            </Button>
                           </div>
                         </div>
-
-                        {/* Right: Unified Pricing Info */}
-                        <div className="md:w-64 flex-shrink-0">
-                          <div className="bg-white p-4 rounded-lg border-2 border-gray-200 shadow-sm space-y-3">
-                            {/* Best Price Badge */}
-                            {(result.bestOption === "coupon" && result.couponPrice) && (
-                              <Badge className="bg-green-600 text-white text-xs px-2 py-1">
-                                🏆 Best Price
-                              </Badge>
-                            )}
-                            
-                            {/* Coupon Price (if better) */}
+                        
+                        {/* Address */}
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <MapPin className="w-4 h-4 flex-shrink-0" />
+                          <span>{result.pharmacy.address}</span>
+                        </div>
+                        
+                        {/* Features Row */}
+                        <div className="flex flex-wrap gap-2 items-center">
+                          {result.pharmacy.hasDelivery && (
+                            <Badge variant="outline" className="text-xs px-2 py-1 border-blue-300 text-blue-700">
+                              <Truck className="w-3 h-3 mr-1.5" />
+                              Delivery
+                            </Badge>
+                          )}
+                          {result.pharmacy.hasDriveThru && (
+                            <Badge variant="outline" className="text-xs px-2 py-1 border-purple-300 text-purple-700">
+                              <Car className="w-3 h-3 mr-1.5" />
+                              Drive-Thru
+                            </Badge>
+                          )}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 px-3 text-xs"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(result.pharmacy.address)}`;
+                              window.open(mapsUrl, '_blank');
+                            }}
+                          >
+                            <svg className="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                            </svg>
+                            Get Directions
+                          </Button>
+                        </div>
+                        
+                        {/* Horizontal Pricing Section */}
+                        <div className="bg-white p-3 rounded-lg border-2 border-gray-200">
+                          <div className="flex items-center justify-between gap-4">
+                            {/* Left: Coupon Price (if available) */}
                             {result.couponPrice && result.bestOption === "coupon" && (
-                              <div className="space-y-1">
-                                <p className="text-xs font-medium text-gray-600">With {result.couponProvider} Coupon</p>
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <Badge className="bg-green-600 text-white text-xs px-2 py-0.5">
+                                    🏆 Best Price
+                                  </Badge>
+                                </div>
+                                <p className="text-xs font-medium text-gray-600 mb-1">With {result.couponProvider} Coupon</p>
                                 <div className="flex items-baseline gap-2">
-                                  <p className="text-3xl font-bold text-green-600">${result.couponPrice}</p>
+                                  <p className="text-2xl font-bold text-green-600">${result.couponPrice}</p>
                                   <p className="text-sm text-gray-400 line-through">${result.cashPrice}</p>
                                 </div>
                               </div>
                             )}
                             
-                            {/* Insurance Price */}
-                            <div className="space-y-1">
-                              <p className="text-xs font-medium text-gray-600">
+                            {/* Center/Left: Insurance Price */}
+                            <div className={result.couponPrice && result.bestOption === "coupon" ? "flex-1" : "flex-1"}>
+                              <p className="text-xs font-medium text-gray-600 mb-1">
                                 {result.couponPrice && result.bestOption === "coupon" ? "With Insurance" : "Your Price"}
                               </p>
                               <div className="flex items-baseline gap-2">
                                 <p className={`font-bold ${
-                                  result.bestOption === "coupon" ? "text-xl text-gray-700" : "text-3xl text-blue-600"
+                                  result.bestOption === "coupon" ? "text-xl text-gray-700" : "text-2xl text-blue-600"
                                 }`}>
                                   ${result.insurancePrice}
                                 </p>
@@ -741,12 +732,12 @@ export default function Results() {
                               </div>
                             </div>
                             
-                            {/* Savings Summary */}
-                            <div className="pt-2 border-t border-gray-200">
-                              <p className="text-sm font-semibold text-green-700">
+                            {/* Right: Savings */}
+                            <div className="text-right">
+                              <p className="text-sm font-semibold text-green-700 mb-1">
                                 ✓ Save ${Math.max(result.savings, result.couponSavings || 0)}
                               </p>
-                              <Badge variant="outline" className="mt-1 text-[10px] h-5 px-2 text-amber-700 border-amber-300">
+                              <Badge variant="outline" className="text-[10px] h-5 px-2 text-amber-700 border-amber-300">
                                 📊 Estimated
                               </Badge>
                             </div>
