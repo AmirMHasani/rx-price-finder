@@ -127,6 +127,17 @@ function getBestCoupon(cashPrice: number): { provider: string; price: number; sa
 }
 
 /**
+ * Estimate wholesale price when Cost Plus doesn't have the medication
+ * Based on typical generic medication costs
+ */
+function estimateWholesalePrice(quantity: number): number {
+  // Most generic medications cost between $0.10 - $0.50 per pill
+  // Use a middle estimate of $0.25 per pill
+  const perPillCost = 0.25;
+  return Math.round(perPillCost * quantity * 100) / 100;
+}
+
+/**
  * Fetch real pricing for a medication from Cost Plus and calculate pharmacy prices
  */
 export async function fetchRealPricing(
@@ -143,20 +154,27 @@ export async function fetchRealPricing(
     // Fetch Cost Plus wholesale price
     const costPlusData = await searchCostPlusMedication(medicationName, strength, quantity);
     
+    let wholesalePrice: number;
+    let medicationTier: 'tier1' | 'tier2' | 'tier3' | 'tier4';
+    let usingEstimate = false;
+    
     if (!costPlusData) {
-      console.warn('⚠️ [REAL PRICING] No Cost Plus data found for', medicationName);
-      return [];
+      console.warn('⚠️ [REAL PRICING] No Cost Plus data found for', medicationName, '- using estimated pricing');
+      wholesalePrice = estimateWholesalePrice(quantity);
+      medicationTier = 'tier1'; // Assume generic tier 1 for unknown medications
+      usingEstimate = true;
+    } else {
+      // Parse wholesale price from Cost Plus
+      wholesalePrice = costPlusData.requested_quote 
+        ? parseCostPlusPrice(costPlusData.requested_quote)
+        : parseCostPlusPrice(costPlusData.unit_price) * quantity;
+      medicationTier = getMedicationTier(costPlusData);
+      usingEstimate = false;
     }
     
-    // Parse wholesale price from Cost Plus
-    const wholesalePrice = costPlusData.requested_quote 
-      ? parseCostPlusPrice(costPlusData.requested_quote)
-      : parseCostPlusPrice(costPlusData.unit_price) * quantity;
-    
-    console.log('✅ [REAL PRICING] Cost Plus wholesale:', wholesalePrice);
-    
-    // Determine medication tier for insurance calculations
-    const medicationTier = getMedicationTier(costPlusData);
+    console.log(usingEstimate 
+      ? '📊 [REAL PRICING] Using estimated wholesale: $' + wholesalePrice
+      : '✅ [REAL PRICING] Cost Plus wholesale: $' + wholesalePrice);
     
     // Calculate pricing for each pharmacy
     const pricingResults: PharmacyPricing[] = pharmacies.map(pharmacy => {

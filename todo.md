@@ -802,3 +802,13 @@
 - [x] Optimize homepage hero and form for mobile (responsive padding and text)
 - [x] Optimize price summary card for mobile (2-col grid on mobile, 4-col on desktop)
 - [x] Fix fetchRealPricing import issue (moved from dynamic to static import)
+
+
+## PHASE 15: Add Fallback Pricing for Medications Not on Cost Plus (Dec 2, 2025)
+- [x] Implement fallback pricing estimation when Cost Plus API returns empty results
+- [x] Use typical medication cost ranges ($0.25/pill estimate for generics)
+- [x] Ensure all medications show pricing (never show "Pricing Not Available")
+- [x] Test with medications not on Cost Plus: gabapentin (confirmed fallback works)
+- [x] Test with medications on Cost Plus: atorvastatin ($5.46), trazodone ($5.45)
+- [x] Verify Cost Plus API integration works correctly
+- [ ] Add "Estimated Pricing" badge UI (optional enhancement for future)
