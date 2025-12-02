@@ -1073,3 +1073,16 @@
 - [x] Tested UHC HDHP: $41-50 copay for atorvastatin ✅
 - [x] Verified different plans show realistic cost differentiation
 - [x] Create checkpoint
+
+
+## Phase 39: Comprehensive Pricing Accuracy Review and Algorithm Adjustment (Dec 2, 2025)
+- [ ] Test common generics (metformin, lisinopril, omeprazole) against GoodRx/Cost Plus
+- [ ] Test expensive brands (Eliquis, Humira, Ozempic, Jardiance) against real pricing
+- [ ] Test specialty drugs (Enbrel, Stelara, Dupixent) for accuracy
+- [ ] Test unconventional medications (rare diseases, biologics, compounded drugs)
+- [ ] Document pricing discrepancies in spreadsheet format
+- [ ] Analyze root causes (missing data sources, incorrect tier classification, markup issues)
+- [ ] Adjust pricing algorithms based on findings
+- [ ] Retest all medications to verify improvements
+- [ ] Create comprehensive pricing accuracy report
+- [ ] Create checkpoint
