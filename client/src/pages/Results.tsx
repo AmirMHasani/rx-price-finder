@@ -649,10 +649,10 @@ export default function Results() {
                       setSelectedPharmacy(result.pharmacy.id);
                     }}
                   >
-                    <CardContent className="p-6">
-                      <div className="flex flex-col md:flex-row gap-6 items-start">
-                        {/* Left: Pharmacy Info */}
-                        <div className="flex-1 min-w-0 space-y-4">
+                    <CardContent className="p-4">
+                      <div className="flex flex-col md:flex-row gap-4 items-start">
+                            {/* Left: Pharmacy Info */}
+                        <div className="flex-1 space-y-3">
                           {/* Header with Name and Lowest Badge */}
                           <div>
                             <div className="flex items-center gap-3 mb-2">
@@ -702,13 +702,13 @@ export default function Results() {
                         </div>
 
                         {/* Right: Pricing Info */}
-                        <div className="md:w-72 flex-shrink-0 space-y-3">
+                        <div className="md:w-64 flex-shrink-0 space-y-2">
                           {/* Insurance Pricing */}
-                          <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-xl border border-blue-200 relative">
+                          <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-3 rounded-lg border border-blue-200 relative">
                             <Badge variant="outline" className="absolute top-3 right-3 text-[10px] h-5 px-2 bg-white/90 text-amber-700 border-amber-300">
                               📊 Estimated
                             </Badge>
-                            <div className="space-y-2">
+                            <div className="space-y-1.5">
                               <p className="text-xs font-medium text-blue-900">With Insurance</p>
                               <div className="flex items-baseline gap-2">
                                 <p className="text-3xl font-bold text-blue-600">
@@ -726,7 +726,7 @@ export default function Results() {
                           
                           {/* Coupon Pricing */}
                           {result.couponPrice && (
-                            <div className={`p-4 rounded-xl border relative ${
+                            <div className={`p-3 rounded-lg border relative ${
                               result.bestOption === "coupon" 
                                 ? "bg-gradient-to-br from-green-50 to-green-100 border-green-300" 
                                 : "bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200"
@@ -736,7 +736,7 @@ export default function Results() {
                                   🏆 Best Price!
                                 </Badge>
                               )}
-                              <div className="space-y-2">
+                              <div className="space-y-1.5">
                                 <p className="text-xs font-medium text-gray-700">
                                   With {result.couponProvider} Coupon
                                 </p>
