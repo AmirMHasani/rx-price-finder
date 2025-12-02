@@ -3,7 +3,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, Info, ShieldAlert, Pill, Loader2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
-import { Streamdown } from "streamdown";
+// Removed Streamdown - using custom Markdown renderer instead
+
+// Simple Markdown to HTML converter for bold text
+function renderMarkdown(text: string): string {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>') // Bold
+    .replace(/\*(.+?)\*/g, '<em>$1</em>') // Italic
+    .replace(/\n/g, '<br/>'); // Line breaks
+}
 
 interface SafetyInfoTabProps {
   medicationName: string;
@@ -185,9 +193,10 @@ export function SafetyInfoTab({ medicationName, rxcui }: SafetyInfoTabProps) {
               {safetyData.blackBoxWarnings.map((warning, index) => (
                 <div key={index} className="bg-white p-5 rounded-lg border border-red-200">
                   <h4 className="font-semibold text-red-900 mb-2">{warning.title}</h4>
-                  <div className="text-sm text-foreground prose prose-sm max-w-none">
-                    <Streamdown>{warning.content}</Streamdown>
-                  </div>
+                  <div 
+                    className="text-sm text-foreground prose prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{ __html: renderMarkdown(warning.content) }}
+                  />
                 </div>
               ))}
             </div>
@@ -212,9 +221,10 @@ export function SafetyInfoTab({ medicationName, rxcui }: SafetyInfoTabProps) {
               {safetyData.contraindications.map((item, index) => (
                 <div key={index} className="bg-white p-5 rounded-lg border border-orange-200">
                   <h4 className="font-semibold text-orange-900 mb-2">{item.title}</h4>
-                  <div className="text-sm text-foreground prose prose-sm max-w-none">
-                    <Streamdown>{item.content}</Streamdown>
-                  </div>
+                  <div 
+                    className="text-sm text-foreground prose prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{ __html: renderMarkdown(item.content) }}
+                  />
                 </div>
               ))}
             </div>
@@ -239,9 +249,10 @@ export function SafetyInfoTab({ medicationName, rxcui }: SafetyInfoTabProps) {
               {safetyData.drugInteractions.map((item, index) => (
                 <div key={index} className="bg-blue-50 p-5 rounded-lg border border-blue-200">
                   <h4 className="font-semibold text-blue-900 mb-2">{item.title}</h4>
-                  <div className="text-sm text-foreground prose prose-sm max-w-none">
-                    <Streamdown>{item.content}</Streamdown>
-                  </div>
+                  <div 
+                    className="text-sm text-foreground prose prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{ __html: renderMarkdown(item.content) }}
+                  />
                 </div>
               ))}
             </div>
@@ -266,9 +277,10 @@ export function SafetyInfoTab({ medicationName, rxcui }: SafetyInfoTabProps) {
               {safetyData.warnings.map((item, index) => (
                 <div key={index} className="bg-amber-50 p-5 rounded-lg border border-amber-200">
                   <h4 className="font-semibold text-amber-900 mb-2">{item.title}</h4>
-                  <div className="text-sm text-foreground prose prose-sm max-w-none">
-                    <Streamdown>{item.content}</Streamdown>
-                  </div>
+                  <div 
+                    className="text-sm text-foreground prose prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{ __html: renderMarkdown(item.content) }}
+                  />
                 </div>
               ))}
             </div>
@@ -290,9 +302,10 @@ export function SafetyInfoTab({ medicationName, rxcui }: SafetyInfoTabProps) {
               {safetyData.adverseReactions.map((item, index) => (
                 <div key={index} className="bg-gray-50 p-5 rounded-lg border border-gray-200">
                   <h4 className="font-semibold text-gray-900 mb-2">{item.title}</h4>
-                  <div className="text-sm text-foreground prose prose-sm max-w-none">
-                    <Streamdown>{item.content}</Streamdown>
-                  </div>
+                  <div 
+                    className="text-sm text-foreground prose prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{ __html: renderMarkdown(item.content) }}
+                  />
                 </div>
               ))}
             </div>

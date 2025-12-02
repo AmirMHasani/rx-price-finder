@@ -451,11 +451,23 @@ export default function Results() {
 
         {/* Main Content with Tabs */}
         <Tabs defaultValue="prices" className="w-full">
-          <TabsList className="mb-6">
-            <TabsTrigger value="prices">💰 Prices</TabsTrigger>
-            <TabsTrigger value="safety">🛡️ Safety Info</TabsTrigger>
-            <TabsTrigger value="alternatives">💊 Alternatives</TabsTrigger>
-            <TabsTrigger value="data">📊 About Data</TabsTrigger>
+          <TabsList className="mb-6 grid grid-cols-4 w-full">
+            <TabsTrigger value="prices" className="text-xs sm:text-sm">
+              <span className="sm:hidden">💰</span>
+              <span className="hidden sm:inline">💰 Prices</span>
+            </TabsTrigger>
+            <TabsTrigger value="safety" className="text-xs sm:text-sm">
+              <span className="sm:hidden">🛡️</span>
+              <span className="hidden sm:inline">🛡️ Safety Info</span>
+            </TabsTrigger>
+            <TabsTrigger value="alternatives" className="text-xs sm:text-sm">
+              <span className="sm:hidden">💊</span>
+              <span className="hidden sm:inline">💊 Alternatives</span>
+            </TabsTrigger>
+            <TabsTrigger value="data" className="text-xs sm:text-sm">
+              <span className="sm:hidden">📊</span>
+              <span className="hidden sm:inline">📊 About Data</span>
+            </TabsTrigger>
           </TabsList>
 
           {/* Tab 1: Prices */}

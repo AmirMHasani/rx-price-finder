@@ -41,21 +41,38 @@ const PHARMACY_MARKUPS: Record<string, { min: number; max: number }> = {
 };
 
 /**
- * Get pharmacy-specific markup with randomness
+ * Simple hash function for deterministic "randomness" based on string
+ */
+function hashString(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return Math.abs(hash);
+}
+
+/**
+ * Get pharmacy-specific markup (deterministic based on pharmacy name)
  */
 function getPharmacyMarkup(pharmacyName: string): number {
   const lowerName = pharmacyName.toLowerCase();
   
   for (const [key, range] of Object.entries(PHARMACY_MARKUPS)) {
     if (lowerName.includes(key)) {
-      // Random markup within the pharmacy's range
-      return range.min + Math.random() * (range.max - range.min);
+      // Deterministic markup within the pharmacy's range based on name hash
+      const hash = hashString(pharmacyName);
+      const normalizedHash = (hash % 1000) / 1000; // 0 to 1
+      return range.min + normalizedHash * (range.max - range.min);
     }
   }
   
-  // Default range with randomness
+  // Default range with deterministic variation
   const defaultRange = PHARMACY_MARKUPS.default;
-  return defaultRange.min + Math.random() * (defaultRange.max - defaultRange.min);
+  const hash = hashString(pharmacyName);
+  const normalizedHash = (hash % 1000) / 1000; // 0 to 1
+  return defaultRange.min + normalizedHash * (defaultRange.max - defaultRange.min);
 }
 
 /**
@@ -117,16 +134,13 @@ function calculateInsuranceCopay(
 ): number {
   const tier = INSURANCE_COPAY_TIERS[medicationTier];
   
-  // Add small random variation (+/- 10%) to copay
-  const randomFactor = 0.95 + Math.random() * 0.10; // 0.95 to 1.05
-  
   if (deductibleMet) {
-    // After deductible: lower copay with variation
+    // After deductible: lower copay
     const baseCopay = Math.min(tier.min, cashPrice * 0.8);
-    return baseCopay * randomFactor;
+    return baseCopay;
   } else {
-    // Before deductible: higher copay (but capped at tier max) with variation
-    const copay = cashPrice * 0.7 * randomFactor; // 70% of cash price with variation
+    // Before deductible: higher copay (but capped at tier max)
+    const copay = cashPrice * 0.7; // 70% of cash price
     return Math.min(Math.max(copay, tier.min), tier.max);
   }
 }
@@ -147,17 +161,15 @@ function getMedicationTier(costPlusData: CostPlusDrugResult): 'tier1' | 'tier2' 
 }
 
 /**
- * Get best coupon provider and discount for a medication
+ * Get best coupon provider and discount for a medication (deterministic based on pharmacy)
  */
-function getBestCoupon(cashPrice: number): { provider: string; price: number; savings: number } {
-  let bestProvider = 'RxSaver';
-  let bestDiscount = COUPON_DISCOUNTS['RxSaver'];
-  
-  // Randomly vary which coupon is best to simulate real-world variation
+function getBestCoupon(cashPrice: number, pharmacyName: string): { provider: string; price: number; savings: number } {
+  // Deterministically select coupon provider based on pharmacy name hash
   const providers = Object.keys(COUPON_DISCOUNTS);
-  const randomProvider = providers[Math.floor(Math.random() * providers.length)];
-  bestProvider = randomProvider;
-  bestDiscount = COUPON_DISCOUNTS[randomProvider];
+  const hash = hashString(pharmacyName);
+  const providerIndex = hash % providers.length;
+  const bestProvider = providers[providerIndex];
+  const bestDiscount = COUPON_DISCOUNTS[bestProvider];
   
   const couponPrice = cashPrice * (1 - bestDiscount);
   const savings = cashPrice - couponPrice;
@@ -273,13 +285,15 @@ export async function fetchRealPricing(
       const membershipSavings = Math.round((cashPrice - membershipPrice) * 100) / 100;
       
       // 4. Calculate coupon price (not all pharmacies accept all coupons)
-      const acceptsCoupons = Math.random() > 0.3; // 70% of pharmacies accept coupons
+      // Deterministically decide if pharmacy accepts coupons based on name hash
+      const hash = hashString(pharmacy.name);
+      const acceptsCoupons = (hash % 10) < 7; // 70% of pharmacies accept coupons
       let couponPrice: number | undefined;
       let couponProvider: string | undefined;
       let couponSavings: number | undefined;
       
       if (acceptsCoupons) {
-        const coupon = getBestCoupon(cashPrice);
+        const coupon = getBestCoupon(cashPrice, pharmacy.name);
         couponPrice = Math.round(coupon.price * 100) / 100;
         couponProvider = coupon.provider;
         couponSavings = Math.round(coupon.savings * 100) / 100;

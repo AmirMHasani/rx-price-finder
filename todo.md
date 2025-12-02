@@ -927,3 +927,21 @@
 - [x] Test with multiple pharmacies - CVS showing "CVS Pharmacy" correctly
 - [x] Independent pharmacies showing full business names as expected
 - [x] Push fix to GitHub
+
+
+## Phase 28: Fix Markdown Rendering and Mobile Tab Buttons (Dec 2, 2025)
+- [ ] Fix Streamdown Markdown rendering in SafetyInfoTab (asterisks still showing)
+- [ ] Improve mobile responsive design for tab buttons (cramped layout)
+- [ ] Hide emoji or text on mobile for better spacing
+- [ ] Test on mobile viewport to verify fixes
+- [ ] Push fix to GitHub
+
+
+## Phase 29: Fix Pricing Stability and CMS Calculations (Dec 2, 2025)
+- [x] Investigate why prices change when switching between tabs - found Math.random() in multiple places
+- [x] Fix random price generation causing instability - replaced with deterministic hash-based pricing
+- [x] Verify CMS NADAC pricing is per-unit (not total) - confirmed correct
+- [x] Ensure CMS prices are multiplied by quantity correctly - verified lines 235, 243, 251
+- [x] Test pricing remains stable across tab switches - confirmed prices unchanged ($4.19, $5.20, $4.66)
+- [x] Verify all pricing calculations are mathematically correct - all calculations verified
+- [x] Push fix to GitHub
