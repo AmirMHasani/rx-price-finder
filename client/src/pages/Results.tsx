@@ -51,7 +51,7 @@ export default function Results() {
   const [showAllPharmacies, setShowAllPharmacies] = useState(false);
 
   const params = useMemo(() => new URLSearchParams(searchParams), [searchParams]);
-  const userZip = params.get("zip") || "02108"; // Default to Boston if no ZIP provided
+  const userZip = params.get("zipCode") || params.get("zip") || "02108"; // Default to Boston if no ZIP provided
   const medicationName = params.get("medication") || "";
   const rxcui = params.get("rxcui") || "";
   const dosage = params.get("dosage") || "";
@@ -59,7 +59,8 @@ export default function Results() {
   const frequency = params.get("frequency") || "1";
   const quantity = params.get("quantity") || "30";
   const totalPills = parseInt(params.get("totalPills") || "30");
-  const insuranceId = params.get("insurance") || "";
+  // Support both old single insurance param and new two-tier system
+  const insuranceId = params.get("insurancePlan") || params.get("insurance") || "";
   const deductibleMet = params.get("deductibleMet") === "true";
   
   // Get user's location from ZIP code for map centering
@@ -382,16 +383,15 @@ export default function Results() {
       </header>
 
       {/* Main Content */}
-      <div className="container py-8">
+      <div className="container py-6 md:py-10 px-4 md:px-6">
         {/* Medication Info Card - Always visible */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="text-2xl">{medicationName}</CardTitle>
-            <CardDescription>
-              {dosage} {form} • {frequency === "1" ? "Once daily" : frequency === "2" ? "Twice daily" : frequency === "3" ? "Three times daily" : frequency === "4" ? "Four times daily" : frequency === "0.5" ? "Every other day" : "Once weekly"} • {quantity} days supply ({totalPills} pills)
-            </CardDescription>
-            <CardDescription className="mt-2">
-              {insurance?.carrier} - {insurance?.planName}
+        <Card className="mb-8 shadow-sm">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-2xl font-bold text-gray-900">{medicationName}</CardTitle>
+            <CardDescription className="text-base mt-2 space-y-1">
+              <div>{dosage} {form} • {frequency === "1" ? "Once daily" : frequency === "2" ? "Twice daily" : frequency === "3" ? "Three times daily" : frequency === "4" ? "Four times daily" : frequency === "0.5" ? "Every other day" : "Once weekly"}</div>
+              <div>{quantity} days supply ({totalPills} pills)</div>
+              <div className="font-medium text-blue-600">{insurance?.carrier} - {insurance?.planName}</div>
             </CardDescription>
           </CardHeader>
         </Card>
@@ -491,9 +491,10 @@ export default function Results() {
                     <div>
                       <label className="text-sm font-medium mb-2 block">{t('results.filters.features')}</label>
                       <div className="space-y-2">
-                        <label className="flex items-center gap-2 text-sm">
+                        <label className="flex items-center gap-3 text-sm cursor-pointer hover:text-blue-600 transition-colors">
                           <input 
-                            type="checkbox" 
+                            type="checkbox"
+                            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" 
                             checked={featureFilters.includes("24hour")}
                             onChange={(e) => {
                               if (e.target.checked) {
@@ -505,9 +506,10 @@ export default function Results() {
                           />
                           {t('results.filters.feature24Hour')}
                         </label>
-                        <label className="flex items-center gap-2 text-sm">
+                        <label className="flex items-center gap-3 text-sm cursor-pointer hover:text-blue-600 transition-colors">
                           <input 
-                            type="checkbox" 
+                            type="checkbox"
+                            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" 
                             checked={featureFilters.includes("driveThru")}
                             onChange={(e) => {
                               if (e.target.checked) {
@@ -519,9 +521,10 @@ export default function Results() {
                           />
                           {t('results.filters.featureDriveThru')}
                         </label>
-                        <label className="flex items-center gap-2 text-sm">
+                        <label className="flex items-center gap-3 text-sm cursor-pointer hover:text-blue-600 transition-colors">
                           <input 
-                            type="checkbox" 
+                            type="checkbox"
+                            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" 
                             checked={featureFilters.includes("delivery")}
                             onChange={(e) => {
                               if (e.target.checked) {
@@ -637,12 +640,11 @@ export default function Results() {
 
                 {filteredAndSortedResults.slice(0, showAllPharmacies ? filteredAndSortedResults.length : 5).map((result, index) => (
                   <Card
-                    key={result.pharmacy.id}
                     id={`pharmacy-${result.pharmacy.id}`}
-                    className={`cursor-pointer transition-all ${
+                    className={`cursor-pointer transition-all duration-300 border-2 ${
                       selectedPharmacy === result.pharmacy.id
-                        ? "ring-2 ring-primary shadow-lg"
-                        : "hover:shadow-md"
+                        ? "ring-2 ring-blue-500 shadow-xl border-blue-300 bg-blue-50/30"
+                        : "hover:shadow-lg hover:border-gray-300 hover:-translate-y-0.5 border-gray-200"
                     }`}
                     onClick={() => {
                       console.log(`🖱️ [CARD CLICK] User clicked card for ${result.pharmacy.name}`);
@@ -701,54 +703,54 @@ export default function Results() {
                           </div>
                         </div>
 
-                        {/* Right: Pricing Info */}
-                        <div className="md:w-64 flex-shrink-0 space-y-2">
-                          {/* Insurance Pricing */}
-                          <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-3 rounded-lg border border-blue-200 relative">
-                            <Badge variant="outline" className="absolute top-3 right-3 text-[10px] h-5 px-2 bg-white/90 text-amber-700 border-amber-300">
-                              📊 Estimated
-                            </Badge>
-                            <div className="space-y-1.5">
-                              <p className="text-xs font-medium text-blue-900">With Insurance</p>
+                        {/* Right: Unified Pricing Info */}
+                        <div className="md:w-64 flex-shrink-0">
+                          <div className="bg-white p-4 rounded-lg border-2 border-gray-200 shadow-sm space-y-3">
+                            {/* Best Price Badge */}
+                            {(result.bestOption === "coupon" && result.couponPrice) && (
+                              <Badge className="bg-green-600 text-white text-xs px-2 py-1">
+                                🏆 Best Price
+                              </Badge>
+                            )}
+                            
+                            {/* Coupon Price (if better) */}
+                            {result.couponPrice && result.bestOption === "coupon" && (
+                              <div className="space-y-1">
+                                <p className="text-xs font-medium text-gray-600">With {result.couponProvider} Coupon</p>
+                                <div className="flex items-baseline gap-2">
+                                  <p className="text-3xl font-bold text-green-600">${result.couponPrice}</p>
+                                  <p className="text-sm text-gray-400 line-through">${result.cashPrice}</p>
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* Insurance Price */}
+                            <div className="space-y-1">
+                              <p className="text-xs font-medium text-gray-600">
+                                {result.couponPrice && result.bestOption === "coupon" ? "With Insurance" : "Your Price"}
+                              </p>
                               <div className="flex items-baseline gap-2">
-                                <p className="text-3xl font-bold text-blue-600">
+                                <p className={`font-bold ${
+                                  result.bestOption === "coupon" ? "text-xl text-gray-700" : "text-3xl text-blue-600"
+                                }`}>
                                   ${result.insurancePrice}
                                 </p>
-                                <p className="text-sm text-muted-foreground line-through">
-                                  ${result.cashPrice}
-                                </p>
+                                {!(result.couponPrice && result.bestOption === "coupon") && (
+                                  <p className="text-sm text-gray-400 line-through">${result.cashPrice}</p>
+                                )}
                               </div>
+                            </div>
+                            
+                            {/* Savings Summary */}
+                            <div className="pt-2 border-t border-gray-200">
                               <p className="text-sm font-semibold text-green-700">
-                                ✓ Save ${result.savings}
+                                ✓ Save ${Math.max(result.savings, result.couponSavings || 0)}
                               </p>
+                              <Badge variant="outline" className="mt-1 text-[10px] h-5 px-2 text-amber-700 border-amber-300">
+                                📊 Estimated
+                              </Badge>
                             </div>
                           </div>
-                          
-                          {/* Coupon Pricing */}
-                          {result.couponPrice && (
-                            <div className={`p-3 rounded-lg border relative ${
-                              result.bestOption === "coupon" 
-                                ? "bg-gradient-to-br from-green-50 to-green-100 border-green-300" 
-                                : "bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200"
-                            }`}>
-                              {result.bestOption === "coupon" && (
-                                <Badge className="absolute top-3 right-3 bg-green-600 text-white text-[10px] h-5 px-2">
-                                  🏆 Best Price!
-                                </Badge>
-                              )}
-                              <div className="space-y-1.5">
-                                <p className="text-xs font-medium text-gray-700">
-                                  With {result.couponProvider} Coupon
-                                </p>
-                                <p className="text-2xl font-bold text-gray-900">
-                                  ${result.couponPrice}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  Save ${result.couponSavings} vs cash
-                                </p>
-                              </div>
-                            </div>
-                          )}
                         </div>
                       </div>
                     </CardContent>
