@@ -4,6 +4,7 @@ const COST_PLUS_API_BASE = 'https://us-central1-costplusdrugs-publicapi.cloudfun
 
 export interface CostPlusDrugResult {
   brand_name: string;
+  brand_generic?: string;  // 'Brand' or 'Generic'
   form: string;
   medication_name: string;
   ndc: string;

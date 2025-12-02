@@ -255,3 +255,38 @@ export async function searchByNDC(ndc: string): Promise<RxNormDrug | null> {
     return null;
   }
 }
+
+
+/**
+ * Convert RXCUI to NDC codes
+ * RxNorm API: /rxcui/{rxcui}/ndcs.json
+ */
+export async function getRxcuiToNdc(rxcui: string): Promise<string[]> {
+  try {
+    console.log(`[RxNorm] Converting RXCUI ${rxcui} to NDC codes`);
+    
+    const response = await fetch(
+      `${RXNORM_BASE_URL}/rxcui/${rxcui}/ndcs.json`
+    );
+
+    if (!response.ok) {
+      console.error(`[RxNorm] NDC lookup failed: ${response.statusText}`);
+      return [];
+    }
+
+    const data = await response.json();
+
+    if (!data.ndcGroup || !data.ndcGroup.ndcList || !data.ndcGroup.ndcList.ndc) {
+      console.log(`[RxNorm] No NDC codes found for RXCUI ${rxcui}`);
+      return [];
+    }
+
+    const ndcCodes = data.ndcGroup.ndcList.ndc;
+    console.log(`[RxNorm] Found ${ndcCodes.length} NDC codes for RXCUI ${rxcui}`);
+    
+    return ndcCodes;
+  } catch (error) {
+    console.error(`[RxNorm] Error converting RXCUI to NDC:`, error);
+    return [];
+  }
+}

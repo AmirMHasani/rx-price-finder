@@ -28,6 +28,7 @@ export interface PharmacyPricing {
 /**
  * Cash price markup ranges by pharmacy chain (50% average, but varies by pharmacy)
  * CVS/Walgreens charge more, Costco/Walmart charge less
+ * For GENERIC medications only - brand drugs use different pricing
  */
 const PHARMACY_MARKUPS: Record<string, { min: number; max: number }> = {
   'costco': { min: 1.25, max: 1.35 },      // Costco: 25-35% markup (cheapest)
@@ -39,6 +40,22 @@ const PHARMACY_MARKUPS: Record<string, { min: number; max: number }> = {
   'walgreens': { min: 1.50, max: 1.70 },  // Walgreens: 50-70% markup
   'cvs': { min: 1.55, max: 1.75 },        // CVS: 55-75% markup (most expensive)
   'default': { min: 1.40, max: 1.60 },    // Independent: 40-60% markup
+};
+
+/**
+ * Brand medication markup ranges (much higher than generics)
+ * Brand drugs have 3-5x markup from wholesale to retail
+ */
+const BRAND_PHARMACY_MARKUPS: Record<string, { min: number; max: number }> = {
+  'costco': { min: 3.0, max: 3.5 },       // Costco: 3-3.5x markup (cheapest)
+  'walmart': { min: 3.2, max: 3.8 },      // Walmart: 3.2-3.8x markup
+  'sam': { min: 3.2, max: 3.8 },          // Sam's Club: 3.2-3.8x markup
+  'kroger': { min: 3.5, max: 4.0 },       // Kroger: 3.5-4x markup
+  'target': { min: 3.8, max: 4.2 },       // Target: 3.8-4.2x markup
+  'rite aid': { min: 4.0, max: 4.5 },     // Rite Aid: 4-4.5x markup
+  'walgreens': { min: 4.2, max: 4.8 },    // Walgreens: 4.2-4.8x markup
+  'cvs': { min: 4.5, max: 5.0 },          // CVS: 4.5-5x markup (most expensive)
+  'default': { min: 3.8, max: 4.5 },      // Independent: 3.8-4.5x markup
 };
 
 /**
@@ -56,11 +73,14 @@ function hashString(str: string): number {
 
 /**
  * Get pharmacy-specific markup (deterministic based on pharmacy name)
+ * @param pharmacyName - Name of the pharmacy
+ * @param isBrand - Whether this is a brand medication (uses higher markups)
  */
-function getPharmacyMarkup(pharmacyName: string): number {
+function getPharmacyMarkup(pharmacyName: string, isBrand: boolean = false): number {
   const lowerName = pharmacyName.toLowerCase();
+  const markupTable = isBrand ? BRAND_PHARMACY_MARKUPS : PHARMACY_MARKUPS;
   
-  for (const [key, range] of Object.entries(PHARMACY_MARKUPS)) {
+  for (const [key, range] of Object.entries(markupTable)) {
     if (lowerName.includes(key)) {
       // Deterministic markup within the pharmacy's range based on name hash
       const hash = hashString(pharmacyName);
@@ -70,7 +90,7 @@ function getPharmacyMarkup(pharmacyName: string): number {
   }
   
   // Default range with deterministic variation
-  const defaultRange = PHARMACY_MARKUPS.default;
+  const defaultRange = markupTable.default;
   const hash = hashString(pharmacyName);
   const normalizedHash = (hash % 1000) / 1000; // 0 to 1
   return defaultRange.min + normalizedHash * (defaultRange.max - defaultRange.min);
@@ -196,6 +216,29 @@ function estimateWholesalePrice(quantity: number): number {
 /**
  * Fetch real pricing for a medication from Cost Plus and calculate pharmacy prices
  */
+/**
+ * Clean medication name for API searches
+ * Extracts generic name from RxNorm format like "dapagliflozin 10 MG Oral Tablet [Farxiga]"
+ */
+function cleanMedicationName(medicationName: string): string {
+  // Remove dosage info (e.g., "10 MG", "20mg")
+  let cleaned = medicationName.replace(/\d+\s*(mg|MG|mcg|MCG)\s*/gi, '').trim();
+  
+  // Remove form info (e.g., "Oral Tablet", "Capsule")
+  cleaned = cleaned.replace(/\s+(oral|tablet|capsule|injection|solution|cream|ointment)\b/gi, '').trim();
+  
+  // Extract brand name from brackets [Brand Name] if present
+  const brandMatch = cleaned.match(/\[([^\]]+)\]/);
+  const brandName = brandMatch ? brandMatch[1] : null;
+  
+  // Remove brand name in brackets to get generic name
+  cleaned = cleaned.replace(/\s*\[([^\]]+)\]\s*/g, '').trim();
+  
+  console.log('🧼 [CLEAN NAME] Original:', medicationName, '| Generic:', cleaned, '| Brand:', brandName);
+  
+  return cleaned;
+}
+
 export async function fetchRealPricing(
   medicationName: string,
   strength: string,
@@ -206,22 +249,25 @@ export async function fetchRealPricing(
   rxcui?: string
 ): Promise<PharmacyPricing[]> {
   try {
-    console.log('💰 [REAL PRICING] Fetching Cost Plus data for:', medicationName, strength, quantity);
+    // Clean medication name for API searches
+    const cleanName = cleanMedicationName(medicationName);
+    console.log('💰 [REAL PRICING] Fetching Cost Plus data for:', cleanName, strength, quantity);
     
-    // Fetch Cost Plus wholesale price
-    const costPlusData = await searchCostPlusMedication(medicationName, strength, quantity);
+    // Fetch Cost Plus wholesale price using cleaned name
+    const costPlusData = await searchCostPlusMedication(cleanName, strength, quantity);
     
     let wholesalePrice: number;
     let medicationTier: 'tier1' | 'tier2' | 'tier3' | 'tier4';
     let usingEstimate = false;
+    let isBrandMedication = false; // Track if this is a brand drug
     
     if (!costPlusData) {
-      console.warn('⚠️ [REAL PRICING] No Cost Plus data found for', medicationName, '- trying combined CMS approach');
+      console.warn('⚠️ [REAL PRICING] No Cost Plus data found for', cleanName, '- trying combined CMS approach');
       
-      // Combined CMS approach: NADAC + Medicare Part D
+      // Combined CMS approach: NADAC + Medicare Part D using cleaned name
       const [nadacResults, partDData] = await Promise.all([
-        searchNADACByName(medicationName, strength),
-        searchPartDByName(medicationName)
+        searchNADACByName(cleanName, strength),
+        searchPartDByName(cleanName)
       ]);
       
       if (nadacResults && nadacResults.length > 0) {
@@ -233,13 +279,26 @@ export async function fetchRealPricing(
           const partDUnitPrice = getPartDUnitPrice(partDData);
           const markupFactor = calculatePartDMarkupFactor(partDUnitPrice, nadacUnitPrice);
           
-          // Use Part D price as baseline (more realistic than NADAC alone)
-          wholesalePrice = Math.round(partDUnitPrice * quantity * 100) / 100;
-          medicationTier = partDUnitPrice > nadacUnitPrice * 3 ? 'tier3' : 'tier2'; // High markup = brand
-          usingEstimate = false;
+          // Detect brand medication: Part D price > $5/unit or >3x NADAC = brand drug
+          isBrandMedication = partDUnitPrice > 5 || markupFactor > 3;
           
-          console.log('✅ [REAL PRICING] Combined CMS (NADAC + Part D): $' + wholesalePrice);
+          if (isBrandMedication) {
+            // For brand drugs: Part D price IS the retail price (no markup needed)
+            // Use NADAC as wholesale for calculating pharmacy margins
+            wholesalePrice = Math.round(nadacUnitPrice * quantity * 100) / 100;
+            medicationTier = 'tier3'; // Brand medications are tier 3+
+            isBrandMedication = true; // Mark as brand
+            console.log('✅ [REAL PRICING] BRAND DRUG detected - NADAC wholesale: $' + wholesalePrice);
+            console.log('   Part D retail: $' + (partDUnitPrice * quantity).toFixed(2) + ' (will be used as cash price baseline)');
+          } else {
+            // For generic drugs: Use Part D as wholesale baseline
+            wholesalePrice = Math.round(partDUnitPrice * quantity * 100) / 100;
+            medicationTier = 'tier2';
+            console.log('✅ [REAL PRICING] GENERIC - Combined CMS: $' + wholesalePrice);
+          }
+          
           console.log('   NADAC: $' + nadacUnitPrice.toFixed(4) + '/unit, Part D: $' + partDUnitPrice.toFixed(4) + '/unit, Markup: ' + markupFactor.toFixed(2) + 'x');
+          usingEstimate = false;
         } else {
           // Only NADAC available - use it with conservative markup
           wholesalePrice = Math.round(nadacUnitPrice * quantity * 1.15 * 100) / 100; // 15% markup
@@ -248,12 +307,24 @@ export async function fetchRealPricing(
           console.log('✅ [REAL PRICING] NADAC only (with 15% markup): $' + wholesalePrice);
         }
       } else if (partDData) {
-        // Only Part D available
+        // Only Part D available - assume brand if price > $5/unit
         const partDUnitPrice = getPartDUnitPrice(partDData);
-        wholesalePrice = Math.round(partDUnitPrice * quantity * 100) / 100;
-        medicationTier = 'tier2';
+        isBrandMedication = partDUnitPrice > 5;
+        
+        if (isBrandMedication) {
+          // Brand drug: use 20% of Part D price as wholesale estimate
+          wholesalePrice = Math.round(partDUnitPrice * quantity * 0.20 * 100) / 100;
+          medicationTier = 'tier3';
+          isBrandMedication = true; // Mark as brand
+          console.log('✅ [REAL PRICING] BRAND (Part D only): wholesale estimate $' + wholesalePrice);
+          console.log('   Part D retail: $' + (partDUnitPrice * quantity).toFixed(2));
+        } else {
+          // Generic: use Part D as wholesale
+          wholesalePrice = Math.round(partDUnitPrice * quantity * 100) / 100;
+          medicationTier = 'tier2';
+          console.log('✅ [REAL PRICING] GENERIC (Part D only): $' + wholesalePrice);
+        }
         usingEstimate = false;
-        console.log('✅ [REAL PRICING] Part D only: $' + wholesalePrice);
       } else {
         console.warn('⚠️ [REAL PRICING] No CMS data found - using estimated pricing');
         wholesalePrice = estimateWholesalePrice(quantity);
@@ -288,8 +359,9 @@ export async function fetchRealPricing(
     
     // Calculate pricing for each pharmacy
     const pricingResults: PharmacyPricing[] = pharmacies.map(pharmacy => {
-      // 1. Calculate cash price with pharmacy-specific markup and randomness
-      const pharmacyMarkup = getPharmacyMarkup(pharmacy.name);
+      // 1. Calculate cash price with pharmacy-specific markup
+      // Use brand markup for brand medications (3-5x) vs generic markup (1.3-1.7x)
+      const pharmacyMarkup = getPharmacyMarkup(pharmacy.name, isBrandMedication);
       const cashPrice = Math.round(wholesalePrice * pharmacyMarkup * 100) / 100;
       
       // 2. Calculate insurance copay first (needed for membership price)
@@ -352,7 +424,7 @@ export async function fetchRealPricing(
         insurancePrice,
         savings,
         bestOption,
-        distance: pharmacy.distance
+        distance: undefined  // Distance will be calculated in Results component
       };
     });
     

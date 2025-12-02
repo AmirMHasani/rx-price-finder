@@ -1028,3 +1028,25 @@
 - [x] Test with atorvastatin - prices now range from $4.30 to $5.71
 - [x] Verify prices look realistic and varied across pharmacies
 - [x] Create checkpoint
+
+
+## Phase 35: Improve Brand Medication Pricing Accuracy (Dec 2, 2025)
+- [ ] Test current pricing for Farxiga (dapagliflozin) 10mg
+- [ ] Analyze CMS Medicare Part D data for brand medication pricing
+- [ ] Compare our prices vs GoodRx benchmark ($288 for Farxiga 10mg 30 tablets)
+- [ ] Enhance pricing algorithm to use Medicare Part D retail benchmarks
+- [ ] Add brand medication markup multipliers (3-10x vs generic)
+- [ ] Implement proper retail price calculation for expensive brand drugs
+- [ ] Test with multiple brand medications (Farxiga, Eliquis, Januvia, Ozempic)
+- [ ] Validate prices match real-world GoodRx/retail pricing
+- [ ] Create checkpoint
+
+
+## Phase 36: Expand Insurance Carriers and Plans Using Real CMS Data (Dec 2, 2025) ✅
+- [x] Created comprehensive list of 50+ top US insurance carriers
+- [x] Added 150+ realistic insurance plans across all carriers
+- [x] Updated insuranceCarriers.ts with comprehensive data
+- [x] Included plan details (PPO, HMO, EPO, HDHP types with descriptions)
+- [x] Tested insurance selection - Health Net SmartCare (HMO) working perfectly
+- [x] Verified Selected Insurance card displays carrier and plan names
+- [x] Create checkpoint

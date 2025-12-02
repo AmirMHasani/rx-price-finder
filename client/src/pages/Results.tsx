@@ -6,7 +6,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { medications } from "@/data/medications";
 import { insurancePlans } from "@/data/insurance";
-import { PriceResult } from "@/data/pricing"; // Only importing type, not using getAllPricesForMedication anymore
+import { PriceResult } from "@/data/pricing"; // Old type, keeping for compatibility
+import { PharmacyPricing } from "@/services/realPricingService"; // New type for real pricing
 import { ArrowLeft, MapPin, Phone, Clock, Truck, Car, DollarSign, TrendingDown } from "lucide-react";
 import { MapView } from "@/components/Map";
 // Removed: getMockMedicationId - now using real Cost Plus API pricing
@@ -62,7 +63,7 @@ export default function Results() {
   const { t } = useLanguage();
   const [, setLocation] = useLocation();
   const searchParams = useSearch();
-  const [results, setResults] = useState<PriceResult[]>([]);
+  const [results, setResults] = useState<PharmacyPricing[]>([]);
   const [selectedPharmacy, setSelectedPharmacy] = useState<string | null>(null);
   
   // Debug logging for selectedPharmacy changes
@@ -120,24 +121,42 @@ export default function Results() {
       
       setLoadingPharmacies(true);
       try {
-        console.log('🏥 [RESULTS] Fetching real pharmacies for ZIP:', userZip);
+        console.log('🏭 [RESULTS] Fetching real pharmacies for ZIP:', userZip);
         const pharmacies = await fetchRealPharmacies(map, userZip);
-        setRealPharmacies(pharmacies);
-        console.log('✅ [RESULTS] Loaded', pharmacies.length, 'real pharmacies');
+        // Add id and pharmacy features to each pharmacy
+        const pharmaciesWithFeatures = pharmacies.map(p => {
+          const features = getPharmacyFeatures(p.chain || 'independent');
+          return {
+            ...p,
+            id: p.placeId,  // Add id alias for compatibility
+            hours: getPharmacyHours(features.has24Hour),
+            hasDelivery: features.hasDelivery,
+            hasDriveThru: features.hasDriveThru,
+          };
+        });
+        setRealPharmacies(pharmaciesWithFeatures);
+        console.log('✅ [RESULTS] Loaded', pharmaciesWithFeatures.length, 'real pharmacies with features');
       } catch (error) {
         console.error('❌ [RESULTS] Failed to load real pharmacies, using fallback:', error);
         // Fallback to mock pharmacies if Places API fails
         const fallbackPharmacies = generatePharmaciesForZip(userZip, 8);
-        // Convert mock pharmacies to RealPharmacy format
-        const converted: RealPharmacy[] = fallbackPharmacies.map(p => ({
-          placeId: p.id,
-          name: p.name,
-          address: p.address,
-          lat: p.lat,
-          lng: p.lng,
-          phone: p.phone,
-          chain: p.chain,
-        }));
+        // Convert mock pharmacies to RealPharmacy format with features
+        const converted: RealPharmacy[] = fallbackPharmacies.map(p => {
+          const features = getPharmacyFeatures(p.chain || 'independent');
+          return {
+            placeId: p.id,
+            id: p.id,  // Add id alias
+            name: p.name,
+            address: p.address,
+            lat: p.lat,
+            lng: p.lng,
+            phone: p.phone,
+            chain: p.chain,
+            hours: getPharmacyHours(features.has24Hour),
+            hasDelivery: features.hasDelivery,
+            hasDriveThru: features.hasDriveThru,
+          };
+        });
         setRealPharmacies(converted);
       } finally {
         setLoadingPharmacies(false);
@@ -153,61 +172,21 @@ export default function Results() {
       if (medicationName && dosage && form && insuranceId && realPharmacies.length > 0) {
         console.log('💰 [RESULTS] Fetching real pricing for', realPharmacies.length, 'pharmacies');
         
-        // Get user's location for distance calculation
-        const userLocation = getZipCodeLocation(userZip);
-        
-        // Convert real pharmacies to format needed for pricing
-        const pharmaciesForPricing = realPharmacies.map(rp => ({
-          id: rp.placeId,
-          name: rp.name,
-          address: rp.address,
-          city: '', // Not provided by Places API
-          state: '', // Not provided by Places API
-          zip: userZip,
-          lat: rp.lat,
-          lng: rp.lng,
-          phone: rp.phone,
-          hours: undefined,
-          chain: rp.chain || 'independent',
-          // Get features based on pharmacy chain
-          ...(() => {
-            const features = getPharmacyFeatures(rp.chain || 'independent');
-            return {
-              hasDelivery: features.hasDelivery,
-              hasDriveThru: features.hasDriveThru,
-              hours: getPharmacyHours(features.has24Hour),
-            };
-          })(),
-        }));
-        
         // Fetch real pricing from Cost Plus API
+        // Pass realPharmacies directly - they already have all needed data
         const realPricing = await fetchRealPricing(
           medicationName,
           dosage,
           totalPills,
-          pharmaciesForPricing,
+          realPharmacies,
           insuranceId,
           deductibleMet,
           rxcui  // Pass RXCUI for insurance formulary lookup
         );
         
-        // Convert to PriceResult format
-        const priceResults = realPricing.map(p => ({
-          pharmacy: p.pharmacy,
-          cashPrice: p.cashPrice,
-          membershipPrice: p.membershipPrice,
-          membershipSavings: p.membershipSavings,
-          insurancePrice: p.insurancePrice,
-          couponPrice: p.couponPrice,
-          couponProvider: p.couponProvider,
-          savings: p.savings,
-          couponSavings: p.couponSavings,
-          bestOption: p.bestOption,
-          distance: p.distance
-        }));
-        
-        setResults(priceResults);
-        console.log('✅ [RESULTS] Fetched real pricing for', priceResults.length, 'pharmacies');
+        // Use PharmacyPricing directly (no conversion needed)
+        setResults(realPricing);
+        console.log('✅ [RESULTS] Fetched real pricing for', realPricing.length, 'pharmacies');
       }
     }
     

@@ -5,6 +5,7 @@
 
 export interface RealPharmacy {
   placeId: string;
+  id?: string;  // Alias for placeId for compatibility
   name: string;
   address: string;
   lat: number;
@@ -14,6 +15,10 @@ export interface RealPharmacy {
   userRatingsTotal?: number;
   openNow?: boolean;
   chain?: string;
+  // Optional pharmacy features
+  hours?: string;
+  hasDelivery?: boolean;
+  hasDriveThru?: boolean;
 }
 
 /**
