@@ -2,10 +2,11 @@
  * Medication Alternatives Service
  * 
  * Provides generic equivalents and therapeutic alternatives for medications.
- * In production, this would integrate with drug databases and clinical guidelines.
+ * Uses therapeutic drug class mappings to show relevant alternatives.
  */
 
 import { medications } from "../data/medications";
+import { findDrugClass, getTherapeuticAlternativesByClass, drugClasses } from "../data/drugClasses";
 
 export interface MedicationAlternative {
   medicationId: string;
@@ -16,9 +17,44 @@ export interface MedicationAlternative {
 }
 
 /**
- * Get alternatives for a medication
+ * Get alternatives for a medication based on therapeutic drug class
  */
 export function getMedicationAlternatives(medicationId: string): MedicationAlternative[] {
+  // Find the drug class for this medication
+  const drugClassKey = findDrugClass(medicationId);
+  
+  if (!drugClassKey) {
+    // Fallback to manual mappings for medications not in drug classes yet
+    return getManualAlternatives(medicationId);
+  }
+  
+  // Get other medications in the same therapeutic class
+  const classAlternatives = getTherapeuticAlternativesByClass(medicationId);
+  
+  // Convert to MedicationAlternative format
+  const alternatives: MedicationAlternative[] = classAlternatives.map(altId => {
+    const med = medications.find(m => m.id === altId);
+    if (!med) return null;
+    
+    // Check if medication name is same as generic (indicates generic medication)
+    const isGeneric = med.name.toLowerCase() === med.genericName.toLowerCase();
+    
+    return {
+      medicationId: altId,
+      name: isGeneric ? med.genericName : `${med.genericName} (${med.name})`,
+      type: "therapeutic" as "therapeutic",
+      description: drugClasses[drugClassKey].description,
+      estimatedSavings: isGeneric ? 10 : -5,
+    } as MedicationAlternative;
+  }).filter((alt): alt is MedicationAlternative => alt !== null);
+  
+  return alternatives;
+}
+
+/**
+ * Manual alternatives mapping (fallback for medications not in drug classes)
+ */
+function getManualAlternatives(medicationId: string): MedicationAlternative[] {
   const alternatives: Record<string, MedicationAlternative[]> = {
     // Lipitor (atorvastatin) - already generic
     "med-1": [
@@ -123,7 +159,8 @@ export function getMedicationAlternatives(medicationId: string): MedicationAlter
     // Add more mappings as needed...
   };
 
-  return alternatives[medicationId] || [];
+  const manualMappings = alternatives[medicationId] || [];
+  return manualMappings;
 }
 
 /**

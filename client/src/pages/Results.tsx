@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useLocation, useSearch } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { medications } from "@/data/medications";
 import { insurancePlans } from "@/data/insurance";
@@ -16,9 +17,12 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { getZipCodeLocation } from "@/services/zipCodeService";
 import { saveSearch } from "@/services/searchHistory";
 import { getMedicationAlternatives, type MedicationAlternative } from "@/services/alternativesService";
+import { findTherapeuticAlternatives } from "@/services/rxclassApi";
 import { CostPlusCard } from "@/components/CostPlusCard";
 import { PharmacyTransparencyCard } from "@/components/PharmacyTransparencyCard";
 import { DataTransparencyBanner } from "@/components/DataTransparencyBanner";
+import { SafetyInfoTab } from "@/components/SafetyInfoTab";
+import { AIAlternativesTab } from "@/components/AIAlternativesTab";
 
 export default function Results() {
   const { t } = useLanguage();
@@ -37,6 +41,7 @@ export default function Results() {
   const [markers, setMarkers] = useState<google.maps.marker.AdvancedMarkerElement[]>([]);
   const [realPharmacies, setRealPharmacies] = useState<RealPharmacy[]>([]);
   const [loadingPharmacies, setLoadingPharmacies] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>("prices");
   
   // Filter and sort state
 
@@ -165,13 +170,33 @@ export default function Results() {
     }
   }, [medicationName, dosage, form, insuranceId, userZip]);
 
-  // Load medication alternatives
+  // Load medication alternatives using RxClass API
   useEffect(() => {
-    if (mockMedicationId) {
-      const alts = getMedicationAlternatives(mockMedicationId);
-      setAlternatives(alts);
+    async function loadAlternatives() {
+      if (!medicationName) return;
+      
+      // Try RxClass API first for dynamic therapeutic alternatives
+      const rxclassAlternatives = await findTherapeuticAlternatives(medicationName);
+      
+      if (rxclassAlternatives.length > 0) {
+        // Convert RxClass results to MedicationAlternative format
+        const formattedAlts: MedicationAlternative[] = rxclassAlternatives.slice(0, 5).map(alt => ({
+          medicationId: alt.rxcui,
+          name: alt.name.charAt(0).toUpperCase() + alt.name.slice(1), // Capitalize
+          type: "therapeutic" as const,
+          description: "Same therapeutic class (via RxClass API)",
+          estimatedSavings: 10,
+        }));
+        setAlternatives(formattedAlts);
+      } else if (mockMedicationId) {
+        // Fallback to manual mappings if RxClass API returns nothing
+        const manualAlts = getMedicationAlternatives(mockMedicationId);
+        setAlternatives(manualAlts);
+      }
     }
-  }, [mockMedicationId]);
+    
+    loadAlternatives();
+  }, [medicationName, mockMedicationId]);
 
   // Filter and sort results
   const filteredAndSortedResults = useMemo(() => {
@@ -353,21 +378,32 @@ export default function Results() {
         {/* Data Transparency Banner */}
         <DataTransparencyBanner />
         
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Column */}
-          <div className="lg:col-span-2">
-            {/* Medication Info */}
-            <Card className="mb-8">
-              <CardHeader>
-                <CardTitle className="text-2xl">{medicationName}</CardTitle>
-                <CardDescription>
-                  {dosage} {form} • {frequency === "1" ? "Once daily" : frequency === "2" ? "Twice daily" : frequency === "3" ? "Three times daily" : frequency === "4" ? "Four times daily" : frequency === "0.5" ? "Every other day" : "Once weekly"} • {quantity} days supply ({totalPills} pills)
-                </CardDescription>
-                <CardDescription className="mt-2">
-                  {insurance?.carrier} - {insurance?.planName}
-                </CardDescription>
-              </CardHeader>
-            </Card>
+        {/* Medication Info Card - Always visible */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="text-2xl">{medicationName}</CardTitle>
+            <CardDescription>
+              {dosage} {form} • {frequency === "1" ? "Once daily" : frequency === "2" ? "Twice daily" : frequency === "3" ? "Three times daily" : frequency === "4" ? "Four times daily" : frequency === "0.5" ? "Every other day" : "Once weekly"} • {quantity} days supply ({totalPills} pills)
+            </CardDescription>
+            <CardDescription className="mt-2">
+              {insurance?.carrier} - {insurance?.planName}
+            </CardDescription>
+          </CardHeader>
+        </Card>
+
+        {/* Tabbed Content */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-3 mb-6">
+            <TabsTrigger value="prices">Prices & Pharmacies</TabsTrigger>
+            <TabsTrigger value="safety">Safety Information</TabsTrigger>
+            <TabsTrigger value="alternatives">AI Alternatives</TabsTrigger>
+          </TabsList>
+
+          {/* Prices Tab */}
+          <TabsContent value="prices">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Main Column */}
+              <div className="lg:col-span-2">
 
             {/* Medication Alternatives */}
             {alternatives.length > 0 && (
@@ -906,6 +942,18 @@ export default function Results() {
             })()}
           </div>
         </div>
+      </TabsContent>
+
+      {/* Safety Information Tab */}
+      <TabsContent value="safety">
+        <SafetyInfoTab medicationName={medicationName} rxcui={rxcui} />
+      </TabsContent>
+
+      {/* AI Alternatives Tab */}
+      <TabsContent value="alternatives">
+        <AIAlternativesTab medicationName={medicationName} dosage={dosage} />
+      </TabsContent>
+    </Tabs>
       </div>
     </div>
   );
