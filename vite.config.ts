@@ -24,6 +24,39 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Separate React and core dependencies
+          'vendor-react': ['react', 'react-dom', 'wouter'],
+          // Radix UI components (large library)
+          'vendor-ui': [
+            '@radix-ui/react-accordion',
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-select',
+            '@radix-ui/react-dropdown-menu',
+            '@radix-ui/react-popover',
+            '@radix-ui/react-tabs',
+            '@radix-ui/react-tooltip',
+          ],
+          // Utility libraries
+          'vendor-utils': ['axios', 'date-fns', 'clsx', 'tailwind-merge'],
+          // Form and validation
+          'vendor-forms': ['react-hook-form', 'zod', '@hookform/resolvers'],
+          // Data fetching
+          'vendor-query': ['@tanstack/react-query'],
+        },
+      },
+    },
+    chunkSizeWarningLimit: 600,
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true, // Remove console.logs in production
+        drop_debugger: true,
+      },
+    },
+    sourcemap: false, // Disable sourcemaps in production for smaller builds
   },
   server: {
     host: true,
