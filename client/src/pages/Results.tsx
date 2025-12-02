@@ -26,6 +26,27 @@ import { SafetyInfoTab } from "@/components/SafetyInfoTab";
 import { AIAlternativesTab } from "@/components/AIAlternativesTab";
 import { fetchRealPricing } from "@/services/realPricingService";
 
+// Helper function to get clean pharmacy display name for map markers
+const getPharmacyDisplayName = (pharmacy: RealPharmacy): string => {
+  // If it's a known chain, return the chain name
+  const chainNames: Record<string, string> = {
+    'cvs': 'CVS Pharmacy',
+    'walgreens': 'Walgreens',
+    'walmart': 'Walmart Pharmacy',
+    'riteaid': 'Rite Aid',
+    'costco': 'Costco Pharmacy',
+    'target': 'Target Pharmacy',
+    'stopshop': 'Stop & Shop Pharmacy',
+  };
+
+  if (pharmacy.chain && pharmacy.chain !== 'independent' && chainNames[pharmacy.chain]) {
+    return chainNames[pharmacy.chain];
+  }
+
+  // For independent pharmacies, return the name as-is
+  return pharmacy.name;
+};
+
 // Calculate best price for each pharmacy (lowest of member, coupon, insurance, cash)
 const getBestPrice = (r: any) => {
   const prices = [
@@ -340,7 +361,7 @@ export default function Results() {
         map,
         position,
         content: markerContent,
-        title: result.pharmacy.name,
+        title: getPharmacyDisplayName(result.pharmacy),
       });
 
       marker.addListener("click", () => {

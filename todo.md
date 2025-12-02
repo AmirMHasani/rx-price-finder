@@ -917,3 +917,13 @@
 - [x] Update client-side Part D API to use server endpoint
 - [x] Test with metformin - pricing working correctly
 - [x] Push fix to GitHub
+
+
+## Phase 27: Fix Map Marker Labels (Dec 2, 2025)
+- [x] Investigate why map markers show doctor/PharmD names instead of pharmacy names
+- [x] Check pharmacy data structure and name field mapping
+- [x] Create getPharmacyDisplayName helper function
+- [x] Fix marker label to show chain names for known chains (CVS, Walgreens, etc.)
+- [x] Test with multiple pharmacies - CVS showing "CVS Pharmacy" correctly
+- [x] Independent pharmacies showing full business names as expected
+- [x] Push fix to GitHub
