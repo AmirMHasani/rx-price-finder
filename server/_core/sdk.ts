@@ -39,7 +39,9 @@ class OAuthService {
   }
 
   private decodeState(state: string): string {
-    const redirectUri = atob(state);
+    // Use Buffer.from() instead of atob for Node.js compatibility
+    // atob is not available in all Node.js environments
+    const redirectUri = Buffer.from(state, 'base64').toString('utf8');
     return redirectUri;
   }
 

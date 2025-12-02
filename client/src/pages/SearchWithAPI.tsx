@@ -78,11 +78,23 @@ export default function SearchWithAPI() {
     setMedicationResults(commonResults);
     setShowDropdown(commonResults.length > 0);
 
+    // Create AbortController for this search request
+    const abortController = new AbortController();
+
     // Then, search RxNorm API (with debounce) for additional results
     searchTimeoutRef.current = setTimeout(async () => {
       setSearchLoading(true);
       try {
+        // Pass abort signal to searchMedications if it supports it
+        // Note: searchMedications would need to accept signal and pass to fetch
         const results = await searchMedications(searchInput);
+        
+        // Check if this request was aborted before updating state
+        if (abortController.signal.aborted) {
+          console.log('[Search] Request aborted, ignoring results');
+          return;
+        }
+        
         // Combine common medications with RxNorm results, avoiding duplicates
         const combined = [
           ...commonResults,
@@ -91,15 +103,23 @@ export default function SearchWithAPI() {
         setMedicationResults(combined);
         setShowDropdown(combined.length > 0);
       } catch (error) {
+        // Ignore abort errors
+        if (error instanceof Error && error.name === 'AbortError') {
+          console.log('[Search] Request aborted');
+          return;
+        }
         console.error("Search error:", error);
         // Keep common medications results even if RxNorm fails
       } finally {
-        setSearchLoading(false);
+        if (!abortController.signal.aborted) {
+          setSearchLoading(false);
+        }
       }
     }, 300); // Wait 300ms after user stops typing
 
-    // Cleanup timeout on unmount
+    // Cleanup: abort pending request and clear timeout on unmount or new input
     return () => {
+      abortController.abort();
       if (searchTimeoutRef.current) {
         clearTimeout(searchTimeoutRef.current);
       }
@@ -166,19 +186,28 @@ export default function SearchWithAPI() {
       try {
         const details = await getMedicationDetails(medication.rxcui);
         // Only update if we got better data from the API
+        // Use functional setState to preserve user's latest selection
         if (details.dosages && details.dosages.length > 1) {
           setAvailableDosages(details.dosages);
-          // Keep the current selection if it's in the list
-          if (!details.dosages.includes(selectedDosage)) {
-            setSelectedDosage(details.dosages[0]);
-          }
+          // Use functional update to check against current state, not stale closure
+          setSelectedDosage(current => {
+            // If user hasn't changed selection and current isn't in new list, update
+            if (current && details.dosages.includes(current)) {
+              return current; // Keep user's selection
+            }
+            return details.dosages[0]; // Default to first option
+          });
         }
         if (details.forms && details.forms.length > 1) {
           setAvailableForms(details.forms);
-          // Keep the current selection if it's in the list
-          if (!details.forms.includes(selectedForm)) {
-            setSelectedForm(details.forms[0]);
-          }
+          // Use functional update to check against current state, not stale closure
+          setSelectedForm(current => {
+            // If user hasn't changed selection and current isn't in new list, update
+            if (current && details.forms.includes(current)) {
+              return current; // Keep user's selection
+            }
+            return details.forms[0]; // Default to first option
+          });
         }
       } catch (error) {
         console.error("Error fetching medication details:", error);
@@ -311,12 +340,45 @@ export default function SearchWithAPI() {
                       )}
 
                       {!searchLoading && showDropdown && medicationResults.length > 0 && (
-                        <div className="absolute top-full left-0 right-0 z-50 border border-border rounded-md bg-background max-h-64 overflow-y-auto shadow-lg">
-                          {medicationResults.map((medication) => (
+                        <div 
+                          role="listbox"
+                          aria-label="Medication suggestions"
+                          className="absolute top-full left-0 right-0 z-50 border border-border rounded-md bg-background max-h-64 overflow-y-auto shadow-lg"
+                        >
+                          {medicationResults.map((medication, index) => (
                             <button
                               key={medication.rxcui}
+                              role="option"
+                              aria-selected={false}
                               onClick={() => handleSelectMedication(medication)}
-                              className="w-full text-left px-4 py-3 hover:bg-muted border-b border-border last:border-b-0 transition-colors"
+                              onKeyDown={(e) => {
+                                // Arrow down - focus next item
+                                if (e.key === 'ArrowDown') {
+                                  e.preventDefault();
+                                  const next = e.currentTarget.nextElementSibling as HTMLElement;
+                                  next?.focus();
+                                }
+                                // Arrow up - focus previous item
+                                if (e.key === 'ArrowUp') {
+                                  e.preventDefault();
+                                  const prev = e.currentTarget.previousElementSibling as HTMLElement;
+                                  prev?.focus();
+                                }
+                                // Enter or Space - select item
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault();
+                                  handleSelectMedication(medication);
+                                }
+                                // Escape - close dropdown
+                                if (e.key === 'Escape') {
+                                  e.preventDefault();
+                                  setShowDropdown(false);
+                                  // Return focus to search input
+                                  const searchInput = document.querySelector('input[placeholder*="medication"]') as HTMLElement;
+                                  searchInput?.focus();
+                                }
+                              }}
+                              className="w-full text-left px-4 py-3 hover:bg-muted focus:bg-muted focus:outline-none focus:ring-2 focus:ring-primary border-b border-border last:border-b-0 transition-colors"
                             >
                               <div className="font-medium text-sm">{medication.brandName || medication.name}</div>
                               {medication.genericName && medication.genericName !== medication.brandName && (
