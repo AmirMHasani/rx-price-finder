@@ -25,6 +25,9 @@ export const es: TranslationKeys = {
       insurancePlaceholder: "Seleccione su plan",
       selectCarrierFirst: "Seleccione la compañía primero",
       deductibleMet: "Ya cumplí con mi deducible este año",
+      selectedInsurance: "Seguro Seleccionado",
+      carrier: "Compañía",
+      plan: "Plan",
       compareButton: "Comparar Precios",
     },
     frequency: {

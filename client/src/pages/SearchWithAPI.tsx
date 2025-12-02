@@ -560,12 +560,7 @@ export default function SearchWithAPI() {
                       <SelectContent>
                         {selectedCarrier && INSURANCE_CARRIERS.find(c => c.id === selectedCarrier)?.plans.map(plan => (
                           <SelectItem key={plan.id} value={plan.id}>
-                            <div>
-                              <div className="font-medium">{plan.name}</div>
-                              {plan.description && (
-                                <div className="text-xs text-muted-foreground">{plan.description}</div>
-                              )}
-                            </div>
+                            {plan.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -587,7 +582,25 @@ export default function SearchWithAPI() {
                   </div>
                 </div>
 
-
+                {/* Display Selected Insurance */}
+                {selectedCarrier && selectedInsurance && (
+                  <div className="mt-4 p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Shield className="w-5 h-5 text-blue-600" />
+                      <span className="font-semibold text-blue-900">{t('home.form.selectedInsurance')}</span>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-blue-800">
+                        <span className="font-medium">{t('home.form.carrier')}:</span>{' '}
+                        {INSURANCE_CARRIERS.find(c => c.id === selectedCarrier)?.name}
+                      </p>
+                      <p className="text-sm text-blue-800">
+                        <span className="font-medium">{t('home.form.plan')}:</span>{' '}
+                        {INSURANCE_CARRIERS.find(c => c.id === selectedCarrier)?.plans.find(p => p.id === selectedInsurance)?.name}
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Submit Button */}

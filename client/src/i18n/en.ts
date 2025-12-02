@@ -23,6 +23,9 @@ export const en = {
       insurancePlaceholder: "Select your plan",
       selectCarrierFirst: "Select carrier first",
       deductibleMet: "I have already met my deductible this year",
+      selectedInsurance: "Selected Insurance",
+      carrier: "Carrier",
+      plan: "Plan",
       compareButton: "Compare Prices",
     },
     frequency: {

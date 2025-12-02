@@ -997,3 +997,20 @@
 - Graceful fallback to generic calculation when medication not in formulary
 - Database-driven pricing for accurate insurance-based comparisons
 - Foundation for expanding to more plans and medications
+
+## Phase 33: Display Insurance Carrier and Plan Names on Homepage (Dec 2, 2025)
+- [ ] Update SearchWithAPI.tsx to show selected insurance carrier name
+- [ ] Update SearchWithAPI.tsx to show selected insurance plan name
+- [ ] Add visual styling to make insurance selection prominent
+- [ ] Test with different insurance carriers and plans
+- [ ] Push to GitHub
+
+
+## Phase 33: Display Insurance Carrier and Plan Names on Homepage (Dec 2, 2025) ✅
+- [x] Update SearchWithAPI.tsx to show selected insurance carrier name
+- [x] Update SearchWithAPI.tsx to show selected insurance plan name
+- [x] Add visual styling to make insurance selection prominent
+- [x] Test with different insurance carriers and plans
+- [x] Fixed SelectItem JSX structure (removed nested divs)
+- [x] Added translation keys for English and Spanish
+- [x] Blue-bordered card displays "Selected Insurance" with carrier and plan names
