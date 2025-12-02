@@ -885,3 +885,24 @@
 - [x] Import Streamdown component for Markdown rendering
 - [x] Replace plain text rendering with Streamdown in SafetyInfoTab
 - [x] All Markdown asterisks now render as bold text
+
+
+## Phase 24: Implement Real Drug Pricing Data (Dec 2, 2025)
+- [x] Investigate why Cost Plus API is failing for most medications
+- [x] User provided CMS API credentials
+- [ ] Add CMS API key as environment variable
+- [ ] Create CMS API service to fetch NADAC pricing data
+- [ ] Update realPricingService to use CMS API as primary source
+- [ ] Fall back to Cost Plus, then realistic estimates
+- [ ] Test with common medications to verify realistic prices
+
+
+## Phase 25: Combined CMS Pricing Approach (Dec 2, 2025)
+- [x] Integrate CMS NADAC API for acquisition cost baseline
+- [x] Add VITE_CMS_API_KEY for client-side access
+- [x] Update realPricingService to use NADAC as fallback after Cost Plus
+- [x] Add Medicare Part D Spending by Drug API integration
+- [x] Calculate realistic markup factors from CMS data (Part D / NADAC)
+- [x] Implement hybrid pricing model (NADAC + Part D + pharmacy-specific markups)
+- [x] Test with multiple medications (atorvastatin, metformin, lisinopril) - all showing realistic prices
+- [x] Pricing waterfall: Cost Plus → NADAC+PartD → NADAC only → PartD only → Estimate

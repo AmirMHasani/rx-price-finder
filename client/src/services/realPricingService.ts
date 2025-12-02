@@ -5,6 +5,8 @@
  */
 
 import { searchCostPlusMedication, parseCostPlusPrice, type CostPlusDrugResult } from './costPlusApi';
+import { searchNADACByName, getNADACUnitPrice, type NADACResult } from './cmsNadacApi';
+import { searchPartDByName, getPartDUnitPrice, calculatePartDMarkupFactor, type PartDResult } from './medicarePartDApi';
 import type { RealPharmacy } from './realPharmacyService';
 
 export interface PharmacyPricing {
@@ -200,10 +202,50 @@ export async function fetchRealPricing(
     let usingEstimate = false;
     
     if (!costPlusData) {
-      console.warn('⚠️ [REAL PRICING] No Cost Plus data found for', medicationName, '- using estimated pricing');
-      wholesalePrice = estimateWholesalePrice(quantity);
-      medicationTier = 'tier1'; // Assume generic tier 1 for unknown medications
-      usingEstimate = true;
+      console.warn('⚠️ [REAL PRICING] No Cost Plus data found for', medicationName, '- trying combined CMS approach');
+      
+      // Combined CMS approach: NADAC + Medicare Part D
+      const [nadacResults, partDData] = await Promise.all([
+        searchNADACByName(medicationName, dosage),
+        searchPartDByName(medicationName)
+      ]);
+      
+      if (nadacResults && nadacResults.length > 0) {
+        const nadacData = nadacResults[0];
+        const nadacUnitPrice = getNADACUnitPrice(nadacData);
+        
+        // If we have both NADAC and Part D, calculate realistic markup
+        if (partDData) {
+          const partDUnitPrice = getPartDUnitPrice(partDData);
+          const markupFactor = calculatePartDMarkupFactor(partDUnitPrice, nadacUnitPrice);
+          
+          // Use Part D price as baseline (more realistic than NADAC alone)
+          wholesalePrice = Math.round(partDUnitPrice * quantity * 100) / 100;
+          medicationTier = partDUnitPrice > nadacUnitPrice * 3 ? 'tier3' : 'tier2'; // High markup = brand
+          usingEstimate = false;
+          
+          console.log('✅ [REAL PRICING] Combined CMS (NADAC + Part D): $' + wholesalePrice);
+          console.log('   NADAC: $' + nadacUnitPrice.toFixed(4) + '/unit, Part D: $' + partDUnitPrice.toFixed(4) + '/unit, Markup: ' + markupFactor.toFixed(2) + 'x');
+        } else {
+          // Only NADAC available - use it with conservative markup
+          wholesalePrice = Math.round(nadacUnitPrice * quantity * 1.15 * 100) / 100; // 15% markup
+          medicationTier = nadacData.otc === 'Y' ? 'tier1' : 'tier2';
+          usingEstimate = false;
+          console.log('✅ [REAL PRICING] NADAC only (with 15% markup): $' + wholesalePrice);
+        }
+      } else if (partDData) {
+        // Only Part D available
+        const partDUnitPrice = getPartDUnitPrice(partDData);
+        wholesalePrice = Math.round(partDUnitPrice * quantity * 100) / 100;
+        medicationTier = 'tier2';
+        usingEstimate = false;
+        console.log('✅ [REAL PRICING] Part D only: $' + wholesalePrice);
+      } else {
+        console.warn('⚠️ [REAL PRICING] No CMS data found - using estimated pricing');
+        wholesalePrice = estimateWholesalePrice(quantity);
+        medicationTier = 'tier1';
+        usingEstimate = true;
+      }
     } else {
       // Parse wholesale price from Cost Plus
       wholesalePrice = costPlusData.requested_quote 
