@@ -186,9 +186,24 @@ export default function Results() {
     // Apply feature filters
     if (featureFilters.length > 0) {
       filtered = filtered.filter(r => {
+        // Check feature filters
         if (featureFilters.includes("24hour") && !r.pharmacy.hours?.includes('24')) return false;
         if (featureFilters.includes("driveThru") && !r.pharmacy.hasDriveThru) return false;
         if (featureFilters.includes("delivery") && !r.pharmacy.hasDelivery) return false;
+        
+        // Check pharmacy chain filter
+        const chainFilter = featureFilters.find(f => f.startsWith('chain:'));
+        if (chainFilter) {
+          const selectedChain = chainFilter.replace('chain:', '');
+          const pharmacyName = r.pharmacy.name.toLowerCase();
+          const chainName = r.pharmacy.chain?.toLowerCase() || '';
+          
+          // Match by name or chain field
+          if (!pharmacyName.includes(selectedChain) && !chainName.includes(selectedChain)) {
+            return false;
+          }
+        }
+        
         return true;
       });
     }
@@ -522,6 +537,69 @@ export default function Results() {
                       </div>
                     </div>
                     
+                    {/* ZIP Code Filter */}
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Change Location</label>
+                      <div className="flex gap-2">
+                        <input 
+                          type="text"
+                          placeholder="Enter ZIP code"
+                          className="flex-1 p-2 border rounded-md"
+                          defaultValue={userZip}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              const newZip = (e.target as HTMLInputElement).value;
+                              if (newZip && /^\d{5}$/.test(newZip)) {
+                                // Update URL with new ZIP
+                                const newParams = new URLSearchParams(searchParams);
+                                newParams.set('zip', newZip);
+                                setLocation(`/results?${newParams.toString()}`);
+                              }
+                            }
+                          }}
+                        />
+                        <Button 
+                          size="sm"
+                          onClick={(e) => {
+                            const input = (e.currentTarget.previousElementSibling as HTMLInputElement);
+                            const newZip = input.value;
+                            if (newZip && /^\d{5}$/.test(newZip)) {
+                              const newParams = new URLSearchParams(searchParams);
+                              newParams.set('zip', newZip);
+                              setLocation(`/results?${newParams.toString()}`);
+                            }
+                          }}
+                        >
+                          Update
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Pharmacy Chain Filter */}
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Pharmacy Chain</label>
+                      <select 
+                        className="w-full p-2 border rounded-md"
+                        onChange={(e) => {
+                          const chain = e.target.value;
+                          if (chain === 'all') {
+                            setFeatureFilters(featureFilters.filter(f => !f.startsWith('chain:')));
+                          } else {
+                            setFeatureFilters([...featureFilters.filter(f => !f.startsWith('chain:')), `chain:${chain}`]);
+                          }
+                        }}
+                      >
+                        <option value="all">All Pharmacies</option>
+                        <option value="cvs">CVS Pharmacy</option>
+                        <option value="walgreens">Walgreens</option>
+                        <option value="walmart">Walmart Pharmacy</option>
+                        <option value="costco">Costco Pharmacy</option>
+                        <option value="riteaid">Rite Aid</option>
+                        <option value="kroger">Kroger Pharmacy</option>
+                        <option value="target">Target Pharmacy</option>
+                      </select>
+                    </div>
+                    
                     {/* Sort Options */}
                     <div>
                       <label className="text-sm font-medium mb-2 block">{t('results.filters.sortBy')}</label>
@@ -733,11 +811,65 @@ export default function Results() {
                 <CardDescription>Click markers to view details</CardDescription>
               </CardHeader>
               <CardContent>
-                <MapView 
-                  onMapReady={handleMapReady} 
-                  initialCenter={{ lat: userLocation.lat, lng: userLocation.lng }}
-                  initialZoom={12}
-                />
+                <div className="relative">
+                  <MapView 
+                    onMapReady={handleMapReady} 
+                    initialCenter={{ lat: userLocation.lat, lng: userLocation.lng }}
+                    initialZoom={12}
+                  />
+                  {/* Custom Zoom Controls */}
+                  {map && (
+                    <div className="absolute top-4 right-4 flex flex-col gap-2 z-10">
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        className="bg-white shadow-lg hover:bg-gray-100"
+                        onClick={() => {
+                          const currentZoom = map.getZoom() || 12;
+                          map.setZoom(currentZoom + 1);
+                        }}
+                        title="Zoom in"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        </svg>
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        className="bg-white shadow-lg hover:bg-gray-100"
+                        onClick={() => {
+                          const currentZoom = map.getZoom() || 12;
+                          map.setZoom(currentZoom - 1);
+                        }}
+                        title="Zoom out"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                        </svg>
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        className="bg-white shadow-lg hover:bg-gray-100 text-xs px-2"
+                        onClick={() => {
+                          if (filteredAndSortedResults.length > 0) {
+                            const bounds = new google.maps.LatLngBounds();
+                            filteredAndSortedResults.forEach(result => {
+                              bounds.extend({ lat: result.pharmacy.lat, lng: result.pharmacy.lng });
+                            });
+                            map.fitBounds(bounds);
+                          }
+                        }}
+                        title="Fit all pharmacies"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                        </svg>
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
 

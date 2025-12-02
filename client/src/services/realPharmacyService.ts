@@ -27,11 +27,14 @@ export async function fetchRealPharmacies(
   try {
     console.log('🏥 [REAL PHARMACIES] Fetching real pharmacies near ZIP:', zipCode);
     
-    // Step 1: Geocode the ZIP code
+    // Step 1: Geocode the ZIP code (specify USA to avoid international matches)
     const geocoder = new google.maps.Geocoder();
     const geocodeResult = await new Promise<google.maps.GeocoderResult[]>(
       (resolve, reject) => {
-        geocoder.geocode({ address: zipCode }, (results, status) => {
+        geocoder.geocode({ 
+          address: `${zipCode}, USA`,
+          componentRestrictions: { country: 'US' }
+        }, (results, status) => {
           if (status === 'OK' && results) {
             resolve(results);
           } else {
