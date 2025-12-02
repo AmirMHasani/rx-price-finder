@@ -793,7 +793,7 @@ export default function Results() {
                             <div className="space-y-1">
                               <p className="text-[10px] sm:text-xs font-medium text-gray-600">RxPrice Member</p>
                               <p className={`font-bold ${
-                                result.bestOption === "membership" ? "text-lg sm:text-xl text-purple-600" : "text-base sm:text-lg text-gray-700"
+                                result.bestOption === "membership" ? "text-xl sm:text-2xl text-purple-600" : "text-lg sm:text-xl text-gray-700"
                               }`}>
                                 ${result.membershipPrice?.toFixed(2) || '0.00'}
                               </p>
@@ -812,7 +812,7 @@ export default function Results() {
                               {result.couponPrice ? (
                                 <>
                                   <p className={`font-bold ${
-                                    result.bestOption === "coupon" ? "text-lg sm:text-xl text-green-600" : "text-base sm:text-lg text-gray-700"
+                                    result.bestOption === "coupon" ? "text-xl sm:text-2xl text-green-600" : "text-lg sm:text-xl text-gray-700"
                                   }`}>
                                     ${result.couponPrice.toFixed(2)}
                                   </p>
@@ -831,7 +831,7 @@ export default function Results() {
                             <div className="space-y-1">
                               <p className="text-[10px] sm:text-xs font-medium text-gray-600">Insurance</p>
                               <p className={`font-bold ${
-                                result.bestOption === "insurance" ? "text-lg sm:text-xl text-blue-600" : "text-base sm:text-lg text-gray-700"
+                                result.bestOption === "insurance" ? "text-xl sm:text-2xl text-blue-600" : "text-lg sm:text-xl text-gray-700"
                               }`}>
                                 ${result.insurancePrice?.toFixed(2) || '0.00'}
                               </p>
@@ -846,7 +846,7 @@ export default function Results() {
                             <div className="space-y-1">
                               <p className="text-[10px] sm:text-xs font-medium text-gray-600">Cash Price</p>
                               <p className={`font-bold ${
-                                result.bestOption === "cash" ? "text-lg sm:text-xl text-gray-700" : "text-base sm:text-lg text-gray-500"
+                                result.bestOption === "cash" ? "text-xl sm:text-2xl text-gray-700" : "text-lg sm:text-xl text-gray-500"
                               }`}>
                                 ${result.cashPrice?.toFixed(2) || '0.00'}
                               </p>

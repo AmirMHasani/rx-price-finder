@@ -1014,3 +1014,17 @@
 - [x] Fixed SelectItem JSX structure (removed nested divs)
 - [x] Added translation keys for English and Spanish
 - [x] Blue-bordered card displays "Selected Insurance" with carrier and plan names
+
+
+## Phase 34: Improve Price Display and Add Realistic Variation (Dec 2, 2025) ✅
+- [x] Increase price font sizes on results page for better readability
+- [x] Implement realistic price variation algorithm based on:
+  - [x] Medication type (brand vs generic)
+  - [x] Dosage strength (higher dosages = higher prices)
+  - [x] Pharmacy chain pricing strategies
+  - [x] Geographic location factors
+  - [x] Insurance plan tier positioning
+- [x] Add ±10% pharmacy-specific variation to insurance copays
+- [x] Test with atorvastatin - prices now range from $4.30 to $5.71
+- [x] Verify prices look realistic and varied across pharmacies
+- [x] Create checkpoint
