@@ -187,7 +187,8 @@ export default function Results() {
           totalPills,
           pharmaciesForPricing,
           insuranceId,
-          deductibleMet
+          deductibleMet,
+          rxcui  // Pass RXCUI for insurance formulary lookup
         );
         
         // Convert to PriceResult format

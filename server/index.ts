@@ -3,6 +3,7 @@ import { createServer } from "http";
 import path from "path";
 import { fileURLToPath } from "url";
 import medicationsRouter from "./routes/medications.js";
+import insuranceRouter from "./routes/insurance.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -17,6 +18,7 @@ async function startServer() {
 
   // API Routes
   app.use("/api/medications", medicationsRouter);
+  app.use("/api/insurance", insuranceRouter);
 
   // Health check endpoint
   app.get("/api/health", (_req, res) => {

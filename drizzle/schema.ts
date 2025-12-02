@@ -141,3 +141,108 @@ export type InsertSearchHistory = typeof searchHistory.$inferInsert;
 
 export type PriceAlert = typeof priceAlerts.$inferSelect;
 export type InsertPriceAlert = typeof priceAlerts.$inferInsert;
+
+/**
+ * Insurance Providers (Payers/Issuers)
+ * Maps to CMS issuer_id, contract_id, etc.
+ */
+export const insurers = mysqlTable("insurers", {
+  id: int("id").autoincrement().primaryKey(),
+  
+  // External identifiers from CMS
+  cmsIssuerId: varchar("cmsIssuerId", { length: 50 }),
+  contractId: varchar("contractId", { length: 50 }), // For Medicare (Hxxxx, Sxxxx)
+  
+  // Basic info
+  name: varchar("name", { length: 255 }).notNull(),
+  type: mysqlEnum("type", ["Marketplace", "Medicare Advantage", "Medicare Part D", "Medicaid", "Other"]).notNull(),
+  
+  // Metadata
+  state: varchar("state", { length: 2 }), // Two-letter state code
+  isActive: boolean("isActive").default(true).notNull(),
+  
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Insurer = typeof insurers.$inferSelect;
+export type InsertInsurer = typeof insurers.$inferInsert;
+
+/**
+ * Insurance Plans
+ * Specific plans offered by insurers (e.g., "Blue Cross Silver PPO")
+ */
+export const plans = mysqlTable("plans", {
+  id: int("id").autoincrement().primaryKey(),
+  
+  // Foreign keys
+  insurerId: int("insurerId").notNull(),
+  
+  // External identifiers
+  externalPlanId: varchar("externalPlanId", { length: 100 }), // HIOS ID for Marketplace, contract+PBP for MA
+  hiosId: varchar("hiosId", { length: 50 }), // For Marketplace plans
+  contractPbp: varchar("contractPbp", { length: 50 }), // For Medicare (H1234-001)
+  
+  // Basic info
+  marketingName: varchar("marketingName", { length: 255 }).notNull(),
+  lineOfBusiness: varchar("lineOfBusiness", { length: 50 }), // 'INDIVIDUAL', 'SMALL_GROUP', 'MA', 'PDP'
+  metalLevel: varchar("metalLevel", { length: 20 }), // 'Bronze', 'Silver', 'Gold', 'Platinum' (Marketplace only)
+  year: int("year").notNull(),
+  
+  // High-level benefits
+  deductible: decimal("deductible", { precision: 10, scale: 2 }),
+  maxOutOfPocket: decimal("maxOutOfPocket", { precision: 10, scale: 2 }),
+  
+  // Metadata
+  state: varchar("state", { length: 2 }),
+  countyFips: varchar("countyFips", { length: 5 }), // For location-specific plans
+  isActive: boolean("isActive").default(true).notNull(),
+  
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Plan = typeof plans.$inferSelect;
+export type InsertPlan = typeof plans.$inferInsert;
+
+/**
+ * Plan Drug Coverage (Formulary)
+ * Maps medications to plan-specific tiers, copays, and restrictions
+ */
+export const planDrugCoverage = mysqlTable("plan_drug_coverage", {
+  id: int("id").autoincrement().primaryKey(),
+  
+  // Foreign keys
+  planId: int("planId").notNull(),
+  
+  // Drug identifiers
+  rxcui: varchar("rxcui", { length: 20 }), // RxNorm Concept Unique Identifier
+  ndc: varchar("ndc", { length: 11 }), // National Drug Code
+  drugName: varchar("drugName", { length: 255 }),
+  
+  // Coverage details
+  tier: int("tier"), // 1-5 (1 = preferred generic, 5 = specialty)
+  tierName: varchar("tierName", { length: 50 }), // 'Preferred Generic', 'Generic', 'Preferred Brand', etc.
+  
+  // Cost sharing
+  copay: decimal("copay", { precision: 10, scale: 2 }), // Fixed copay amount
+  coinsurance: decimal("coinsurance", { precision: 5, scale: 2 }), // Percentage (e.g., 30.00 for 30%)
+  
+  // Pharmacy preferences
+  preferredPharmacy: boolean("preferredPharmacy").default(false).notNull(),
+  mailOrderAvailable: boolean("mailOrderAvailable").default(false).notNull(),
+  
+  // Utilization management
+  priorAuthRequired: boolean("priorAuthRequired").default(false).notNull(),
+  stepTherapyRequired: boolean("stepTherapyRequired").default(false).notNull(),
+  quantityLimit: int("quantityLimit"), // Max quantity per fill
+  quantityLimitDays: int("quantityLimitDays"), // Days supply limit
+  
+  // Metadata
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type PlanDrugCoverage = typeof planDrugCoverage.$inferSelect;
+export type InsertPlanDrugCoverage = typeof planDrugCoverage.$inferInsert;

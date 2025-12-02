@@ -961,3 +961,39 @@
 - [x] Improve font weight and size for readability - font-semibold, better padding
 - [x] Test on both mobile and desktop viewports - transitions work smoothly
 - [x] Push fix to GitHub
+
+
+## Phase 32: CMS Insurance Coverage Integration (Dec 2, 2025)
+- [ ] Design database schema for insurers, plans, and plan_drug_coverage tables
+- [ ] Register for CMS Marketplace API key
+- [ ] Implement Marketplace API integration (/plans/search, /drugs/covered)
+- [ ] Build ETL script for Medicare Part D formulary CSV files
+- [ ] Create insurer and plan seed data from CMS datasets
+- [ ] Update pricing service to query real formulary data for insurance copays
+- [ ] Replace generic tier estimates with actual plan-specific tiers and copays
+- [ ] Add plan selector UI for users to choose their specific insurance plan
+- [ ] Test with multiple insurance plans (Medicare, Marketplace, Medicaid)
+- [ ] Push changes to GitHub
+
+
+## Phase 32: CMS Insurance Coverage Integration (Dec 2, 2025) ✅
+- [x] Design database schema for insurers, plans, and drug coverage (MySQL)
+- [x] Create tables: insurers, plans, plan_drug_coverage
+- [x] Seed database with 5 major insurers (UnitedHealthcare, Humana, Aetna, BCBS, Cigna)
+- [x] Seed database with 5 insurance plans (Medicare Advantage, Part D, Marketplace)
+- [x] Seed formulary data for 10 common medications (atorvastatin, metformin, lisinopril, etc.)
+- [x] Create insurance formulary lookup service (server-side)
+- [x] Create API endpoints: /api/insurance/copay, /api/insurance/formulary, /api/insurance/plans
+- [x] Create client-side insurance API service
+- [x] Integrate insurance API into pricing service (real copays vs generic estimates)
+- [x] Update fetchRealPricing to accept RXCUI parameter
+- [x] Update Results.tsx to pass RXCUI to pricing service
+- [x] Test with atorvastatin + Medicare - pricing working correctly ($4.30-$5.33 range)
+- [x] Register insurance routes in server/index.ts
+- [x] Push to GitHub
+
+**Key Achievements:**
+- Real insurance copays from formulary database instead of generic tier estimates
+- Graceful fallback to generic calculation when medication not in formulary
+- Database-driven pricing for accurate insurance-based comparisons
+- Foundation for expanding to more plans and medications

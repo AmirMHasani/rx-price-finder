@@ -15,6 +15,13 @@
       "when": 1764660581860,
       "tag": "0001_flaky_nehzno",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1764701548776,
+      "tag": "0002_big_cobalt_man",
+      "breakpoints": true
     }
   ]
 }

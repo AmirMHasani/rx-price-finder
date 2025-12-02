@@ -1,0 +1,9 @@
+{
+  "query": "-- Seed Insurance Data for RxPriceFinder\n-- Medicare Part D plans and common medication formulary data\n\n-- Insert Insurers\nINSERT INTO insurers (name, type, state, isActive, createdAt, updatedAt) VALUES\n('UnitedHealthcare', 'Medicare Advantage', 'MA', TRUE, NOW(), NOW()),\n('Humana', 'Medicare Part D', 'MA', TRUE, NOW(), NOW()),\n('Aetna', 'Medicare Advantage', 'MA', TRUE, NOW(), NOW()),\n('Blue Cross Blue Shield', 'Marketplace', 'MA', TRUE, NOW(), NOW()),\n('Cigna', 'Medicare Part D', 'MA', TRUE, NOW(), NOW())\nON DUPLICATE KEY UPDATE updatedAt = NOW();",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user RThpiPtkAc7K6Ud.d4d525a24c3c --database EfipWKZoKPZesREyxYBTRn --execute -- Seed Insurance Data for RxPriceFinder\n-- Medicare Part D plans and common medication formulary data\n\n-- Insert Insurers\nINSERT INTO insurers (name, type, state, isActive, createdAt, updatedAt) VALUES\n('UnitedHealthcare', 'Medicare Advantage', 'MA', TRUE, NOW(), NOW()),\n('Humana', 'Medicare Part D', 'MA', TRUE, NOW(), NOW()),\n('Aetna', 'Medicare Advantage', 'MA', TRUE, NOW(), NOW()),\n('Blue Cross Blue Shield', 'Marketplace', 'MA', TRUE, NOW(), NOW()),\n('Cigna', 'Medicare Part D', 'MA', TRUE, NOW(), NOW())\nON DUPLICATE KEY UPDATE updatedAt = NOW();",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 750
+}

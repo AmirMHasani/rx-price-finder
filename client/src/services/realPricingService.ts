@@ -8,6 +8,7 @@ import { searchCostPlusMedication, parseCostPlusPrice, type CostPlusDrugResult }
 import { searchNADACByName, getNADACUnitPrice, type NADACResult } from './cmsNadacApi';
 import { searchPartDByName, getPartDUnitPrice, calculatePartDMarkupFactor, type PartDResult } from './medicarePartDApi';
 import type { RealPharmacy } from './realPharmacyService';
+import { getInsuranceCopay } from './insuranceApi';
 
 export interface PharmacyPricing {
   pharmacy: RealPharmacy;
@@ -201,7 +202,8 @@ export async function fetchRealPricing(
   quantity: number,
   pharmacies: RealPharmacy[],
   insurancePlan: string,
-  deductibleMet: boolean
+  deductibleMet: boolean,
+  rxcui?: string
 ): Promise<PharmacyPricing[]> {
   try {
     console.log('💰 [REAL PRICING] Fetching Cost Plus data for:', medicationName, strength, quantity);
@@ -271,6 +273,19 @@ export async function fetchRealPricing(
       ? '📊 [REAL PRICING] Using estimated wholesale: $' + wholesalePrice
       : '✅ [REAL PRICING] Cost Plus wholesale: $' + wholesalePrice);
     
+    // Query insurance formulary for real copay data (if RXCUI available)
+    let realInsuranceCopay: number | null = null;
+    if (rxcui && insurancePlan && insurancePlan !== 'no_insurance' && insurancePlan !== 'cash') {
+      console.log('🔍 [INSURANCE] Querying formulary for RXCUI:', rxcui, 'Insurance:', insurancePlan);
+      const copayData = await getInsuranceCopay(rxcui, insurancePlan);
+      if (copayData && copayData.covered && copayData.copay !== undefined) {
+        realInsuranceCopay = copayData.copay;
+        console.log('✅ [INSURANCE] Real copay from formulary: $' + realInsuranceCopay, '(' + copayData.tierName + ')');
+      } else {
+        console.log('⚠️ [INSURANCE] Medication not in formulary, using generic estimate');
+      }
+    }
+    
     // Calculate pricing for each pharmacy
     const pricingResults: PharmacyPricing[] = pharmacies.map(pharmacy => {
       // 1. Calculate cash price with pharmacy-specific markup and randomness
@@ -278,7 +293,10 @@ export async function fetchRealPricing(
       const cashPrice = Math.round(wholesalePrice * pharmacyMarkup * 100) / 100;
       
       // 2. Calculate insurance copay first (needed for membership price)
-      const insurancePrice = Math.round(calculateInsuranceCopay(cashPrice, medicationTier, deductibleMet) * 100) / 100;
+      // Use real formulary copay if available, otherwise use generic calculation
+      const insurancePrice = realInsuranceCopay !== null 
+        ? realInsuranceCopay 
+        : Math.round(calculateInsuranceCopay(cashPrice, medicationTier, deductibleMet) * 100) / 100;
       
       // 3. Calculate RxPrice membership price (20% discount off insurance price)
       const membershipPrice = Math.round(insurancePrice * 0.80 * 100) / 100;
