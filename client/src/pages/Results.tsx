@@ -390,31 +390,32 @@ export default function Results() {
     <div className="min-h-screen bg-gradient-to-br from-blue-100 via-indigo-50 to-purple-50">
       {/* Header */}
       <header className="bg-white border-b border-border shadow-sm">
-        <div className="container py-6">
-          <div className="flex items-center justify-between">
+        <div className="container py-3 sm:py-6">
+          <div className="flex items-center justify-between gap-2">
             <Button
               variant="ghost"
               onClick={() => setLocation("/")}
-              className="gap-2"
+              className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4"
             >
-              <ArrowLeft className="w-4 h-4" />
-              {t('results.header.newSearch')}
+              <ArrowLeft className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">{t('results.header.newSearch')}</span>
+              <span className="sm:hidden">Back</span>
             </Button>
-            <div className="flex items-center gap-4">
-              <h1 className="text-2xl font-bold text-foreground">RxPriceFinder</h1>
+            <div className="flex items-center gap-2 sm:gap-4">
+              <h1 className="text-lg sm:text-2xl font-bold text-foreground">RxPriceFinder</h1>
               <LanguageToggle />
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-1 sm:gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => window.print()}
-                className="gap-2"
+                className="gap-1 sm:gap-2 hidden sm:flex"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                 </svg>
-                {t('results.header.print')}
+                <span className="hidden md:inline">{t('results.header.print')}</span>
               </Button>
               <Button
                 variant="outline"
@@ -423,12 +424,12 @@ export default function Results() {
                   navigator.clipboard.writeText(window.location.href);
                   alert(t('results.header.linkCopied'));
                 }}
-                className="gap-2"
+                className="gap-1 sm:gap-2 hidden sm:flex"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                 </svg>
-                {t('results.header.share')}
+                <span className="hidden md:inline">{t('results.header.share')}</span>
               </Button>
             </div>
           </div>
@@ -438,13 +439,13 @@ export default function Results() {
       {/* Main Content */}
       <div className="container py-6 md:py-10 px-4 md:px-6">
         {/* Medication Info Card - Always visible */}
-        <Card className="mb-8 shadow-sm">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-2xl font-bold text-gray-900">{medicationName}</CardTitle>
-            <CardDescription className="text-base mt-2 space-y-1">
-              <div>{dosage} {form} • {frequency === "1" ? "Once daily" : frequency === "2" ? "Twice daily" : frequency === "3" ? "Three times daily" : frequency === "4" ? "Four times daily" : frequency === "0.5" ? "Every other day" : "Once weekly"}</div>
-              <div>{quantity} days supply ({totalPills} pills)</div>
-              <div className="font-medium text-blue-600">{insurance?.carrier} - {insurance?.planName}</div>
+        <Card className="mb-4 sm:mb-8 shadow-sm">
+          <CardHeader className="pb-3 sm:pb-4 px-4 sm:px-6 pt-4 sm:pt-6">
+            <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900">{medicationName}</CardTitle>
+            <CardDescription className="text-sm sm:text-base mt-1 sm:mt-2 space-y-0.5 sm:space-y-1">
+              <div className="text-xs sm:text-sm">{dosage} {form} • {frequency === "1" ? "Once daily" : frequency === "2" ? "Twice daily" : frequency === "3" ? "Three times daily" : frequency === "4" ? "Four times daily" : frequency === "0.5" ? "Every other day" : "Once weekly"}</div>
+              <div className="text-xs sm:text-sm">{quantity} days supply ({totalPills} pills)</div>
+              <div className="font-medium text-blue-600 text-xs sm:text-sm">{insurance?.carrier} - {insurance?.planName}</div>
             </CardDescription>
           </CardHeader>
         </Card>
@@ -452,20 +453,20 @@ export default function Results() {
         {/* Main Content with Tabs */}
         <Tabs defaultValue="prices" className="w-full">
           <TabsList className="mb-6 grid grid-cols-4 w-full">
-            <TabsTrigger value="prices" className="text-xs sm:text-sm">
-              <span className="sm:hidden">💰</span>
+            <TabsTrigger value="prices" className="text-xs sm:text-sm px-2">
+              <span className="sm:hidden">Prices</span>
               <span className="hidden sm:inline">💰 Prices</span>
             </TabsTrigger>
-            <TabsTrigger value="safety" className="text-xs sm:text-sm">
-              <span className="sm:hidden">🛡️</span>
+            <TabsTrigger value="safety" className="text-xs sm:text-sm px-2">
+              <span className="sm:hidden">Safety</span>
               <span className="hidden sm:inline">🛡️ Safety Info</span>
             </TabsTrigger>
-            <TabsTrigger value="alternatives" className="text-xs sm:text-sm">
-              <span className="sm:hidden">💊</span>
+            <TabsTrigger value="alternatives" className="text-xs sm:text-sm px-2">
+              <span className="sm:hidden">Alts</span>
               <span className="hidden sm:inline">💊 Alternatives</span>
             </TabsTrigger>
-            <TabsTrigger value="data" className="text-xs sm:text-sm">
-              <span className="sm:hidden">📊</span>
+            <TabsTrigger value="data" className="text-xs sm:text-sm px-2">
+              <span className="sm:hidden">Data</span>
               <span className="hidden sm:inline">📊 About Data</span>
             </TabsTrigger>
           </TabsList>
