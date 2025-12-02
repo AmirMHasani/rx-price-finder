@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, Info, ShieldAlert, Pill } from "lucide-react";
+import { AlertTriangle, Info, ShieldAlert, Pill, Loader2 } from "lucide-react";
+import { trpc } from "@/lib/trpc";
 
 interface SafetyInfoTabProps {
   medicationName: string;
@@ -12,14 +13,20 @@ interface BlackBoxWarning {
   text: string;
 }
 
+interface FormattedSection {
+  title: string;
+  content: string;
+}
+
 interface SafetyData {
-  blackBoxWarnings: string[];
-  warnings: string[];
-  contraindications: string[];
-  adverseReactions: string[];
-  drugInteractions: string[];
+  blackBoxWarnings: FormattedSection[];
+  warnings: FormattedSection[];
+  contraindications: FormattedSection[];
+  adverseReactions: FormattedSection[];
+  drugInteractions: FormattedSection[];
   loading: boolean;
   error: string | null;
+  formatting: boolean;
 }
 
 export function SafetyInfoTab({ medicationName, rxcui }: SafetyInfoTabProps) {
@@ -31,7 +38,10 @@ export function SafetyInfoTab({ medicationName, rxcui }: SafetyInfoTabProps) {
     drugInteractions: [],
     loading: true,
     error: null,
+    formatting: false,
   });
+
+  const formatSafetyMutation = trpc.safety.formatSafetyInfo.useMutation();
 
   useEffect(() => {
     async function fetchSafetyInfo() {
@@ -70,15 +80,48 @@ export function SafetyInfoTab({ medicationName, rxcui }: SafetyInfoTabProps) {
 
         const label = data.results[0];
 
-        setSafetyData({
+        // First set raw data
+        const rawData = {
           blackBoxWarnings: label.boxed_warning || [],
           warnings: label.warnings || [],
           contraindications: label.contraindications || [],
           adverseReactions: label.adverse_reactions || [],
           drugInteractions: label.drug_interactions || [],
+        };
+
+        setSafetyData(prev => ({
+          ...prev,
           loading: false,
-          error: null,
-        });
+          formatting: true,
+        }));
+
+        // Format with LLM
+        try {
+          const formatted = await formatSafetyMutation.mutateAsync({
+            ...rawData,
+            medicationName,
+          });
+
+          setSafetyData({
+            ...formatted,
+            loading: false,
+            error: null,
+            formatting: false,
+          });
+        } catch (formatError) {
+          console.error('Error formatting safety info:', formatError);
+          // Fall back to raw data if formatting fails
+          setSafetyData({
+            blackBoxWarnings: rawData.blackBoxWarnings.map(text => ({ title: 'Warning', content: text })),
+            warnings: rawData.warnings.map(text => ({ title: 'Warning', content: text })),
+            contraindications: rawData.contraindications.map(text => ({ title: 'Contraindication', content: text })),
+            adverseReactions: rawData.adverseReactions.map(text => ({ title: 'Reaction', content: text })),
+            drugInteractions: rawData.drugInteractions.map(text => ({ title: 'Interaction', content: text })),
+            loading: false,
+            error: null,
+            formatting: false,
+          });
+        }
       } catch (error) {
         console.error("Error fetching safety information:", error);
         setSafetyData(prev => ({
@@ -94,13 +137,15 @@ export function SafetyInfoTab({ medicationName, rxcui }: SafetyInfoTabProps) {
     }
   }, [medicationName]);
 
-  if (safetyData.loading) {
+  if (safetyData.loading || safetyData.formatting) {
     return (
       <Card>
         <CardContent className="pt-6">
           <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            <span className="ml-3 text-muted-foreground">Loading safety information...</span>
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <span className="ml-3 text-muted-foreground">
+              {safetyData.loading ? 'Loading safety information...' : 'Formatting with AI...'}
+            </span>
           </div>
         </CardContent>
       </Card>
@@ -137,11 +182,9 @@ export function SafetyInfoTab({ medicationName, rxcui }: SafetyInfoTabProps) {
           <CardContent>
             <div className="space-y-4">
               {safetyData.blackBoxWarnings.map((warning, index) => (
-                <div key={index} className="bg-white p-4 rounded-lg border border-red-200">
-                  <div
-                    className="prose prose-sm max-w-none text-foreground"
-                    dangerouslySetInnerHTML={{ __html: warning }}
-                  />
+                <div key={index} className="bg-white p-5 rounded-lg border border-red-200">
+                  <h4 className="font-semibold text-red-900 mb-2">{warning.title}</h4>
+                  <p className="text-sm text-foreground whitespace-pre-wrap">{warning.content}</p>
                 </div>
               ))}
             </div>
@@ -164,11 +207,9 @@ export function SafetyInfoTab({ medicationName, rxcui }: SafetyInfoTabProps) {
           <CardContent>
             <div className="space-y-3">
               {safetyData.contraindications.map((item, index) => (
-                <div key={index} className="bg-white p-4 rounded-lg border border-orange-200">
-                  <div
-                    className="prose prose-sm max-w-none text-foreground"
-                    dangerouslySetInnerHTML={{ __html: item }}
-                  />
+                <div key={index} className="bg-white p-5 rounded-lg border border-orange-200">
+                  <h4 className="font-semibold text-orange-900 mb-2">{item.title}</h4>
+                  <p className="text-sm text-foreground whitespace-pre-wrap">{item.content}</p>
                 </div>
               ))}
             </div>
@@ -191,11 +232,9 @@ export function SafetyInfoTab({ medicationName, rxcui }: SafetyInfoTabProps) {
           <CardContent>
             <div className="space-y-3">
               {safetyData.drugInteractions.map((item, index) => (
-                <div key={index} className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                  <div
-                    className="prose prose-sm max-w-none text-foreground"
-                    dangerouslySetInnerHTML={{ __html: item }}
-                  />
+                <div key={index} className="bg-blue-50 p-5 rounded-lg border border-blue-200">
+                  <h4 className="font-semibold text-blue-900 mb-2">{item.title}</h4>
+                  <p className="text-sm text-foreground whitespace-pre-wrap">{item.content}</p>
                 </div>
               ))}
             </div>
@@ -218,11 +257,9 @@ export function SafetyInfoTab({ medicationName, rxcui }: SafetyInfoTabProps) {
           <CardContent>
             <div className="space-y-3">
               {safetyData.warnings.map((item, index) => (
-                <div key={index} className="bg-amber-50 p-4 rounded-lg border border-amber-200">
-                  <div
-                    className="prose prose-sm max-w-none text-foreground"
-                    dangerouslySetInnerHTML={{ __html: item }}
-                  />
+                <div key={index} className="bg-amber-50 p-5 rounded-lg border border-amber-200">
+                  <h4 className="font-semibold text-amber-900 mb-2">{item.title}</h4>
+                  <p className="text-sm text-foreground whitespace-pre-wrap">{item.content}</p>
                 </div>
               ))}
             </div>
@@ -242,11 +279,9 @@ export function SafetyInfoTab({ medicationName, rxcui }: SafetyInfoTabProps) {
           <CardContent>
             <div className="space-y-3">
               {safetyData.adverseReactions.map((item, index) => (
-                <div key={index} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                  <div
-                    className="prose prose-sm max-w-none text-foreground"
-                    dangerouslySetInnerHTML={{ __html: item }}
-                  />
+                <div key={index} className="bg-gray-50 p-5 rounded-lg border border-gray-200">
+                  <h4 className="font-semibold text-gray-900 mb-2">{item.title}</h4>
+                  <p className="text-sm text-foreground whitespace-pre-wrap">{item.content}</p>
                 </div>
               ))}
             </div>

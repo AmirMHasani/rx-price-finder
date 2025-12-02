@@ -24,60 +24,69 @@ export function CostPlusCard({ medicationName, strength, quantity, averageRetail
       try {
         console.log('🔍 [COST PLUS] Searching for:', { medicationName, strength, quantity });
         
-        // Try with full parameters first
-        let result = await searchCostPlusMedication(medicationName, strength, quantity);
+        // Define brand-to-generic mapping upfront
+        const brandToGeneric: Record<string, string> = {
+          'lipitor': 'atorvastatin',
+          'crestor': 'rosuvastatin',
+          'zocor': 'simvastatin',
+          'norvasc': 'amlodipine',
+          'glucophage': 'metformin',
+          'synthroid': 'levothyroxine',
+          'zoloft': 'sertraline',
+          'prozac': 'fluoxetine',
+          'lexapro': 'escitalopram',
+          'xanax': 'alprazolam',
+          'ambien': 'zolpidem',
+          'viagra': 'sildenafil',
+          'cialis': 'tadalafil',
+          'prilosec': 'omeprazole',
+          'nexium': 'esomeprazole',
+          'advil': 'ibuprofen',
+          'tylenol': 'acetaminophen',
+          'motrin': 'ibuprofen',
+          'aleve': 'naproxen',
+        };
+        
+        // Check if this is a brand name and get generic equivalent
+        const genericName = brandToGeneric[medicationName.toLowerCase()];
+        const searchName = genericName || medicationName;
+        
+        if (genericName) {
+          console.log(`🔄 [COST PLUS] Detected brand name "${medicationName}", using generic "${genericName}"`);
+        }
+        
+        // Try with full parameters first (using generic name if available)
+        let result = await searchCostPlusMedication(searchName, strength, quantity);
         
         // If no result, try without strength (get any available strength)
         if (!result) {
           console.log('⚠️ [COST PLUS] No exact match, trying without strength...');
-          result = await searchCostPlusMedication(medicationName, undefined, quantity);
+          result = await searchCostPlusMedication(searchName, undefined, quantity);
         }
         
         // If still no result, try without quantity
         if (!result) {
           console.log('⚠️ [COST PLUS] Still no match, trying medication name only...');
-          result = await searchCostPlusMedication(medicationName);
-        }
-        
-        // If still no result, try generic equivalent search
-        if (!result) {
-          console.log('⚠️ [COST PLUS] Trying generic equivalent search...');
-          const { searchCostPlusGeneric } = await import('@/services/costPlusApi');
-          result = await searchCostPlusGeneric(medicationName, strength, quantity);
+          result = await searchCostPlusMedication(searchName);
         }
         
         // If still no result, try lowercase
         if (!result) {
           console.log('⚠️ [COST PLUS] Trying lowercase...');
-          result = await searchCostPlusMedication(medicationName.toLowerCase());
+          result = await searchCostPlusMedication(searchName.toLowerCase());
         }
         
-        // If still no result, try common brand-to-generic mappings
+        // If still no result and we haven't tried the original name yet (because we used generic), try original
+        if (!result && genericName) {
+          console.log('⚠️ [COST PLUS] Generic not found, trying original brand name...');
+          result = await searchCostPlusMedication(medicationName);
+        }
+        
+        // If still no result, try generic equivalent API
         if (!result) {
-          console.log('⚠️ [COST PLUS] Trying brand-to-generic mapping...');
-          const brandToGeneric: Record<string, string> = {
-            'lipitor': 'atorvastatin',
-            'crestor': 'rosuvastatin',
-            'zocor': 'simvastatin',
-            'norvasc': 'amlodipine',
-            'glucophage': 'metformin',
-            'synthroid': 'levothyroxine',
-            'zoloft': 'sertraline',
-            'prozac': 'fluoxetine',
-            'lexapro': 'escitalopram',
-            'xanax': 'alprazolam',
-            'ambien': 'zolpidem',
-            'viagra': 'sildenafil',
-            'cialis': 'tadalafil',
-            'prilosec': 'omeprazole',
-            'nexium': 'esomeprazole',
-          };
-          
-          const genericName = brandToGeneric[medicationName.toLowerCase()];
-          if (genericName) {
-            console.log(`⚠️ [COST PLUS] Trying generic equivalent: ${genericName}`);
-            result = await searchCostPlusMedication(genericName, strength, quantity);
-          }
+          console.log('⚠️ [COST PLUS] Trying generic equivalent API...');
+          const { searchCostPlusGeneric } = await import('@/services/costPlusApi');
+          result = await searchCostPlusGeneric(medicationName, strength, quantity);
         }
         
         if (result) {

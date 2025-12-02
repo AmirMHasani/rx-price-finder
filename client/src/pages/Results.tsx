@@ -649,100 +649,104 @@ export default function Results() {
                       setSelectedPharmacy(result.pharmacy.id);
                     }}
                   >
-                    <CardContent className="p-4">
-                      <div className="flex flex-col md:flex-row gap-4 items-start">
+                    <CardContent className="p-6">
+                      <div className="flex flex-col md:flex-row gap-6 items-start">
                         {/* Left: Pharmacy Info */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start gap-2 mb-2">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <h3 className="font-bold text-base">{result.pharmacy.name}</h3>
-                                {index === 0 && (
-                                  <Badge className="bg-green-100 text-green-800 text-xs">Lowest</Badge>
-                                )}
-                              </div>
-                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                <MapPin className="w-3 h-3 flex-shrink-0" />
-                                <span className="truncate">{result.pharmacy.address}</span>
-                              </div>
+                        <div className="flex-1 min-w-0 space-y-4">
+                          {/* Header with Name and Lowest Badge */}
+                          <div>
+                            <div className="flex items-center gap-3 mb-2">
+                              <h3 className="font-bold text-lg text-foreground">{result.pharmacy.name}</h3>
+                              {index === 0 && (
+                                <Badge className="bg-green-500 text-white text-xs px-2 py-0.5">
+                                  ⭐ Lowest Price
+                                </Badge>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <MapPin className="w-4 h-4 flex-shrink-0" />
+                              <span className="truncate">{result.pharmacy.address}</span>
                             </div>
                           </div>
 
-                          <div className="flex flex-wrap gap-2 items-center text-xs">
+                          {/* Features and Actions */}
+                          <div className="flex flex-wrap gap-2 items-center">
                             {result.pharmacy.hasDelivery && (
-                              <Badge variant="outline" className="text-xs py-0">
-                                <Truck className="w-3 h-3 mr-1" />
+                              <Badge variant="outline" className="text-xs px-2 py-1 border-blue-300 text-blue-700">
+                                <Truck className="w-3 h-3 mr-1.5" />
                                 Delivery
                               </Badge>
                             )}
                             {result.pharmacy.hasDriveThru && (
-                              <Badge variant="outline" className="text-xs py-0">
-                                <Car className="w-3 h-3 mr-1" />
+                              <Badge variant="outline" className="text-xs px-2 py-1 border-purple-300 text-purple-700">
+                                <Car className="w-3 h-3 mr-1.5" />
                                 Drive-Thru
                               </Badge>
                             )}
                             <Button
-                              variant="ghost"
+                              variant="outline"
                               size="sm"
-                              className="h-6 px-2 text-xs"
+                              className="h-8 px-3 text-xs"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(result.pharmacy.address)}`;
                                 window.open(mapsUrl, '_blank');
                               }}
                             >
-                              <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
                               </svg>
-                              Directions
+                              Get Directions
                             </Button>
                           </div>
                         </div>
 
                         {/* Right: Pricing Info */}
-                        <div className="md:w-64 flex-shrink-0">
+                        <div className="md:w-72 flex-shrink-0 space-y-3">
                           {/* Insurance Pricing */}
-                          <div className="bg-blue-50 p-3 rounded-lg">
-                            <div className="flex items-baseline justify-between mb-1">
-                              <p className="text-xs text-muted-foreground">With Insurance</p>
-                              <Badge variant="outline" className="text-[10px] h-4 px-1 bg-amber-50 text-amber-700 border-amber-300">
-                                Est.
-                              </Badge>
+                          <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-xl border border-blue-200 relative">
+                            <Badge variant="outline" className="absolute top-3 right-3 text-[10px] h-5 px-2 bg-white/90 text-amber-700 border-amber-300">
+                              📊 Estimated
+                            </Badge>
+                            <div className="space-y-2">
+                              <p className="text-xs font-medium text-blue-900">With Insurance</p>
+                              <div className="flex items-baseline gap-2">
+                                <p className="text-3xl font-bold text-blue-600">
+                                  ${result.insurancePrice}
+                                </p>
+                                <p className="text-sm text-muted-foreground line-through">
+                                  ${result.cashPrice}
+                                </p>
+                              </div>
+                              <p className="text-sm font-semibold text-green-700">
+                                ✓ Save ${result.savings}
+                              </p>
                             </div>
-                            <p className="text-2xl font-bold text-primary mb-1">
-                              ${result.insurancePrice}
-                            </p>
-                            <p className="text-xs text-muted-foreground line-through">
-                              ${result.cashPrice} cash
-                            </p>
-                            <p className="text-xs font-semibold text-green-700 mt-1">
-                              Save ${result.savings}
-                            </p>
                           </div>
                           
                           {/* Coupon Pricing */}
                           {result.couponPrice && (
-                            <div className={`p-3 rounded-lg mt-2 ${
+                            <div className={`p-4 rounded-xl border relative ${
                               result.bestOption === "coupon" 
-                                ? "bg-green-50 border border-green-300" 
-                                : "bg-gray-50"
+                                ? "bg-gradient-to-br from-green-50 to-green-100 border-green-300" 
+                                : "bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200"
                             }`}>
-                              <div className="flex items-center justify-between mb-1">
-                                <p className="text-xs font-medium text-muted-foreground">
-                                  {result.couponProvider}
+                              {result.bestOption === "coupon" && (
+                                <Badge className="absolute top-3 right-3 bg-green-600 text-white text-[10px] h-5 px-2">
+                                  🏆 Best Price!
+                                </Badge>
+                              )}
+                              <div className="space-y-2">
+                                <p className="text-xs font-medium text-gray-700">
+                                  With {result.couponProvider} Coupon
                                 </p>
-                                {result.bestOption === "coupon" && (
-                                  <Badge className="bg-green-600 text-white text-[10px] h-4 px-1">
-                                    Best!
-                                  </Badge>
-                                )}
+                                <p className="text-2xl font-bold text-gray-900">
+                                  ${result.couponPrice}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  Save ${result.couponSavings} vs cash
+                                </p>
                               </div>
-                              <p className="text-xl font-bold text-foreground">
-                                ${result.couponPrice}
-                              </p>
-                              <p className="text-[10px] text-muted-foreground">
-                                Save ${result.couponSavings}
-                              </p>
                             </div>
                           )}
                         </div>
