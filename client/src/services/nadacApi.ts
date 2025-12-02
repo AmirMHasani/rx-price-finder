@@ -29,10 +29,12 @@ export interface NADACApiResponse {
 export async function searchNADACPricing(medicationName: string): Promise<NADACRecord | null> {
   try {
     // Build SQL query to search by description
+    // Clean medication name and search for exact word matches
+    const cleanName = medicationName.toLowerCase().trim().replace(/[^a-z0-9\s]/g, '');
     const query = `
       SELECT *
       FROM ${NADAC_DATASET_ID}
-      WHERE LOWER(ndc_description) LIKE '%${medicationName.toLowerCase()}%'
+      WHERE LOWER(ndc_description) LIKE '${cleanName}%'
       ORDER BY effective_date DESC
       LIMIT 1
     `;
