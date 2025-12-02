@@ -10,16 +10,16 @@ interface MedicationImageMap {
 // Map of medication names (lowercase) to image paths
 const medicationImages: MedicationImageMap = {
   // Brand names
-  'eliquis': '/medication-images/eliquis.webp',
+  'eliquis': '/medication-images/eliquis-pill.jpg',
   'lipitor': '/medication-images/lipitor.jpeg',
   
   // Generic names that map to brand images
-  'apixaban': '/medication-images/eliquis.webp',
+  'apixaban': '/medication-images/eliquis-pill.jpg',
   'atorvastatin': '/medication-images/lipitor.jpeg',
 };
 
 // Default fallback image for medications without specific images
-const DEFAULT_IMAGE = '/medication-images/generic-pills.jpg';
+const DEFAULT_IMAGE = '/medication-images/generic-pills-clean.jpg';
 
 /**
  * Get the image path for a medication

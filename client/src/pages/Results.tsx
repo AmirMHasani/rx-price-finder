@@ -432,18 +432,7 @@ export default function Results() {
         {/* Medication Info Card - Always visible */}
         <Card className="mb-4 sm:mb-8 shadow-sm">
           <CardHeader className="pb-3 sm:pb-4 px-4 sm:px-6 pt-4 sm:pt-6">
-            <div className="flex items-start gap-4">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-                <img 
-                  src={getMedicationImage(medicationName)} 
-                  alt={medicationName}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    // Fallback to generic image if specific image fails to load
-                    e.currentTarget.src = '/medication-images/generic-pills.jpg';
-                  }}
-                />
-              </div>
+            <div className="flex items-start gap-4 sm:gap-6">
               <div className="flex-1 min-w-0">
                 <CardTitle className="text-xl sm:text-2xl font-bold text-gray-900">{medicationName}</CardTitle>
                 <CardDescription className="text-sm sm:text-base mt-1 sm:mt-2 space-y-0.5 sm:space-y-1">
@@ -451,6 +440,17 @@ export default function Results() {
                   <div className="text-xs sm:text-sm">{quantity} days supply ({totalPills} pills)</div>
                   <div className="font-medium text-blue-600 text-xs sm:text-sm">{insurance?.carrier} - {insurance?.planName}</div>
                 </CardDescription>
+              </div>
+              <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-xl overflow-hidden bg-white shadow-md flex-shrink-0">
+                <img 
+                  src={getMedicationImage(medicationName)} 
+                  alt={medicationName}
+                  className="w-full h-full object-contain p-2"
+                  onError={(e) => {
+                    // Fallback to generic image if specific image fails to load
+                    e.currentTarget.src = '/medication-images/generic-pills-clean.jpg';
+                  }}
+                />
               </div>
             </div>
           </CardHeader>
