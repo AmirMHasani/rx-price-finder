@@ -23,89 +23,42 @@ export interface PartDApiResponse {
 
 /**
  * Search for medication spending in Medicare Part D database by brand or generic name
+ * Uses server-side endpoint to bypass CORS restrictions
  */
 export async function searchPartDByName(
   medicationName: string
 ): Promise<PartDResult | null> {
   try {
-    const apiKey = import.meta.env.VITE_CMS_API_KEY || process.env.CMS_API_KEY;
-    
-    if (!apiKey) {
-      console.error('CMS API key not configured');
-      return null;
-    }
-
-    // Clean medication name (remove dosage, form, brand name in brackets)
-    const cleanName = medicationName
-      .replace(/\s*\[.*?\]\s*/g, '') // Remove [Brand Name]
-      .replace(/\s+\d+(\.\d+)?\s*(mg|mcg|g|ml)\s*/gi, '') // Remove dosage
-      .replace(/\s+(tablet|capsule|oral|extended|release|delayed)\s*/gi, '') // Remove form words
-      .trim()
-      .toUpperCase();
-
-    // Try brand name first
-    let query = {
-      conditions: [
-        {
-          property: 'brnd_name',
-          value: `%${cleanName}%`,
-          operator: 'LIKE'
-        }
-      ],
-      sorts: [
-        {
-          property: 'tot_spndng_2023',
-          order: 'desc'
-        }
-      ],
-      limit: 1
-    };
-
-    let response = await fetch(
-      `${CMS_API_BASE}/${PARTD_DATASET_ID}/${PARTD_VERSION_ID}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-Key': apiKey
-        },
-        body: JSON.stringify(query)
-      }
+    // Call server-side endpoint instead of direct CMS API
+    const response = await fetch(
+      `/api/medications/partd?name=${encodeURIComponent(medicationName)}`
     );
 
     if (!response.ok) {
-      console.error('Medicare Part D API error (brand):', response.status);
-      
-      // Try generic name as fallback
-      query.conditions[0].property = 'gnrc_name';
-      
-      response = await fetch(
-        `${CMS_API_BASE}/${PARTD_DATASET_ID}/${PARTD_VERSION_ID}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-API-Key': apiKey
-          },
-          body: JSON.stringify(query)
-        }
-      );
-
-      if (!response.ok) {
-        console.error('Medicare Part D API error (generic):', response.status);
-        return null;
-      }
+      console.error('[Part D Client] Server endpoint error:', response.status);
+      return null;
     }
 
-    const data: PartDApiResponse = await response.json();
+    const result = await response.json();
 
-    if (data.results && data.results.length > 0) {
-      return data.results[0];
+    if (!result.success || !result.found) {
+      return null;
     }
 
-    return null;
+    // Convert server response to PartDResult format
+    return {
+      brnd_name: result.data.brandName,
+      gnrc_name: result.data.genericName,
+      tot_mftr: 1,
+      mftr_name: result.data.manufacturer,
+      avg_spnd_per_dsg_unt_wghtd_2023: result.data.unitPrice,
+      tot_spndng_2023: result.data.totalSpending,
+      tot_dsg_unts_2023: result.data.totalUnits,
+      tot_clms_2023: 0,
+      tot_benes_2023: 0,
+    };
   } catch (error) {
-    console.error('Error fetching Medicare Part D data:', error);
+    console.error('[Part D Client] Error fetching data:', error);
     return null;
   }
 }

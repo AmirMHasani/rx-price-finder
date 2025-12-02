@@ -15,6 +15,10 @@ import {
   searchDrugByNDC,
   searchGenericAlternatives,
 } from "../services/fdaNdcService.js";
+import {
+  searchPartDByName,
+  getPartDUnitPrice,
+} from "../services/medicarePartDService.js";
 
 const router = express.Router();
 
@@ -165,6 +169,52 @@ router.get("/ndc/:ndc", async (req: Request, res: Response) => {
     console.error("Error searching by NDC:", error);
     res.status(500).json({
       error: "Failed to search by NDC",
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
+
+/**
+ * Get Medicare Part D pricing data
+ * GET /api/medications/partd?name=atorvastatin
+ */
+router.get("/partd", async (req: Request, res: Response) => {
+  try {
+    const medicationName = req.query.name as string;
+
+    if (!medicationName) {
+      return res.status(400).json({
+        error: "Medication name is required",
+      });
+    }
+
+    const partDData = await searchPartDByName(medicationName);
+
+    if (!partDData) {
+      return res.json({
+        success: true,
+        found: false,
+        medicationName,
+      });
+    }
+
+    res.json({
+      success: true,
+      found: true,
+      medicationName,
+      data: {
+        brandName: partDData.brnd_name,
+        genericName: partDData.gnrc_name,
+        unitPrice: getPartDUnitPrice(partDData),
+        totalSpending: partDData.tot_spndng_2023,
+        totalUnits: partDData.tot_dsg_unts_2023,
+        manufacturer: partDData.mftr_name,
+      },
+    });
+  } catch (error) {
+    console.error("Error getting Part D data:", error);
+    res.status(500).json({
+      error: "Failed to get Part D data",
       message: error instanceof Error ? error.message : "Unknown error",
     });
   }

@@ -906,3 +906,14 @@
 - [x] Implement hybrid pricing model (NADAC + Part D + pharmacy-specific markups)
 - [x] Test with multiple medications (atorvastatin, metformin, lisinopril) - all showing realistic prices
 - [x] Pricing waterfall: Cost Plus → NADAC+PartD → NADAC only → PartD only → Estimate
+
+
+## Phase 26: Fix Dosage Undefined Error and CORS Issue (Dec 2, 2025)
+- [x] Check fetchRealPricing function signature
+- [x] Fix dosage → strength parameter mismatch
+- [x] Fix CORS error for Medicare Part D API (moved to server-side)
+- [x] Create server-side Medicare Part D service
+- [x] Add /api/medications/partd endpoint
+- [x] Update client-side Part D API to use server endpoint
+- [x] Test with metformin - pricing working correctly
+- [x] Push fix to GitHub

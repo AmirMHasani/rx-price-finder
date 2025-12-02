@@ -206,7 +206,7 @@ export async function fetchRealPricing(
       
       // Combined CMS approach: NADAC + Medicare Part D
       const [nadacResults, partDData] = await Promise.all([
-        searchNADACByName(medicationName, dosage),
+        searchNADACByName(medicationName, strength),
         searchPartDByName(medicationName)
       ]);
       
