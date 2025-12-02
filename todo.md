@@ -953,3 +953,11 @@
 - [x] Optimize medication card - reduced padding and font sizes for mobile
 - [x] Test on mobile viewport - layout is clean and organized
 - [x] Push fix to GitHub
+
+
+## Phase 31: Improve Tab Button Visibility (Dec 2, 2025)
+- [x] Increase tab button contrast and visual separation - added white bg with shadow
+- [x] Add better active/inactive state styling - blue-600 bg with white text for active
+- [x] Improve font weight and size for readability - font-semibold, better padding
+- [x] Test on both mobile and desktop viewports - transitions work smoothly
+- [x] Push fix to GitHub
