@@ -786,3 +786,19 @@
 - [x] Verify all pharmacies show realistic prices based on Cost Plus wholesale
 - [x] Verify insurance copays are realistic based on medication tier
 - [ ] Remove mock pricing data files (pricing.ts, medicationMappingService.ts) - keeping for now as fallback
+
+
+## PHASE 14: Mobile & Desktop Design Optimization (Dec 2, 2025)
+- [x] Test current mobile view and document all responsive issues
+- [x] Fix mobile responsiveness for results section (grid layout for pricing)
+- [x] Fix pharmacy card layout for mobile devices (single column on mobile, 2-col on desktop)
+- [x] Optimize filter section for mobile (vertical stack on mobile, horizontal on desktop)
+- [x] Update coupon display to always show info ("No coupons accepted" when unavailable)
+- [x] Ensure all pharmacy cards have consistent coupon information
+- [x] Optimize typography for mobile readability (responsive text sizes)
+- [x] Fix spacing and padding for mobile viewports (sm: breakpoints added)
+- [x] Improve visual hierarchy on both mobile and desktop
+- [x] Optimize homepage header for mobile (smaller logo, truncated text)
+- [x] Optimize homepage hero and form for mobile (responsive padding and text)
+- [x] Optimize price summary card for mobile (2-col grid on mobile, 4-col on desktop)
+- [x] Fix fetchRealPricing import issue (moved from dynamic to static import)

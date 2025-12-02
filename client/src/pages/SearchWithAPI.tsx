@@ -227,15 +227,15 @@ export default function SearchWithAPI() {
     <div className="min-h-screen bg-gradient-to-br from-blue-100 via-indigo-50 to-purple-50">
       {/* Header */}
       <header className="bg-white border-b border-border shadow-sm">
-        <div className="container py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                <Pill className="w-6 h-6 text-primary-foreground" />
+        <div className="container py-4 sm:py-6">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
+                <Pill className="w-5 h-5 sm:w-6 sm:h-6 text-primary-foreground" />
               </div>
-              <div>
-                <h1 className="text-2xl font-bold text-foreground">RxPriceFinder</h1>
-                <p className="text-sm text-muted-foreground">Compare prescription prices with your insurance</p>
+              <div className="min-w-0">
+                <h1 className="text-lg sm:text-2xl font-bold text-foreground truncate">RxPriceFinder</h1>
+                <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Compare prescription prices with your insurance</p>
               </div>
             </div>
             <LanguageToggle />
@@ -244,30 +244,30 @@ export default function SearchWithAPI() {
       </header>
 
       {/* Main Content */}
-      <main className="container py-12">
+      <main className="container py-6 sm:py-12 px-4">
         <div className="max-w-4xl mx-auto">
           {/* Hero Section */}
-          <div className="text-center mb-12">
-            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4 leading-tight">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold text-foreground mb-3 sm:mb-4 leading-tight px-2">
               {t('home.hero.title')}
             </h2>
-            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed px-2">
               {t('home.hero.subtitle')}
             </p>
           </div>
 
           {/* Search Form */}
           <Card className="shadow-xl border-2">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <SearchIcon className="w-5 h-5" />
+            <CardHeader className="pb-4 sm:pb-6">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <SearchIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                 {t('home.form.searchTitle')}
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-sm">
                 {t('home.form.searchSubtitle')}
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4 sm:space-y-6">
               {/* Medication Section */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2 text-sm font-semibold text-foreground">

@@ -24,6 +24,7 @@ import { DataTransparencyBanner } from "@/components/DataTransparencyBanner";
 import { getPharmacyFeatures, getPharmacyHours } from "@/data/pharmacyFeatures";
 import { SafetyInfoTab } from "@/components/SafetyInfoTab";
 import { AIAlternativesTab } from "@/components/AIAlternativesTab";
+import { fetchRealPricing } from "@/services/realPricingService";
 
 export default function Results() {
   const { t } = useLanguage();
@@ -148,7 +149,6 @@ export default function Results() {
         }));
         
         // Fetch real pricing from Cost Plus API
-        const { fetchRealPricing } = await import('@/services/realPricingService');
         const realPricing = await fetchRealPricing(
           medicationName,
           dosage,
@@ -440,38 +440,38 @@ export default function Results() {
               
               return (
                 <Card className="mb-6 bg-gradient-to-r from-blue-50 to-green-50 border-2 border-blue-200">
-                  <CardHeader>
-                    <CardTitle className="text-lg">{t('results.priceSummary.title')}</CardTitle>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base sm:text-lg">{t('results.priceSummary.title')}</CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                       <div>
-                        <div className="text-sm text-muted-foreground">{t('results.priceSummary.lowestPrice')}</div>
-                        <div className="text-2xl font-bold text-green-600">${lowestPrice.toFixed(2)}</div>
+                        <div className="text-xs sm:text-sm text-muted-foreground">{t('results.priceSummary.lowestPrice')}</div>
+                        <div className="text-xl sm:text-2xl font-bold text-green-600">${lowestPrice.toFixed(2)}</div>
                       </div>
                       <div>
-                        <div className="text-sm text-muted-foreground">{t('results.priceSummary.highestPrice')}</div>
-                        <div className="text-2xl font-bold text-red-600">${highestPrice.toFixed(2)}</div>
+                        <div className="text-xs sm:text-sm text-muted-foreground">{t('results.priceSummary.highestPrice')}</div>
+                        <div className="text-xl sm:text-2xl font-bold text-red-600">${highestPrice.toFixed(2)}</div>
                       </div>
                       <div>
-                        <div className="text-sm text-muted-foreground">{t('results.priceSummary.averagePrice')}</div>
-                        <div className="text-2xl font-bold text-blue-600">${avgPrice.toFixed(2)}</div>
+                        <div className="text-xs sm:text-sm text-muted-foreground">{t('results.priceSummary.averagePrice')}</div>
+                        <div className="text-xl sm:text-2xl font-bold text-blue-600">${avgPrice.toFixed(2)}</div>
                       </div>
                       <div>
-                        <div className="text-sm text-muted-foreground">{t('results.priceSummary.potentialSavings')}</div>
-                        <div className="text-2xl font-bold text-green-600">${savings.toFixed(2)}</div>
+                        <div className="text-xs sm:text-sm text-muted-foreground">{t('results.priceSummary.potentialSavings')}</div>
+                        <div className="text-xl sm:text-2xl font-bold text-green-600">${savings.toFixed(2)}</div>
                       </div>
                     </div>
-                    <div className="mt-4 p-4 bg-white rounded-lg border border-blue-200">
-                      <div className="text-sm font-medium text-blue-900 mb-2">{t('results.priceSummary.recommended')}</div>
-                      <div className="flex items-center justify-between">
+                    <div className="p-3 sm:p-4 bg-white rounded-lg border border-blue-200">
+                      <div className="text-xs sm:text-sm font-medium text-blue-900 mb-2">💡 {t('results.priceSummary.recommended')}</div>
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                         <div>
-                          <div className="font-bold">{recommended.pharmacy.name}</div>
-                          <div className="text-sm text-muted-foreground">{t('results.priceSummary.milesAway').replace('{{distance}}', recommended.distance?.toFixed(1) || '0.0')}</div>
+                          <div className="font-bold text-sm sm:text-base">{recommended.pharmacy.name}</div>
+                          <div className="text-xs sm:text-sm text-muted-foreground">{t('results.priceSummary.milesAway').replace('{{distance}}', recommended.distance?.toFixed(1) || '0.0')}</div>
                         </div>
-                        <div className="text-right">
-                          <div className="text-2xl font-bold text-green-600">${recommended.insurancePrice.toFixed(2)}</div>
-                          <div className="text-sm text-muted-foreground">{t('results.priceSummary.bestValue')}</div>
+                        <div className="text-left sm:text-right">
+                          <div className="text-xl sm:text-2xl font-bold text-green-600">${recommended.insurancePrice.toFixed(2)}</div>
+                          <div className="text-xs sm:text-sm text-muted-foreground">{t('results.priceSummary.bestValue')}</div>
                         </div>
                       </div>
                     </div>
@@ -483,10 +483,10 @@ export default function Results() {
             {/* Filter and Sort Controls - Compact Single Row */}
             {results.length > 0 && (
               <Card className="mb-6">
-                <CardContent className="p-4">
-                  <div className="flex flex-wrap items-end gap-3">
+                <CardContent className="p-3 sm:p-4">
+                  <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-end gap-3">
                     {/* Distance Filter */}
-                    <div className="flex-1 min-w-[140px]">
+                    <div className="flex-1 sm:min-w-[140px]">
                       <label className="text-xs font-medium mb-1 block text-gray-600">Distance</label>
                       <select 
                         className="w-full p-2 text-sm border rounded-md bg-white"
@@ -501,7 +501,7 @@ export default function Results() {
                     </div>
                     
                     {/* Pharmacy Chain Filter */}
-                    <div className="flex-1 min-w-[140px]">
+                    <div className="flex-1 sm:min-w-[140px]">
                       <label className="text-xs font-medium mb-1 block text-gray-600">Pharmacy</label>
                       <select 
                         className="w-full p-2 text-sm border rounded-md bg-white"
@@ -526,7 +526,7 @@ export default function Results() {
                     </div>
                     
                     {/* Sort Options */}
-                    <div className="flex-1 min-w-[140px]">
+                    <div className="flex-1 sm:min-w-[140px]">
                       <label className="text-xs font-medium mb-1 block text-gray-600">Sort by</label>
                       <select 
                         className="w-full p-2 text-sm border rounded-md bg-white"
@@ -540,7 +540,7 @@ export default function Results() {
                     </div>
                     
                     {/* Feature Filters - Inline Checkboxes */}
-                    <div className="flex items-center gap-3 ml-2">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3 sm:ml-2">
                       <label className="flex items-center gap-1.5 text-xs cursor-pointer hover:text-blue-600 transition-colors whitespace-nowrap">
                         <input 
                           type="checkbox"
@@ -589,7 +589,7 @@ export default function Results() {
                     </div>
                     
                     {/* ZIP Code Filter */}
-                    <div className="flex items-center gap-2 ml-auto">
+                    <div className="flex items-center gap-2 w-full sm:w-auto sm:ml-auto">
                       <input 
                         type="text"
                         placeholder="ZIP code"
@@ -709,51 +709,69 @@ export default function Results() {
                           </Button>
                         </div>
                         
-                        {/* Horizontal Pricing Section */}
-                        <div className="bg-white p-3 rounded-lg border-2 border-gray-200">
-                          <div className="flex items-center justify-between gap-4">
-                            {/* Left: Coupon Price (if available) */}
-                            {result.couponPrice && result.bestOption === "coupon" && (
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <Badge className="bg-green-600 text-white text-xs px-2 py-0.5">
-                                    🏆 Best Price
-                                  </Badge>
-                                </div>
-                                <p className="text-xs font-medium text-gray-600 mb-1">With {result.couponProvider} Coupon</p>
-                                <div className="flex items-baseline gap-2">
-                                  <p className="text-2xl font-bold text-green-600">${result.couponPrice}</p>
-                                  <p className="text-sm text-gray-400 line-through">${result.cashPrice}</p>
-                                </div>
-                              </div>
-                            )}
+                        {/* Pricing Section - Mobile Responsive */}
+                        <div className="bg-white p-3 sm:p-4 rounded-lg border-2 border-gray-200">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                            {/* Coupon Price */}
+                            <div className="space-y-1">
+                              {result.couponPrice && result.bestOption === "coupon" ? (
+                                <>
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <Badge className="bg-green-600 text-white text-xs px-2 py-0.5">
+                                      🏆 Best Price
+                                    </Badge>
+                                  </div>
+                                  <p className="text-xs font-medium text-gray-600">With {result.couponProvider} Coupon</p>
+                                  <div className="flex items-baseline gap-2">
+                                    <p className="text-2xl font-bold text-green-600">${result.couponPrice.toFixed(2)}</p>
+                                    <p className="text-sm text-gray-400 line-through">${result.cashPrice.toFixed(2)}</p>
+                                  </div>
+                                </>
+                              ) : result.couponPrice ? (
+                                <>
+                                  <p className="text-xs font-medium text-gray-600">With {result.couponProvider} Coupon</p>
+                                  <div className="flex items-baseline gap-2">
+                                    <p className="text-xl font-bold text-green-600">${result.couponPrice.toFixed(2)}</p>
+                                    <p className="text-sm text-gray-400 line-through">${result.cashPrice.toFixed(2)}</p>
+                                  </div>
+                                </>
+                              ) : (
+                                <>
+                                  <p className="text-xs font-medium text-gray-600">Coupon Price</p>
+                                  <p className="text-sm text-gray-500 italic">No coupons accepted</p>
+                                </>
+                              )}
+                            </div>
                             
-                            {/* Center/Left: Insurance Price */}
-                            <div className={result.couponPrice && result.bestOption === "coupon" ? "flex-1" : "flex-1"}>
-                              <p className="text-xs font-medium text-gray-600 mb-1">
-                                {result.couponPrice && result.bestOption === "coupon" ? "With Insurance" : "Your Price"}
-                              </p>
+                            {/* Insurance Price */}
+                            <div className="space-y-1">
+                              <p className="text-xs font-medium text-gray-600">With Insurance</p>
                               <div className="flex items-baseline gap-2">
                                 <p className={`font-bold ${
-                                  result.bestOption === "coupon" ? "text-xl text-gray-700" : "text-2xl text-blue-600"
+                                  result.bestOption === "insurance" ? "text-2xl text-blue-600" : "text-xl text-gray-700"
                                 }`}>
-                                  ${result.insurancePrice}
+                                  ${result.insurancePrice.toFixed(2)}
                                 </p>
-                                {!(result.couponPrice && result.bestOption === "coupon") && (
-                                  <p className="text-sm text-gray-400 line-through">${result.cashPrice}</p>
+                                {result.bestOption === "insurance" && (
+                                  <p className="text-sm text-gray-400 line-through">${result.cashPrice.toFixed(2)}</p>
                                 )}
                               </div>
+                              {result.bestOption === "insurance" && (
+                                <Badge className="bg-blue-600 text-white text-xs px-2 py-0.5 mt-1">
+                                  🏆 Best Price
+                                </Badge>
+                              )}
                             </div>
-                            
-                            {/* Right: Savings */}
-                            <div className="text-right">
-                              <p className="text-sm font-semibold text-green-700 mb-1">
-                                ✓ Save ${Math.max(result.savings, result.couponSavings || 0)}
-                              </p>
-                              <Badge variant="outline" className="text-[10px] h-5 px-2 text-amber-700 border-amber-300">
-                                📊 Estimated
-                              </Badge>
-                            </div>
+                          </div>
+                          
+                          {/* Savings Row */}
+                          <div className="mt-3 pt-3 border-t border-gray-200 flex items-center justify-between">
+                            <p className="text-sm font-semibold text-green-700">
+                              ✓ Save ${Math.max(result.savings, result.couponSavings || 0).toFixed(2)}
+                            </p>
+                            <Badge variant="outline" className="text-[10px] h-5 px-2 text-amber-700 border-amber-300">
+                              📊 Estimated
+                            </Badge>
                           </div>
                         </div>
                       </div>
