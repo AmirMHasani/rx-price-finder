@@ -162,6 +162,8 @@ export default function Results() {
         const priceResults = realPricing.map(p => ({
           pharmacy: p.pharmacy,
           cashPrice: p.cashPrice,
+          membershipPrice: p.membershipPrice,
+          membershipSavings: p.membershipSavings,
           insurancePrice: p.insurancePrice,
           couponPrice: p.couponPrice,
           couponProvider: p.couponProvider,
@@ -342,8 +344,19 @@ export default function Results() {
     map.fitBounds(bounds);
   }, [mapReady, map, filteredAndSortedResults, selectedPharmacy]);
 
-  const lowestPrice = results.length > 0 ? Math.min(...results.map(r => r.insurancePrice)) : 0;
-  const highestPrice = results.length > 0 ? Math.max(...results.map(r => r.insurancePrice)) : 0;
+  // Calculate best price for each pharmacy (lowest of member, coupon, insurance, cash)
+  const getBestPrice = (r: any) => {
+    const prices = [
+      r.membershipPrice,
+      r.couponPrice,
+      r.insurancePrice,
+      r.cashPrice
+    ].filter((p): p is number => p != null && p > 0);
+    return prices.length > 0 ? Math.min(...prices) : r.insurancePrice;
+  };
+  
+  const lowestPrice = results.length > 0 ? Math.min(...results.map(getBestPrice)) : 0;
+  const highestPrice = results.length > 0 ? Math.max(...results.map(getBestPrice)) : 0;
   const potentialSavings = highestPrice - lowestPrice;
 
   return (
@@ -427,7 +440,17 @@ export default function Results() {
 
             {/* Price Comparison Summary */}
             {filteredAndSortedResults.length > 0 && (() => {
-              const prices = filteredAndSortedResults.map(r => r.insurancePrice).filter(p => p != null && !isNaN(p));
+              // Get best price for each pharmacy
+              const prices = filteredAndSortedResults.map(r => {
+                const allPrices = [
+                  r.membershipPrice,
+                  r.couponPrice,
+                  r.insurancePrice,
+                  r.cashPrice
+                ].filter((p): p is number => p != null && p > 0);
+                return allPrices.length > 0 ? Math.min(...allPrices) : r.insurancePrice;
+              }).filter(p => p != null && !isNaN(p));
+              
               if (prices.length === 0) return null;
               
               const lowestPrice = Math.min(...prices);

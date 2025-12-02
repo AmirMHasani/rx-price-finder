@@ -854,3 +854,15 @@
 - [x] Fix member price calculation - make it 20% discount from insurance price (not zero)
 - [x] Hide Cost Plus Drugs section when medication is not available (returns null)
 - [x] All UI improvements complete
+
+
+### PHASE 20: Fix Member Price Showing $0 (Dec 2, 2025)
+- [x] Debug member price calculation in realPricingService.ts
+- [x] Found bug: membershipPrice and membershipSavings not included in priceResults mapping
+- [x] Fixed Results.tsx line 162-174 to include membershipPrice and membershipSavings
+- [x] Fix summary statistics calculations (highest, lowest, average, potential savings)
+- [x] Updated summary to use best price from each pharmacy (membershipPrice, couponPrice, insurancePrice, cashPrice)
+- [x] Fixed getBestPrice helper function (lines 347-356)
+- [x] Fixed price summary card calculations (lines 442-460)
+- [ ] Test with multiple medications to verify all fixes
+- [ ] Push fix to GitHub
