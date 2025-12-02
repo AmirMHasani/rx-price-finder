@@ -1060,3 +1060,16 @@
 - [x] Added hover states for inactive tabs
 - [x] Test tab switching and appearance - working perfectly
 - [x] Create checkpoint
+
+
+## Phase 38: Optimize Insurance Carriers and Plans for Realistic Cost Differentiation (Dec 2, 2025) ✅
+- [x] Created insuranceTiers.ts utility with tier-based copay calculation
+- [x] Defined plan type base copays (HMO: $8, PPO: $12, EPO: $10, POS: $11, HDHP: $18, Medicare: $5, Medicaid: $1)
+- [x] Updated realPricingService to use plan-specific tier copays
+- [x] Implemented medication tier classification (generic=Tier1, brand=Tier3, specialty=Tier4)
+- [x] Added HDHP deductible multiplier (2.5x when deductible not met)
+- [x] Tested Medicare Part D: $4-5 copay for atorvastatin ✅
+- [x] Tested UHC HMO: $7-9 copay for atorvastatin ✅
+- [x] Tested UHC HDHP: $41-50 copay for atorvastatin ✅
+- [x] Verified different plans show realistic cost differentiation
+- [x] Create checkpoint

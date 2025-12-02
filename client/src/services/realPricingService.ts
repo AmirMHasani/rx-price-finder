@@ -9,6 +9,8 @@ import { searchNADACByName, getNADACUnitPrice, type NADACResult } from './cmsNad
 import { searchPartDByName, getPartDUnitPrice, calculatePartDMarkupFactor, type PartDResult } from './medicarePartDApi';
 import type { RealPharmacy } from './realPharmacyService';
 import { getInsuranceCopay } from './insuranceApi';
+import { calculateInsuranceCopay as calculateTierBasedCopay, getDrugTier } from '../utils/insuranceTiers';
+import { INSURANCE_CARRIERS } from '../data/insuranceCarriers';
 
 export interface PharmacyPricing {
   pharmacy: RealPharmacy;
@@ -146,7 +148,21 @@ function getMembershipDiscount(pharmacyName: string): number {
 }
 
 /**
+ * Get insurance plan details from carriers data
+ */
+function getInsurancePlanDetails(insurancePlanId: string): { name: string; description: string } | null {
+  for (const carrier of INSURANCE_CARRIERS) {
+    const plan = carrier.plans.find(p => p.id === insurancePlanId);
+    if (plan) {
+      return { name: plan.name, description: plan.description || '' };
+    }
+  }
+  return null;
+}
+
+/**
  * Calculate insurance copay based on medication tier and cash price
+ * DEPRECATED: Use calculateTierBasedCopay from insuranceTiers.ts instead
  */
 function calculateInsuranceCopay(
   cashPrice: number,
@@ -377,7 +393,26 @@ export async function fetchRealPricing(
         // Ensure minimum copay of $1
         insurancePrice = Math.max(insurancePrice, 1.00);
       } else {
-        insurancePrice = Math.round(calculateInsuranceCopay(cashPrice, medicationTier, deductibleMet) * 100) / 100;
+        // Use new tier-based copay calculation
+        const planDetails = getInsurancePlanDetails(insurancePlan);
+        if (planDetails) {
+          // Determine if medication is generic or brand based on pricing
+          const isGeneric = isBrandMedication === false;
+          const isBrand = isBrandMedication === true;
+          const isSpecialty = cashPrice > 500; // Specialty drugs typically cost >$500
+          
+          insurancePrice = calculateTierBasedCopay(
+            planDetails.name,
+            planDetails.description,
+            isGeneric,
+            isBrand,
+            isSpecialty,
+            deductibleMet
+          );
+        } else {
+          // Fallback to old calculation if plan not found
+          insurancePrice = Math.round(calculateInsuranceCopay(cashPrice, medicationTier, deductibleMet) * 100) / 100;
+        }
       }
       
       // 3. Calculate RxPrice membership price (20% discount off insurance price)
