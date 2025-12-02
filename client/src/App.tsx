@@ -12,8 +12,8 @@ import Results from "./pages/Results";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import TabsTest from "./pages/TabsTest";
-
 function Router() {
+  // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
       <Route path={"/"} component={SearchWithAPI} />
