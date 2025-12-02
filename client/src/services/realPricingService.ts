@@ -12,6 +12,7 @@ import { getInsuranceCopay } from './insuranceApi';
 import { calculateInsuranceCopay as calculateTierBasedCopay, getDrugTier } from '../utils/insuranceTiers';
 import { INSURANCE_CARRIERS } from '../data/insuranceCarriers';
 import { getBrandMedicationData, type BrandMedicationData } from '../data/brandMedications';
+import { searchCMSRegionalPricingByZip, type CMSRegionalPricingResult } from './cmsRegionalPricingApi';
 
 export interface PharmacyPricing {
   pharmacy: RealPharmacy;
@@ -359,10 +360,29 @@ export async function fetchRealPricing(
           }
           usingEstimate = false;
         } else {
-          console.warn('⚠️ [REAL PRICING] No CMS data found - using estimated pricing');
-          wholesalePrice = estimateWholesalePrice(quantity);
-          medicationTier = 'tier1';
-          usingEstimate = true;
+          // LAYER 3.5: Try CMS Regional Pricing (historic Medicare Part D data by state)
+          console.log('💰 [REAL PRICING] Trying CMS Regional Pricing API...');
+          const cmsRegionalData = await searchCMSRegionalPricingByZip(cleanName, '02108'); // TODO: Use actual ZIP from user
+          
+          if (cmsRegionalData && cmsRegionalData.pricePerUnit > 0) {
+            // Use CMS regional pricing data
+            wholesalePrice = Math.round(cmsRegionalData.pricePerUnit * quantity * 100) / 100;
+            
+            // Detect brand vs generic from price
+            isBrandMedication = cmsRegionalData.pricePerUnit > 5;
+            medicationTier = isBrandMedication ? 'tier3' : 'tier2';
+            usingEstimate = false;
+            
+            console.log('✅ [CMS REGIONAL] Found pricing: $' + wholesalePrice);
+            console.log('   State: ' + cmsRegionalData.state + ', Price/unit: $' + cmsRegionalData.pricePerUnit.toFixed(4));
+            console.log('   Based on ' + cmsRegionalData.total30DayFills.toFixed(0) + ' fills, $' + cmsRegionalData.totalDrugCost.toFixed(2) + ' total cost');
+          } else {
+            // LAYER 4: Generic estimation fallback (last resort)
+            console.warn('⚠️ [REAL PRICING] No CMS regional data found - using estimated pricing');
+            wholesalePrice = estimateWholesalePrice(quantity);
+            medicationTier = 'tier1';
+            usingEstimate = true;
+          }
         }
       } else {
         // Parse wholesale price from Cost Plus

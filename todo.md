@@ -1086,3 +1086,11 @@
 - [ ] Retest all medications to verify improvements
 - [ ] Create comprehensive pricing accuracy report
 - [ ] Create checkpoint
+
+## New Feature: CMS Regional Pricing Fallback
+
+- [x] Research CMS APIs for regional medication pricing data
+- [x] Implement CMS regional pricing API service (client/src/services/cmsRegionalPricingApi.ts)
+- [x] Integrate regional pricing into pricing algorithm as Layer 3.5 fallback
+- [x] Test regional pricing with multiple medications
+- [x] Update API_RELIABILITY_REPORT.md with new fallback layer
