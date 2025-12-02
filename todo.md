@@ -533,3 +533,15 @@
 - [x] Remove duplicate "Consider These Alternatives" box from results page (already removed)
 - [x] Test all new features end-to-end (15/15 tests passing)
 - [x] Create checkpoint with Phase 5 improvements
+
+## PHASE 6: Results Page UX Overhaul (Dec 2, 2025)
+- [x] Replace bottom sections (Safety Info, AI Alternatives) with tab-based layout
+- [x] Remove Data Transparency banner from top, move to "About Data" tab
+- [x] Create 4 tabs: Prices, Safety Info, Alternatives, About Data
+- [x] Limit pharmacy results display to maximum 5 pharmacies
+- [x] Compact pharmacy card design (reduce height, optimize spacing)
+- [x] Fix Cost Plus Drugs medication search (added fallback strategies: generic search, lowercase)
+- [x] Cost Plus now scrolls with page (not fixed position)
+- [x] Remove placeholder phone numbers (show only real Google Places data)
+- [x] Test all changes end-to-end (6/6 tests passing)
+- [x] Create checkpoint with Phase 6 improvements

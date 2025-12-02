@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useLocation, useSearch } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { medications } from "@/data/medications";
 import { insurancePlans } from "@/data/insurance";
@@ -134,8 +134,8 @@ export default function Results() {
         zip: userZip,
         lat: rp.lat,
         lng: rp.lng,
-        phone: rp.phone || '(555) 000-0000',
-        hours: rp.openNow ? 'Open now' : 'Hours vary',
+        phone: rp.phone, // Only show if available from Google Places
+        hours: undefined, // Will be set by getPharmacyHours() below
         chain: rp.chain || 'independent',
         // Get features based on pharmacy chain
         ...(() => {
@@ -383,9 +383,6 @@ export default function Results() {
 
       {/* Main Content */}
       <div className="container py-8">
-        {/* Data Transparency Banner */}
-        <DataTransparencyBanner />
-        
         {/* Medication Info Card - Always visible */}
         <Card className="mb-6">
           <CardHeader>
@@ -399,8 +396,17 @@ export default function Results() {
           </CardHeader>
         </Card>
 
-        {/* Main Content */}
-        <div className="w-full">
+        {/* Main Content with Tabs */}
+        <Tabs defaultValue="prices" className="w-full">
+          <TabsList className="mb-6">
+            <TabsTrigger value="prices">💰 Prices</TabsTrigger>
+            <TabsTrigger value="safety">🛡️ Safety Info</TabsTrigger>
+            <TabsTrigger value="alternatives">💊 Alternatives</TabsTrigger>
+            <TabsTrigger value="data">📊 About Data</TabsTrigger>
+          </TabsList>
+
+          {/* Tab 1: Prices */}
+          <TabsContent value="prices">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Main Column */}
               <div className="lg:col-span-2">
@@ -629,7 +635,7 @@ export default function Results() {
                   )}
                 </div>
 
-                {filteredAndSortedResults.map((result, index) => (
+                {filteredAndSortedResults.slice(0, 5).map((result, index) => (
                   <Card
                     key={result.pharmacy.id}
                     id={`pharmacy-${result.pharmacy.id}`}
@@ -643,11 +649,11 @@ export default function Results() {
                       setSelectedPharmacy(result.pharmacy.id);
                     }}
                   >
-                    <CardContent className="pt-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <CardContent className="py-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {/* Pharmacy Info */}
                         <div>
-                          <div className="flex items-start justify-between mb-4">
+                          <div className="flex items-start justify-between mb-2">
                             <div>
                               <h3 className="font-bold text-lg">{result.pharmacy.name}</h3>
                               <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
@@ -660,7 +666,7 @@ export default function Results() {
                             )}
                           </div>
 
-                          <div className="space-y-2 text-sm">
+                          <div className="space-y-1 text-sm">
                             {result.pharmacy.phone && (
                               <div className="flex items-center gap-2">
                                 <Phone className="w-4 h-4 text-muted-foreground" />
@@ -888,51 +894,46 @@ export default function Results() {
                 />
               );
             })()}
-
-            {/* Pharmacy Transparency Card */}
-            {filteredAndSortedResults.length > 0 && (() => {
-              const prices = filteredAndSortedResults.map(r => r.insurancePrice).filter(p => p != null && !isNaN(p));
-              if (prices.length === 0) return null;
-              
-              const lowestPrice = Math.min(...prices);
-              const highestPrice = Math.max(...prices);
-              const avgPrice = prices.reduce((a, b) => a + b, 0) / prices.length;
-              
-              return (
-                <PharmacyTransparencyCard
-                  medicationName={medicationName}
-                  averageRetailPrice={avgPrice}
-                  lowestRetailPrice={lowestPrice}
-                  highestRetailPrice={highestPrice}
-                />
-              );
-            })()}
           </div>
         </div>
+          </TabsContent>
 
-      {/* Additional Information Sections */}
-      <div className="mt-8">
-        <Accordion type="multiple" className="w-full">
-          <AccordionItem value="safety">
-            <AccordionTrigger className="text-lg font-semibold">
-              🛡️ Safety Information & Warnings
-            </AccordionTrigger>
-            <AccordionContent>
-              <SafetyInfoTab medicationName={medicationName} rxcui={rxcui} />
-            </AccordionContent>
-          </AccordionItem>
+          {/* Tab 2: Safety Info */}
+          <TabsContent value="safety">
+            <SafetyInfoTab medicationName={medicationName} rxcui={rxcui} />
+          </TabsContent>
 
-          <AccordionItem value="alternatives">
-            <AccordionTrigger className="text-lg font-semibold">
-              💊 Alternative Medications
-            </AccordionTrigger>
-            <AccordionContent>
-              <AIAlternativesTab medicationName={medicationName} dosage={dosage} />
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
-      </div>
-    </div>
+          {/* Tab 3: Alternatives */}
+          <TabsContent value="alternatives">
+            <AIAlternativesTab medicationName={medicationName} dosage={dosage} />
+          </TabsContent>
+
+          {/* Tab 4: About Data */}
+          <TabsContent value="data">
+            <div className="space-y-6">
+              <DataTransparencyBanner />
+              
+              {/* Pharmacy Transparency Card */}
+              {filteredAndSortedResults.length > 0 && (() => {
+                const prices = filteredAndSortedResults.map(r => r.insurancePrice).filter(p => p != null && !isNaN(p));
+                if (prices.length === 0) return null;
+                
+                const lowestPrice = Math.min(...prices);
+                const highestPrice = Math.max(...prices);
+                const avgPrice = prices.reduce((a, b) => a + b, 0) / prices.length;
+                
+                return (
+                  <PharmacyTransparencyCard
+                    medicationName={medicationName}
+                    averageRetailPrice={avgPrice}
+                    lowestRetailPrice={lowestPrice}
+                    highestRetailPrice={highestPrice}
+                  />
+                );
+              })()}
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

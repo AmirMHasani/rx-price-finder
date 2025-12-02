@@ -39,6 +39,19 @@ export function CostPlusCard({ medicationName, strength, quantity, averageRetail
           result = await searchCostPlusMedication(medicationName);
         }
         
+        // If still no result, try generic equivalent search
+        if (!result) {
+          console.log('⚠️ [COST PLUS] Trying generic equivalent search...');
+          const { searchCostPlusGeneric } = await import('@/services/costPlusApi');
+          result = await searchCostPlusGeneric(medicationName, strength, quantity);
+        }
+        
+        // If still no result, try lowercase
+        if (!result) {
+          console.log('⚠️ [COST PLUS] Trying lowercase...');
+          result = await searchCostPlusMedication(medicationName.toLowerCase());
+        }
+        
         if (result) {
           console.log('✅ [COST PLUS] Found:', result.medication_name, result.strength);
           setDrugData(result);
