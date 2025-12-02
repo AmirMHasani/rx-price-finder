@@ -522,29 +522,23 @@ export default function SearchWithAPI() {
                 {t('home.recentSearches.clearHistory')}
               </Button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="flex flex-wrap gap-2">
               {searchHistory.map((item) => {
-                // Insurance info is now displayed differently
                 return (
-                  <Card
+                  <Button
                     key={item.id}
-                    className="cursor-pointer hover:shadow-lg transition-shadow"
+                    variant="outline"
+                    size="sm"
+                    className="h-auto py-2 px-3 hover:bg-primary hover:text-primary-foreground transition-colors"
                     onClick={() => setLocation(item.url.replace(window.location.origin, ''))}
                   >
-                    <CardHeader>
-                      <CardTitle className="text-base">{item.medication}</CardTitle>
-                      <CardDescription>
-                        {item.dosage} {item.form}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-1 text-sm text-muted-foreground">
-                        <div>{item.insurance}</div>
-                        <div>{t('home.recentSearches.zip')} {item.zip}</div>
-                        <div className="text-xs">{formatTimeAgo(item.timestamp)}</div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                    <div className="flex flex-col items-start text-left">
+                      <span className="font-semibold text-sm">{item.medication}</span>
+                      <span className="text-xs opacity-75">
+                        {item.dosage} • {item.insurance} • {formatTimeAgo(item.timestamp)}
+                      </span>
+                    </div>
+                  </Button>
                 );
               })}
             </div>

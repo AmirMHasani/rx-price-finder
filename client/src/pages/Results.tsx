@@ -704,14 +704,24 @@ export default function Results() {
                           </div>
 
                           <div className="space-y-2 text-sm">
-                            <div className="flex items-center gap-2">
-                              <Phone className="w-4 h-4 text-muted-foreground" />
-                              <span>{result.pharmacy.phone}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Clock className="w-4 h-4 text-muted-foreground" />
-                              <span>{result.pharmacy.hours}</span>
-                            </div>
+                            {result.pharmacy.phone && (
+                              <div className="flex items-center gap-2">
+                                <Phone className="w-4 h-4 text-muted-foreground" />
+                                <a 
+                                  href={`tel:${result.pharmacy.phone}`}
+                                  className="text-primary hover:underline"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  {result.pharmacy.phone}
+                                </a>
+                              </div>
+                            )}
+                            {result.pharmacy.hours && (
+                              <div className="flex items-center gap-2">
+                                <Clock className="w-4 h-4 text-muted-foreground" />
+                                <span>{result.pharmacy.hours}</span>
+                              </div>
+                            )}
                             <div className="flex gap-2 mt-3">
                               {result.pharmacy.hasDelivery && (
                                 <Badge variant="outline" className="text-xs">
