@@ -17,6 +17,14 @@ export interface MedicationRecommendation {
   }[];
 }
 
+export interface MedicationToAvoid {
+  name: string;
+  genericName: string;
+  reason: string;
+  geneticBasis: string;
+  alternatives: string;
+}
+
 export interface GenomicProfile {
   id: string;
   patientId: string;
@@ -37,6 +45,9 @@ export interface GenomicProfile {
   
   // Medication Recommendations by Category
   medicationRecommendations: MedicationRecommendation[];
+  
+  // Medications to Avoid
+  medicationsToAvoid: MedicationToAvoid[];
   
   // Warnings
   criticalWarnings: string[];
@@ -210,6 +221,29 @@ export const mockGenomicProfiles: GenomicProfile[] = [
             reason: "CYP2C19 Normal Metabolizer: Standard dosing provides expected acid suppression."
           }
         ]
+      }
+    ],
+    medicationsToAvoid: [
+      {
+        name: "Codeine",
+        genericName: "codeine",
+        reason: "Will be completely ineffective for pain relief",
+        geneticBasis: "CYP2D6 Poor Metabolizer (*4/*4): Cannot convert codeine into its active form (morphine). The medication will provide no pain relief.",
+        alternatives: "Acetaminophen, ibuprofen, naproxen, morphine, oxycodone, or hydromorphone"
+      },
+      {
+        name: "Simvastatin (High Dose)",
+        genericName: "simvastatin >20mg",
+        reason: "Severe risk of muscle damage and rhabdomyolysis",
+        geneticBasis: "SLCO1B1 *5/*5 variant: Dramatically reduces drug clearance, leading to toxic accumulation in muscle tissue. Risk of life-threatening muscle breakdown.",
+        alternatives: "Pravastatin, rosuvastatin, or atorvastatin at low doses with careful monitoring"
+      },
+      {
+        name: "Paroxetine (Paxil)",
+        genericName: "paroxetine",
+        reason: "Excessive drug accumulation and severe side effects",
+        geneticBasis: "CYP2D6 Poor Metabolizer: Drug levels can be 3-5 times higher than normal, causing severe nausea, drowsiness, and withdrawal symptoms.",
+        alternatives: "Sertraline (Zoloft), escitalopram (Lexapro), or citalopram (Celexa)"
       }
     ],
     criticalWarnings: [
@@ -396,6 +430,22 @@ export const mockGenomicProfiles: GenomicProfile[] = [
         ]
       }
     ],
+    medicationsToAvoid: [
+      {
+        name: "Clopidogrel (Plavix)",
+        genericName: "clopidogrel",
+        reason: "Significantly reduced effectiveness for preventing blood clots",
+        geneticBasis: "CYP2C19 Ultra-rapid Metabolizer (*17/*17): Converts clopidogrel to active form too quickly, leading to rapid elimination and inadequate antiplatelet protection.",
+        alternatives: "Prasugrel (Effient) or ticagrelor (Brilinta) - these don't require CYP2C19 activation"
+      },
+      {
+        name: "Voriconazole (Antifungal)",
+        genericName: "voriconazole",
+        reason: "Subtherapeutic drug levels - treatment failure risk",
+        geneticBasis: "CYP2C19 Ultra-rapid Metabolizer: Metabolizes drug too quickly, resulting in insufficient antifungal coverage.",
+        alternatives: "Posaconazole, isavuconazole, or amphotericin B with therapeutic drug monitoring"
+      }
+    ],
     criticalWarnings: [
       "⚠️ CLOPIDOGREL: Reduced effectiveness due to CYP2C19 Ultra-rapid Metabolizer status. Consider prasugrel or ticagrelor.",
       "⚠️ PROTON PUMP INHIBITORS: May need higher doses or twice-daily dosing for adequate acid suppression",
@@ -579,6 +629,29 @@ export const mockGenomicProfiles: GenomicProfile[] = [
         ]
       }
     ],
+    medicationsToAvoid: [
+      {
+        name: "Codeine",
+        genericName: "codeine",
+        reason: "Life-threatening respiratory depression risk",
+        geneticBasis: "CYP2D6 Ultra-rapid Metabolizer (*1/*2xN): Converts codeine to morphine extremely rapidly, causing toxic morphine levels and potentially fatal respiratory depression.",
+        alternatives: "Morphine, oxycodone, or hydromorphone at carefully controlled doses"
+      },
+      {
+        name: "Tramadol",
+        genericName: "tramadol",
+        reason: "Severe overdose risk and respiratory depression",
+        geneticBasis: "CYP2D6 Ultra-rapid Metabolizer: Produces excessive active metabolite (O-desmethyltramadol), leading to opioid toxicity even at standard doses.",
+        alternatives: "Morphine, oxycodone, or non-opioid pain management strategies"
+      },
+      {
+        name: "Celecoxib (High Dose)",
+        genericName: "celecoxib >100mg/day",
+        reason: "Severe bleeding and cardiovascular risk",
+        geneticBasis: "CYP2C9 Poor Metabolizer (*3/*3): Drug accumulation leads to excessive COX-2 inhibition, increasing risk of GI bleeding and cardiovascular events.",
+        alternatives: "Acetaminophen, low-dose ibuprofen, or topical NSAIDs"
+      }
+    ],
     criticalWarnings: [
       "🚨 AVOID CODEINE & TRAMADOL: Life-threatening respiratory depression risk due to CYP2D6 Ultra-rapid Metabolizer status",
       "🚨 WARFARIN: Extremely sensitive - requires very low doses (1-2mg/day). High bleeding risk. Consider DOACs instead.",
@@ -749,6 +822,29 @@ export const mockGenomicProfiles: GenomicProfile[] = [
             reason: "CYP2C19 Normal Metabolizer: Standard metabolism and effectiveness expected."
           }
         ]
+      }
+    ],
+    medicationsToAvoid: [
+      {
+        name: "Azathioprine (Standard Dose)",
+        genericName: "azathioprine at normal doses",
+        reason: "Life-threatening bone marrow suppression",
+        geneticBasis: "TPMT Deficiency (*3A/*3A): Cannot metabolize thiopurine drugs. Standard doses cause severe, potentially fatal bone marrow failure and immunosuppression.",
+        alternatives: "Use azathioprine at 10% of standard dose with close monitoring, or consider alternative immunosuppressants (mycophenolate, methotrexate)"
+      },
+      {
+        name: "Mercaptopurine (Standard Dose)",
+        genericName: "mercaptopurine at normal doses",
+        reason: "Severe bone marrow toxicity",
+        geneticBasis: "TPMT Deficiency: Accumulation of toxic metabolites causes life-threatening myelosuppression, infections, and bleeding.",
+        alternatives: "Reduce dose by 90% with intensive monitoring, or use alternative chemotherapy agents"
+      },
+      {
+        name: "Fluorouracil/Capecitabine (Standard Dose)",
+        genericName: "5-FU, capecitabine at normal doses",
+        reason: "Severe chemotherapy toxicity",
+        geneticBasis: "DPYD variant: Reduced ability to break down fluoropyrimidine drugs, leading to toxic accumulation causing severe diarrhea, mucositis, and bone marrow suppression.",
+        alternatives: "Reduce dose by 50% or consider alternative chemotherapy regimens without fluoropyrimidines"
       }
     ],
     criticalWarnings: [
@@ -986,6 +1082,15 @@ export const mockGenomicProfiles: GenomicProfile[] = [
             reason: "Standard dosing provides expected anti-inflammatory and analgesic effects."
           }
         ]
+      }
+    ],
+    medicationsToAvoid: [
+      {
+        name: "Simvastatin (High Dose)",
+        genericName: "simvastatin >40mg",
+        reason: "Increased risk of muscle damage",
+        geneticBasis: "SLCO1B1 variant (*5/*1): Moderately reduced drug clearance increases risk of statin-induced myopathy at high doses.",
+        alternatives: "Use simvastatin ≤40mg/day, or switch to pravastatin or rosuvastatin which have lower myopathy risk"
       }
     ],
     criticalWarnings: [
