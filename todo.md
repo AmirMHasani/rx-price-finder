@@ -579,3 +579,27 @@
 - [x] Verify all sections are readable and properly aligned
 - [x] Test medications to avoid section displays correctly
 - [x] Save checkpoint
+
+
+## 🔐 OAuth Integration - Google & Apple Sign-In
+
+### Backend OAuth Configuration
+- [x] Examine current OAuth setup in server/auth.ts
+- [x] Add Google OAuth provider configuration
+- [x] Add Apple OAuth provider configuration
+- [x] Configure OAuth callback URLs
+- [x] Test OAuth provider registration
+
+### Frontend UI Updates
+- [x] Add Google sign-in button to login page
+- [x] Add Apple sign-in button to login page
+- [x] Style OAuth buttons with brand colors and icons
+- [x] Add "or" divider between OAuth and email/password login
+- [x] Ensure mobile-responsive OAuth button layout
+
+### Testing & Verification
+- [x] Test Google OAuth sign-in flow
+- [x] Test Apple OAuth sign-in flow
+- [x] Verify user creation in database after OAuth login
+- [x] Test OAuth on mobile devices
+- [x] Save checkpoint
