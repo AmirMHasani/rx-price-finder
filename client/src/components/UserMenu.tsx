@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { 
   User, 
   History, 
-  LayoutDashboard, 
   LogOut,
   ChevronDown,
   FileText,
@@ -58,19 +57,7 @@ export function UserMenu() {
       {isOpen && (
         <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg border border-border z-50">
           <div className="py-1">
-            {/* My Dashboard - Always visible */}
-            <button
-              onClick={() => {
-                setLocation('/my-dashboard');
-                setIsOpen(false);
-              }}
-              className="w-full px-4 py-2 text-left text-sm hover:bg-accent flex items-center gap-2"
-            >
-              <LayoutDashboard className="w-4 h-4" />
-              {t('menu.myDashboard')}
-            </button>
-
-            {/* History - Always visible */}
+            {/* My Searches - Consolidated Dashboard + History */}
             <button
               onClick={() => {
                 setLocation('/history');
@@ -79,10 +66,10 @@ export function UserMenu() {
               className="w-full px-4 py-2 text-left text-sm hover:bg-accent flex items-center gap-2"
             >
               <History className="w-4 h-4" />
-              {t('menu.searchHistory')}
+              {t('menu.mySearches')}
             </button>
 
-            {/* Patient Info - Always visible */}
+            {/* Insurance & Profile - Consolidated Patient Info */}
             <button
               onClick={() => {
                 setLocation('/patient-info');
@@ -91,10 +78,10 @@ export function UserMenu() {
               className="w-full px-4 py-2 text-left text-sm hover:bg-accent flex items-center gap-2"
             >
               <FileText className="w-4 h-4" />
-              Patient Information
+              {t('menu.insuranceProfile')}
             </button>
 
-            {/* My Genomic - Always visible */}
+            {/* My Genomic */}
             <button
               onClick={() => {
                 setLocation('/my-genomic');

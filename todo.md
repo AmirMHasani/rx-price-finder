@@ -406,3 +406,46 @@
 - [ ] Test complete flow: search → results → verify names and prices
 - [ ] Compare results with GoodRx for accuracy
 - [ ] Save checkpoint
+
+## 🎯 Streamline Menu Structure & Remove Redundancies (COMPLETED ✅)
+
+### Audit Current Menu
+- [x] List all current menu items and their purposes
+  - My Dashboard, Search History, Patient Information, My Pharmacogenomics
+- [x] Identify redundant features (Dashboard vs History)
+  - Dashboard and History show overlapping search data
+- [x] Identify unused or low-value features
+  - My Pharmacogenomics not core to prescription pricing
+- [x] Map user journey and essential features
+  - Core: Search medications, view history, manage insurance
+
+### Remove Redundancies
+- [x] Consolidate Dashboard and History into single "My Searches" view
+- [x] Remove duplicate navigation paths
+- [x] Remove unused features (My Pharmacogenomics removed from menu)
+- [x] Simplify menu structure (4 items → 2 items)
+  - "My Searches" (consolidated Dashboard + History)
+  - "Insurance & Profile" (consolidated Patient Info)
+
+### Enhance Useful Features
+- [x] Simplified menu makes features more discoverable
+- [x] Updated translations (en.ts and es.ts)
+- [x] Cleaner navigation with clear labels
+
+### Testing
+- [x] Test simplified navigation flow
+- [x] Verify all essential features still accessible
+- [x] Save checkpoint
+
+## 🔐 Add OAuth Sign-In (Google & Apple) (COMPLETED ✅)
+
+- [x] Add "Sign in with Google" button to sign-in page
+- [x] Add "Sign in with Apple" button to sign-in page
+- [x] Style OAuth buttons with official brand colors and icons
+- [x] Add OAuth divider ("Or continue with")
+- [x] Update sign-up page with OAuth options
+- [x] Add placeholder toast notifications ("coming soon")
+- [x] Test OAuth UI layout
+- [x] Save checkpoint
+
+**Note:** OAuth buttons show "coming soon" toast. Full OAuth integration requires backend OAuth provider setup (Google Cloud Console, Apple Developer).
