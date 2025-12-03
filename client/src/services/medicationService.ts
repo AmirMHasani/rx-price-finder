@@ -201,8 +201,17 @@ async function getAvailableForms(rxcui: string): Promise<string[]> {
  * Supports partial search (e.g., "lip" returns Lipitor)
  */
 export async function searchMedications(searchTerm: string): Promise<MedicationResult[]> {
-  if (searchTerm.length < 3) {
+  if (searchTerm.length < 2) {
     return [];
+  }
+
+  // Check cache first
+  const cacheKey = `medication_search_${searchTerm.toLowerCase()}`;
+  const { searchCache } = await import('./searchCache');
+  const cached = searchCache.get<MedicationResult[]>(cacheKey);
+  if (cached) {
+    console.log(`Cache hit for: ${searchTerm}`);
+    return cached;
   }
 
   try {
@@ -328,7 +337,12 @@ export async function searchMedications(searchTerm: string): Promise<MedicationR
     });
 
     console.log(`Found ${medications.length} medications`);
-    return medications.slice(0, 15); // Return top 15 results
+    const results = medications.slice(0, 15); // Return top 15 results
+    
+    // Cache the results
+    searchCache.set(cacheKey, results);
+    
+    return results;
   } catch (error) {
     console.error("Error searching medications:", error);
     return [];

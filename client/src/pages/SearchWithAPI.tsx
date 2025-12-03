@@ -337,9 +337,16 @@ export default function SearchWithAPI() {
                       </div>
 
                       {searchLoading && (
-                        <div className="flex items-center justify-center p-4 bg-muted rounded-md">
-                          <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                          <span className="text-sm text-muted-foreground">Searching medications...</span>
+                        <div className="absolute top-full left-0 right-0 z-50 border border-border rounded-md bg-background shadow-lg">
+                          {[1, 2, 3].map((i) => (
+                            <div key={i} className="px-4 py-2.5 border-b border-border last:border-b-0 animate-pulse">
+                              <div className="flex items-baseline justify-between gap-2">
+                                <div className="h-4 bg-muted rounded w-3/4"></div>
+                                <div className="h-5 bg-muted rounded w-12"></div>
+                              </div>
+                              <div className="h-3 bg-muted rounded w-1/2 mt-1.5"></div>
+                            </div>
+                          ))}
                         </div>
                       )}
 
@@ -382,12 +389,39 @@ export default function SearchWithAPI() {
                                   searchInput?.focus();
                                 }
                               }}
-                              className="w-full text-left px-4 py-3 hover:bg-muted focus:bg-muted focus:outline-none focus:ring-2 focus:ring-primary border-b border-border last:border-b-0 transition-colors"
+                              className="w-full text-left px-4 py-2.5 hover:bg-muted focus:bg-muted focus:outline-none focus:ring-2 focus:ring-primary border-b border-border last:border-b-0 transition-colors"
                             >
-                              <div className="font-medium text-sm">{getCleanMedicationName(medication)}</div>
-                              {medication.genericName && medication.brandName && medication.genericName !== medication.brandName && (
-                                <div className="text-xs text-muted-foreground">
-                                  {medication.type}
+                              <div className="flex items-baseline justify-between gap-2">
+                                <div className="font-medium text-sm flex-1">
+                                  {(() => {
+                                    const cleanName = getCleanMedicationName(medication);
+                                    const searchLower = searchInput.toLowerCase();
+                                    const nameLower = cleanName.toLowerCase();
+                                    const index = nameLower.indexOf(searchLower);
+                                    
+                                    if (index === -1) return cleanName;
+                                    
+                                    return (
+                                      <>
+                                        {cleanName.substring(0, index)}
+                                        <span className="bg-yellow-200 dark:bg-yellow-900">
+                                          {cleanName.substring(index, index + searchInput.length)}
+                                        </span>
+                                        {cleanName.substring(index + searchInput.length)}
+                                      </>
+                                    );
+                                  })()}
+                                </div>
+                                {medication.strength && (
+                                  <div className="text-xs font-semibold text-primary px-2 py-0.5 bg-primary/10 rounded">
+                                    {medication.strength}
+                                  </div>
+                                )}
+                              </div>
+                              {medication.forms && medication.forms.length > 0 && (
+                                <div className="text-xs text-muted-foreground mt-1">
+                                  {medication.forms[0]}
+                                  {medication.type === 'COMMON' && <span className="ml-2 text-green-600 dark:text-green-400">● Popular</span>}
                                 </div>
                               )}
                             </button>
@@ -396,8 +430,22 @@ export default function SearchWithAPI() {
                       )}
 
                       {!searchLoading && searchInput.length >= 2 && medicationResults.length === 0 && (
-                        <div className="p-4 bg-muted rounded-md text-center text-sm text-muted-foreground">
-                          No medications found. Try a different search.
+                        <div className="p-4 bg-muted rounded-md">
+                          <div className="text-center text-sm text-muted-foreground mb-3">
+                            No medications found for "{searchInput}"
+                          </div>
+                          <div className="text-xs text-muted-foreground text-center mb-2">Try searching for:</div>
+                          <div className="flex flex-wrap gap-2 justify-center">
+                            {['Metformin', 'Lisinopril', 'Atorvastatin', 'Omeprazole', 'Amlodipine'].map(med => (
+                              <button
+                                key={med}
+                                onClick={() => setSearchInput(med)}
+                                className="text-xs px-3 py-1.5 bg-background border border-border rounded-full hover:bg-primary hover:text-primary-foreground transition-colors"
+                              >
+                                {med}
+                              </button>
+                            ))}
+                          </div>
                         </div>
                       )}
 
