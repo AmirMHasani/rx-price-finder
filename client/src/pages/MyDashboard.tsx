@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   TrendingDown, 
   Search, 
@@ -37,6 +38,7 @@ export default function UserDashboard() {
   const { t } = useLanguage();
   const [, setLocation] = useLocation();
   const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
+  const [allHistory, setAllHistory] = useState<SearchHistoryItem[]>([]);
   const [totalSearches, setTotalSearches] = useState(0);
   const [totalSavings, setTotalSavings] = useState(0);
   const [activeMedications, setActiveMedications] = useState(0);
@@ -47,6 +49,7 @@ export default function UserDashboard() {
     if (history) {
       try {
         const parsed = JSON.parse(history);
+        setAllHistory(parsed); // Store all history
         setSearchHistory(parsed.slice(0, 5)); // Show only 5 most recent
         setTotalSearches(parsed.length);
         
@@ -103,6 +106,15 @@ export default function UserDashboard() {
               {t('dashboard.newSearch')}
             </Button>
           </div>
+
+          {/* Tabs for Overview and Full History */}
+          <Tabs defaultValue="overview" className="mb-8">
+            <TabsList className="grid w-full max-w-md grid-cols-2">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="history">Full History ({allHistory.length})</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="overview" className="mt-6">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           {/* Total Searches */}
@@ -152,10 +164,9 @@ export default function UserDashboard() {
                     <CardTitle className="text-xl">{t('dashboard.recentSearches.title')}</CardTitle>
                     <CardDescription>{t('dashboard.recentSearches.subtitle')}</CardDescription>
                   </div>
-                  <Button variant="outline" size="sm" onClick={() => setLocation("/history")}>
-                    {t('dashboard.recentSearches.viewAll')}
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
+                  <span className="text-sm text-gray-500">
+                    {t('dashboard.recentSearches.subtitle')}
+                  </span>
                 </div>
               </CardHeader>
               <CardContent>
@@ -234,10 +245,7 @@ export default function UserDashboard() {
                   <Search className="w-4 h-4 mr-2" />
                   {t('dashboard.quickActions.newSearch')}
                 </Button>
-                <Button className="w-full justify-start" variant="outline" onClick={() => setLocation("/history")}>
-                  <Clock className="w-4 h-4 mr-2" />
-                  {t('dashboard.quickActions.viewHistory')}
-                </Button>
+
                 <Button className="w-full justify-start" variant="outline" disabled>
                   <Calendar className="w-4 h-4 mr-2" />
                   {t('dashboard.quickActions.setReminders')}
@@ -312,8 +320,81 @@ export default function UserDashboard() {
             </Card>
           </div>
         </div>
+            </TabsContent>
+
+            <TabsContent value="history" className="mt-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>All Search History</CardTitle>
+                  <CardDescription>
+                    View and manage all your medication searches
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {allHistory.length === 0 ? (
+                    <div className="text-center py-12">
+                      <Clock className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                      <p className="text-gray-500 mb-4">No search history yet</p>
+                      <Button onClick={() => setLocation("/")}>
+                        <Search className="w-4 h-4 mr-2" />
+                        Start Your First Search
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {allHistory.map((item) => (
+                        <div
+                          key={item.id}
+                          className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                          onClick={() => {
+                            const params = new URLSearchParams({
+                              medication: item.medicationName,
+                              dosage: item.dosage,
+                              form: item.form,
+                              quantity: item.quantity,
+                              carrier: item.insurance.carrier,
+                              plan: item.insurance.planName,
+                            });
+                            setLocation(`/results?${params.toString()}`);
+                          }}
+                        >
+                          <div className="flex items-center gap-4 flex-1">
+                            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                              <Pill className="w-5 h-5 text-blue-600" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <h3 className="font-semibold text-gray-900 truncate">{item.medicationName}</h3>
+                                {item.favorite && <Star className="w-4 h-4 text-yellow-500 fill-yellow-500 flex-shrink-0" />}
+                              </div>
+                              <p className="text-sm text-gray-600">
+                                {item.dosage} • {item.form} • {item.quantity} pills
+                              </p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <Badge variant="secondary" className="text-xs">
+                                  {item.insurance.carrier}
+                                </Badge>
+                                <span className="text-xs text-gray-500 flex items-center gap-1">
+                                  <Clock className="w-3 h-3" />
+                                  {formatTimeAgo(item.timestamp)}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-right flex-shrink-0 ml-4">
+                            <p className="text-xs text-gray-500">Lowest Price</p>
+                            <p className="text-lg font-bold text-green-600">{formatCurrency(item.lowestPrice)}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
-    </div>
     </Layout>
   );
 }

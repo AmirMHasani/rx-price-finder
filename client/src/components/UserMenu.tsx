@@ -57,16 +57,16 @@ export function UserMenu() {
       {isOpen && (
         <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg border border-border z-50">
           <div className="py-1">
-            {/* My Searches - Consolidated Dashboard + History */}
+            {/* My Dashboard - Main hub with stats and search history */}
             <button
               onClick={() => {
-                setLocation('/history');
+                setLocation('/my-dashboard');
                 setIsOpen(false);
               }}
               className="w-full px-4 py-2 text-left text-sm hover:bg-accent flex items-center gap-2"
             >
               <History className="w-4 h-4" />
-              {t('menu.mySearches')}
+              {t('menu.myDashboard')}
             </button>
 
             {/* Insurance & Profile - Consolidated Patient Info */}

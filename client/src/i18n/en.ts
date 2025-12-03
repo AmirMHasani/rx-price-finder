@@ -185,7 +185,7 @@ export const en = {
     viewResults: "View Results",
   },
   menu: {
-    mySearches: "My Searches",
+    myDashboard: "My Dashboard",
     insuranceProfile: "Insurance & Profile",
     signedInAs: "Signed in as",
     signOut: "Sign Out",

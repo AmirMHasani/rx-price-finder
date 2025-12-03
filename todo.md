@@ -449,3 +449,35 @@
 - [x] Save checkpoint
 
 **Note:** OAuth buttons show "coming soon" toast. Full OAuth integration requires backend OAuth provider setup (Google Cloud Console, Apple Developer).
+
+## 🎯 Restore Dashboard with Integrated Search History (COMPLETED ✅)
+
+- [x] Update UserMenu to point "My Dashboard" to /my-dashboard
+- [x] Enhance MyDashboard page with full search history functionality
+  - Added Tabs component with "Overview" and "Full History" tabs
+  - Overview tab shows recent 5 searches + stats + quick actions
+  - Full History tab shows all searches with same UI as History page
+- [x] Keep stats, quick actions, and insights on Dashboard
+- [x] Remove redundant "View History" quick action
+- [x] Test Dashboard functionality
+- [x] Save checkpoint
+
+## 🐛 Fix Results Page Critical Bugs (COMPLETED ✅)
+
+- [x] Fix pharmacy display not showing
+  - Root cause: Pharmacy filtering was TOO strict, rejecting legitimate pharmacies
+  - Fixed by making filter less restrictive: accept if known chain OR has pharmacy keyword OR Google type='pharmacy'
+  - Still exclude person names (with titles) and medical facilities
+- [x] Fix all prices showing the same value
+  - Was showing only 1 pharmacy (Gary Drug Co.), so all stats were $1.06
+  - Fixed by relaxing pharmacy filter
+- [x] Fix average/highest/lowest price calculations to use actual pharmacy prices
+  - Updated price summary to use getBestPrice() logic consistently
+  - Now correctly calculates from all pharmacy results
+- [x] Verify pricing service is returning correct data
+  - Generic pricing database working correctly
+  - Tested with Lipitor (Atorvastatin) - showing 4 pharmacies with varied prices
+- [x] Test with multiple medications
+  - Tested: Metformin, Lipitor/Atorvastatin
+  - Results: 4 pharmacies showing, prices vary correctly ($2.65-$3.38)
+- [x] Save checkpoint

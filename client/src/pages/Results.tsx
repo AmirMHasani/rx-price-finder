@@ -374,8 +374,11 @@ export default function Results() {
     map.fitBounds(bounds);
   }, [mapReady, map, filteredAndSortedResults, selectedPharmacy]);
   
-  const lowestPrice = results.length > 0 ? Math.min(...results.map(getBestPrice)) : 0;
-  const highestPrice = results.length > 0 ? Math.max(...results.map(getBestPrice)) : 0;
+  // Calculate price statistics using best price from each pharmacy
+  const prices = results.map(getBestPrice).filter(p => p != null && !isNaN(p) && p > 0);
+  const lowestPrice = prices.length > 0 ? Math.min(...prices) : 0;
+  const highestPrice = prices.length > 0 ? Math.max(...prices) : 0;
+  const averagePrice = prices.length > 0 ? prices.reduce((a, b) => a + b, 0) / prices.length : 0;
   const potentialSavings = highestPrice - lowestPrice;
 
   return (
@@ -1032,7 +1035,8 @@ export default function Results() {
               
               {/* Pharmacy Transparency Card */}
               {filteredAndSortedResults.length > 0 && (() => {
-                const prices = filteredAndSortedResults.map(r => r.insurancePrice).filter(p => p != null && !isNaN(p));
+                // Use getBestPrice for consistency
+                const prices = filteredAndSortedResults.map(getBestPrice).filter(p => p != null && !isNaN(p) && p > 0);
                 if (prices.length === 0) return null;
                 
                 const lowestPrice = Math.min(...prices);

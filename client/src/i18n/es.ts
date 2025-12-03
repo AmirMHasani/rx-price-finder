@@ -187,7 +187,7 @@ export const es: TranslationKeys = {
     viewResults: "Ver Resultados",
   },
   menu: {
-    mySearches: "Mis Búsquedas",
+    myDashboard: "Mi Panel",
     insuranceProfile: "Seguro y Perfil",
     signedInAs: "Conectado como",
     signOut: "Cerrar Sesión",

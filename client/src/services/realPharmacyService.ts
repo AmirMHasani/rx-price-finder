@@ -95,24 +95,12 @@ export async function fetchRealPharmacies(
         const name = place.name.toLowerCase();
         const types = place.types || [];
         
-        // STRICT FILTER: Must be a known chain OR explicitly contain 'pharmacy' in name
+        // Check if it's a known chain
         const isKnownChain = KNOWN_CHAINS.some(chain => name.includes(chain));
         const hasPharmacyInName = name.includes('pharmacy') || name.includes('drug') || name.includes('rx');
+        const isPharmacyType = types.includes('pharmacy');
         
-        if (!isKnownChain && !hasPharmacyInName) {
-          console.log(`❌ [FILTER] Not a recognized pharmacy: ${place.name}`);
-          return false;
-        }
-        
-        // Exclude medical facilities even if they have 'pharmacy' in name
-        if (name.includes('hospital') || name.includes('clinic') || 
-            name.includes('medical center') || name.includes('health center') ||
-            name.includes('urgent care') || name.includes('doctor') ||
-            name.includes('veterans administration')) {
-          console.log(`❌ [FILTER] Excluding medical facility: ${place.name}`);
-          return false;
-        }
-        
+        // FIRST: Exclude person names and medical facilities BEFORE checking if it's a pharmacy
         // Exclude if name appears to be a person's name (has title like BSc, MD, PharmD)
         if (name.match(/\b(bsc|md|pharmd|phd|rph|do|dds|dvm)\b/)) {
           console.log(`❌ [FILTER] Excluding person name with title: ${place.name}`);
@@ -120,11 +108,26 @@ export async function fetchRealPharmacies(
         }
         
         // Exclude if name has typical person name patterns (First Last, Last First)
-        // Match patterns like "John Smith" or "Smith, John" or "John Smith, BSc"
         if (name.match(/^[a-z]+ [a-z]+,?\s*[a-z]*$/)) {
           console.log(`❌ [FILTER] Excluding person name pattern: ${place.name}`);
           return false;
         }
+        
+        // Exclude medical facilities even if they have 'pharmacy' in name
+        if (name.includes('hospital') || name.includes('clinic') || 
+            name.includes('medical center') || name.includes('health center') ||
+            name.includes('urgent care') || name.includes('doctor') ||
+            name.includes('veterans administration') || name.includes('va medical')) {
+          console.log(`❌ [FILTER] Excluding medical facility: ${place.name}`);
+          return false;
+        }
+        
+        // SECOND: Accept if it's a known chain OR has pharmacy in name OR is pharmacy type from Google
+        if (!isKnownChain && !hasPharmacyInName && !isPharmacyType) {
+          console.log(`❌ [FILTER] Not a recognized pharmacy: ${place.name}`);
+          return false;
+        }
+
         
         console.log(`✅ [FILTER] Accepted pharmacy: ${place.name}`);
         return true;
