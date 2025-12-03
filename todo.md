@@ -115,7 +115,7 @@
 - [x] Verify My Genomic page shows test results and medication categories
 - [x] Verify color-coded safety levels (green/yellow/red) display correctly
 - [x] Verify accordion expansion shows detailed gene-drug interactions
-- [ ] Save checkpoint and deliver to user
+- [x] Save checkpoint and deliver to user
 
 ## 🔌 Backend API Integration for Patient Profiles & Genomics
 
@@ -162,4 +162,13 @@
 - [x] Test medication recommendations display (accordion expansion works!)
 - [x] Verify color-coded safety levels display correctly
 - [x] Verify gene-drug interactions show detailed recommendations
-- [ ] Save checkpoint and deliver to user
+- [x] Save checkpoint and deliver to user
+
+## 🏥 Insurance Structure Reorganization
+
+- [x] Update insurance carriers to consolidate Blue Shield variants
+- [x] Move specific Blue Shield plans (California, Massachusetts, etc.) to plan dropdown
+- [x] Update carrier dropdown to show: Blue Cross Blue Shield, Medicare, Medicaid, etc.
+- [x] Update plan dropdown to be dynamic based on selected carrier
+- [x] Test insurance selection flow
+- [ ] Save checkpoint

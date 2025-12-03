@@ -65,6 +65,82 @@ const FAMILY_RELATIONS = [
   "Other",
 ];
 
+// Insurance carriers
+const INSURANCE_CARRIERS = [
+  "Blue Cross Blue Shield",
+  "Medicare",
+  "Medicaid",
+  "Aetna",
+  "Cigna",
+  "UnitedHealthcare",
+  "Humana",
+  "Kaiser Permanente",
+  "Anthem",
+  "Other",
+];
+
+// Insurance plans by carrier
+const INSURANCE_PLANS: Record<string, string[]> = {
+  "Blue Cross Blue Shield": [
+    "Blue Shield of California PPO",
+    "Blue Shield of California HMO",
+    "Blue Shield of Massachusetts PPO",
+    "Blue Shield of Massachusetts HMO",
+    "Blue Shield of Texas PPO",
+    "Blue Shield of Illinois HMO",
+    "Blue Cross PPO",
+    "Blue Cross HMO",
+    "Federal Employee Program (FEP)",
+    "Other",
+  ],
+  "Medicare": [
+    "Medicare Part A",
+    "Medicare Part B",
+    "Medicare Part C (Medicare Advantage)",
+    "Medicare Part D",
+    "Medicare Supplement (Medigap)",
+  ],
+  "Medicaid": [
+    "Medicaid Standard",
+    "Medicaid Managed Care",
+    "Children's Health Insurance Program (CHIP)",
+  ],
+  "Aetna": [
+    "Aetna PPO",
+    "Aetna HMO",
+    "Aetna Medicare Advantage",
+    "Aetna Open Access",
+  ],
+  "Cigna": [
+    "Cigna PPO",
+    "Cigna HMO",
+    "Cigna Open Access Plus",
+    "Cigna Medicare Advantage",
+  ],
+  "UnitedHealthcare": [
+    "UnitedHealthcare Choice Plus (PPO)",
+    "UnitedHealthcare Options (PPO)",
+    "UnitedHealthcare Navigate (HMO)",
+    "UnitedHealthcare Medicare Advantage",
+  ],
+  "Humana": [
+    "Humana PPO",
+    "Humana HMO",
+    "Humana Medicare Advantage",
+    "Humana Gold Plus",
+  ],
+  "Kaiser Permanente": [
+    "Kaiser Permanente HMO",
+    "Kaiser Permanente Senior Advantage",
+  ],
+  "Anthem": [
+    "Anthem Blue Cross PPO",
+    "Anthem Blue Cross HMO",
+    "Anthem Medicare Advantage",
+  ],
+  "Other": ["Other Plan"],
+};
+
 interface CurrentMedication {
   name: string;
   dosage: string;
@@ -662,21 +738,40 @@ export default function PatientInfo() {
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="primary-carrier">Insurance Carrier</Label>
-                  <Input
-                    id="primary-carrier"
-                    placeholder="e.g., Blue Cross Blue Shield"
-                    value={primaryCarrier}
-                    onChange={(e) => setPrimaryCarrier(e.target.value)}
-                  />
+                  <Select value={primaryCarrier} onValueChange={(value) => {
+                    setPrimaryCarrier(value);
+                    setPrimaryPlan(""); // Reset plan when carrier changes
+                  }}>
+                    <SelectTrigger id="primary-carrier">
+                      <SelectValue placeholder="Select carrier" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {INSURANCE_CARRIERS.map((carrier) => (
+                        <SelectItem key={carrier} value={carrier}>
+                          {carrier}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="primary-plan">Plan Name</Label>
-                  <Input
-                    id="primary-plan"
-                    placeholder="e.g., Silver PPO"
-                    value={primaryPlan}
-                    onChange={(e) => setPrimaryPlan(e.target.value)}
-                  />
+                  <Select 
+                    value={primaryPlan} 
+                    onValueChange={setPrimaryPlan}
+                    disabled={!primaryCarrier}
+                  >
+                    <SelectTrigger id="primary-plan">
+                      <SelectValue placeholder={primaryCarrier ? "Select plan" : "Select carrier first"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {primaryCarrier && INSURANCE_PLANS[primaryCarrier]?.map((plan) => (
+                        <SelectItem key={plan} value={plan}>
+                          {plan}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="primary-member-id">Member ID</Label>
