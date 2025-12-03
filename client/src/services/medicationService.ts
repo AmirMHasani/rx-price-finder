@@ -4,6 +4,8 @@
  * Includes dosage and form extraction for auto-fill functionality
  */
 
+import { cleanMedicationResults } from './medicationResultCleaner';
+
 export interface MedicationResult {
   rxcui: string;
   name: string;
@@ -62,17 +64,9 @@ function extractBrandName(name: string): string {
  * Removes confusing RxNorm formatting and shows brand or generic name clearly
  */
 export function getCleanMedicationName(medication: MedicationResult): string {
-  const brandName = extractBrandName(medication.name);
-  const genericName = extractGenericName(medication.name);
-  const strength = medication.strength || extractStrength(medication.name);
-  
-  // If there's a brand name in brackets, use it
-  if (brandName && brandName !== medication.name && !brandName.includes('{')) {
-    return strength ? `${brandName} (${genericName} ${strength})` : `${brandName} (${genericName})`;
-  }
-  
-  // Otherwise use generic name with strength
-  return strength ? `${genericName} ${strength}` : genericName;
+  // The medication name is already cleaned by medicationResultCleaner
+  // Just return it as-is
+  return medication.name;
 }
 
 /**
@@ -315,8 +309,11 @@ export async function searchMedications(searchTerm: string): Promise<MedicationR
       }
     }
 
+    // Clean up results (remove duplicates, simplify names, calculate total doses)
+    const cleanedMedications = cleanMedicationResults(medications);
+
     // Sort by relevance: exact matches first, then partial matches
-    medications.sort((a, b) => {
+    cleanedMedications.sort((a, b) => {
       const searchLower = searchTerm.toLowerCase();
       const aName = a.name.toLowerCase();
       const bName = b.name.toLowerCase();
@@ -336,8 +333,8 @@ export async function searchMedications(searchTerm: string): Promise<MedicationR
       return 0;
     });
 
-    console.log(`Found ${medications.length} medications`);
-    const results = medications.slice(0, 15); // Return top 15 results
+    console.log(`Found ${cleanedMedications.length} cleaned medications (from ${medications.length} raw results)`);
+    const results = cleanedMedications.slice(0, 15); // Return top 15 results
     
     // Cache the results
     searchCache.set(cacheKey, results);
