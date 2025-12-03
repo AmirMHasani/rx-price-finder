@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+import { Layout } from "@/components/Layout";
 
 // Sample genomic data - in production, this would come from API
 const SAMPLE_GENOMIC_DATA = {
@@ -292,10 +293,11 @@ export default function MyGenomic() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
-      {/* Header */}
-      <header className="bg-white border-b border-border shadow-sm sticky top-0 z-10">
-        <div className="container py-4">
+    <Layout>
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
+        {/* Page Header */}
+        <div className="bg-white border-b border-border shadow-sm">
+          <div className="container py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Button
@@ -323,8 +325,8 @@ export default function MyGenomic() {
               </Button>
             )}
           </div>
+          </div>
         </div>
-      </header>
 
       {/* Main Content */}
       <main className="container py-8 space-y-6">
@@ -648,5 +650,6 @@ export default function MyGenomic() {
         )}
       </main>
     </div>
+    </Layout>
   );
 }

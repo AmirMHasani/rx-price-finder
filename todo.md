@@ -340,10 +340,15 @@
 - [x] Save checkpoint
 
 
-## 🍔 Add Menu to All Pages
+## 🎨 Add Menu to All Pages (COMPLETED ✅)
 
-- [ ] Identify all pages in the app (Home, Results, PatientInfo, MyGenomic, History, etc.)
-- [ ] Create shared Layout component with menu/header
-- [ ] Apply Layout to all routes in App.tsx
-- [ ] Test navigation from every page
-- [ ] Save checkpoint
+- [x] Create shared Layout component with UserMenu and LanguageToggle in header
+- [x] Apply Layout to SearchWithAPI page (already had it)
+- [x] Apply Layout to Results page (already had it)
+- [x] Apply Layout to PatientInfo page
+- [x] Apply Layout to MyGenomic page
+- [x] Apply Layout to MyDashboard page
+- [x] Apply Layout to History page
+- [x] Test menu appears on all pages
+- [x] Verify menu functionality (dropdowns, language toggle)
+- [x] Save checkpoint

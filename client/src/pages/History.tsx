@@ -19,6 +19,7 @@ import { insurancePlans } from "@/data/insurance";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { APP_TITLE } from "@/const";
+import { Layout } from "@/components/Layout";
 
 export default function History() {
   const { t } = useLanguage();
@@ -120,10 +121,11 @@ export default function History() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-indigo-50 to-purple-50">
-      {/* Header */}
-      <header className="bg-white border-b border-border shadow-sm sticky top-0 z-10">
-        <div className="container py-4">
+    <Layout>
+      <div className="min-h-screen bg-gradient-to-br from-blue-100 via-indigo-50 to-purple-50">
+        {/* Page Header */}
+        <div className="bg-white border-b border-border shadow-sm">
+          <div className="container py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Button
@@ -138,8 +140,8 @@ export default function History() {
             </div>
             <LanguageToggle />
           </div>
+          </div>
         </div>
-      </header>
 
       {/* Main Content */}
       <main className="container py-8">
@@ -373,5 +375,6 @@ export default function History() {
         </div>
       </main>
     </div>
+    </Layout>
   );
 }

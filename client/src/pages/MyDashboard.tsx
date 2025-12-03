@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useLocation } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { Layout } from "@/components/Layout";
 
 interface SearchHistoryItem {
   id: string;
@@ -87,9 +88,10 @@ export default function UserDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-      {/* Header */}
-      <div className="bg-white border-b">
+    <Layout>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+        {/* Page Header */}
+        <div className="bg-white border-b">
         <div className="container py-6">
           <div className="flex items-center justify-between">
             <div>
@@ -317,5 +319,6 @@ export default function UserDashboard() {
         </div>
       </div>
     </div>
+    </Layout>
   );
 }
