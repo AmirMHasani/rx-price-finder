@@ -270,3 +270,14 @@
 - [x] Verify pricing calculations still work correctly (100% accurate)
 - [x] Fix TypeScript errors (History.tsx, SafetyInfoTab.tsx)
 - [x] Save checkpoint
+
+
+## 🐛 Bug: Carrier Dropdown Still Shows Regional BCBS Variations (FIXED ✅)
+
+- [x] Investigate why carrier dropdown shows "Anthem Blue Cross Blue Shield", "Blue Shield of California", "Florida Blue", etc. as separate carriers
+- [x] Find where carrier list is being populated in SearchWithAPI.tsx
+- [x] Ensure INSURANCE_CARRIERS array is being used correctly
+- [x] Remove 14 regional BCBS carriers from insuranceCarriers.ts
+- [x] Test carrier dropdown shows only 29 parent carriers (down from 42)
+- [x] Verify regional BCBS plans appear in plan dropdown with proper grouping
+- [x] Save checkpoint
