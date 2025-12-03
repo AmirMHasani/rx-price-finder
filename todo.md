@@ -209,3 +209,10 @@ Old planning documents moved to `docs/archive/`:
 - [x] Add quick actions (new search, view history, upgrade CTA)
 - [x] Connect to UserMenu navigation
 - [x] Test dashboard functionality
+
+
+## 🐛 Bug Fix: UserMenu Not Visible
+
+- [x] Add UserMenu component to SearchWithAPI page header
+- [x] Ensure UserMenu is visible on all pages
+- [x] Test dashboard access from homepage

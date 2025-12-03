@@ -10,6 +10,7 @@ import { InsurancePlanType } from "@/data/insurancePlans";
 import { INSURANCE_CARRIERS, getCarrierPlans } from "@/data/insuranceCarriers";
 import { Search as SearchIcon, Pill, Shield, Loader2, X } from "lucide-react";
 import { LanguageToggle } from "@/components/LanguageToggle";
+import { UserMenu } from "@/components/UserMenu";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useLocation } from "wouter";
 import { searchMedications, getMedicationDetails, type MedicationResult } from "@/services/medicationService";
@@ -267,7 +268,10 @@ export default function SearchWithAPI() {
                 <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Compare prescription prices with your insurance</p>
               </div>
             </div>
-            <LanguageToggle />
+            <div className="flex items-center gap-2">
+              <UserMenu />
+              <LanguageToggle />
+            </div>
           </div>
         </div>
       </header>
