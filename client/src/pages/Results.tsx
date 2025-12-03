@@ -464,31 +464,31 @@ export default function Results() {
               className="flex items-center justify-center gap-2 text-xs sm:text-sm px-2 sm:px-4 py-2 sm:py-3 font-semibold rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=inactive]:bg-transparent data-[state=inactive]:text-gray-700 data-[state=inactive]:hover:bg-white transition-all"
             >
               <DollarSign className="w-4 h-4" />
-              <span>Prices</span>
+              <span>{t('tabs.prices')}</span>
             </TabsTrigger>
             <TabsTrigger 
               value="safety" 
               className="flex items-center justify-center gap-2 text-xs sm:text-sm px-2 sm:px-4 py-2 sm:py-3 font-semibold rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=inactive]:bg-transparent data-[state=inactive]:text-gray-700 data-[state=inactive]:hover:bg-white transition-all"
             >
               <Shield className="w-4 h-4" />
-              <span className="hidden sm:inline">Safety Info</span>
-              <span className="sm:hidden">Safety</span>
+              <span className="hidden sm:inline">{t('tabs.safetyInfo')}</span>
+              <span className="sm:hidden">{t('tabs.safetyInfo')}</span>
             </TabsTrigger>
             <TabsTrigger 
               value="alternatives" 
               className="flex items-center justify-center gap-2 text-xs sm:text-sm px-2 sm:px-4 py-2 sm:py-3 font-semibold rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=inactive]:bg-transparent data-[state=inactive]:text-gray-700 data-[state=inactive]:hover:bg-white transition-all"
             >
               <Pill className="w-4 h-4" />
-              <span className="hidden sm:inline">Alternatives</span>
-              <span className="sm:hidden">Alts</span>
+              <span className="hidden sm:inline">{t('tabs.alternatives')}</span>
+              <span className="sm:hidden">{t('tabs.alternatives')}</span>
             </TabsTrigger>
             <TabsTrigger 
               value="data" 
               className="flex items-center justify-center gap-2 text-xs sm:text-sm px-2 sm:px-4 py-2 sm:py-3 font-semibold rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=inactive]:bg-transparent data-[state=inactive]:text-gray-700 data-[state=inactive]:hover:bg-white transition-all"
             >
               <BarChart3 className="w-4 h-4" />
-              <span className="hidden sm:inline">About Data</span>
-              <span className="sm:hidden">Data</span>
+              <span className="hidden sm:inline">{t('tabs.aboutData')}</span>
+              <span className="sm:hidden">{t('tabs.aboutData')}</span>
             </TabsTrigger>
           </TabsList>
 

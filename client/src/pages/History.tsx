@@ -146,9 +146,9 @@ export default function History() {
         <div className="max-w-5xl mx-auto space-y-6">
           {/* Page Header */}
           <div>
-            <h2 className="text-3xl font-bold text-foreground mb-2">Search History</h2>
+            <h2 className="text-3xl font-bold text-foreground mb-2">{t('history.title')}</h2>
             <p className="text-muted-foreground">
-              View your recent medication price comparisons and manage favorites
+              {t('history.subtitle')}
             </p>
           </div>
 
@@ -206,7 +206,7 @@ export default function History() {
                     className="gap-2"
                   >
                     <Trash2 className="w-4 h-4" />
-                    Clear All
+                    {t('history.clearAll')}
                   </Button>
                 )}
               </div>
@@ -220,14 +220,14 @@ export default function History() {
                     size="sm"
                     onClick={() => setFilterType('all')}
                   >
-                    All
+                    {t('history.filters.all')}
                   </Button>
                   <Button
                     variant={filterType === 'recent' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setFilterType('recent')}
                   >
-                    Recent
+                    {t('history.filters.recent')}
                   </Button>
                   <Button
                     variant={filterType === 'favorites' ? 'default' : 'outline'}
@@ -236,14 +236,14 @@ export default function History() {
                     className="gap-2"
                   >
                     <Star className="w-4 h-4" />
-                    Favorites
+                    {t('history.filters.favorites')}
                   </Button>
                 </div>
                 <div className="flex-1 relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <input
                     type="text"
-                    placeholder="Search medications, insurance, or ZIP..."
+                    placeholder={t('history.search')}
                     value={searchFilter}
                     onChange={(e) => setSearchFilter(e.target.value)}
                     className="w-full pl-10 pr-10 py-2 border border-input rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
@@ -265,8 +265,8 @@ export default function History() {
                   <Search className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                   <p className="text-muted-foreground mb-2">
                     {searchHistory.length === 0
-                      ? "No search history yet"
-                      : "No searches match your filters"}
+                      ? t('history.noHistory')
+                      : t('history.noHistory')}
                   </p>
                   <p className="text-sm text-muted-foreground mb-4">
                     {searchHistory.length === 0

@@ -9,8 +9,10 @@ import {
   ChevronDown 
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function UserMenu() {
+  const { t } = useLanguage();
   const [, setLocation] = useLocation();
   const { user, signOut } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
@@ -63,7 +65,7 @@ export function UserMenu() {
               className="w-full px-4 py-2 text-left text-sm hover:bg-accent flex items-center gap-2"
             >
               <LayoutDashboard className="w-4 h-4" />
-              My Dashboard
+              {t('menu.myDashboard')}
             </button>
 
             {/* History - Always visible */}
@@ -75,7 +77,7 @@ export function UserMenu() {
               className="w-full px-4 py-2 text-left text-sm hover:bg-accent flex items-center gap-2"
             >
               <History className="w-4 h-4" />
-              Search History
+              {t('menu.searchHistory')}
             </button>
 
             {user ? (              <>
@@ -83,7 +85,7 @@ export function UserMenu() {
 
                 {/* User info */}
                 <div className="px-4 py-2 text-xs text-muted-foreground">
-                  Signed in as<br />
+                  {t('menu.signedInAs')}<br />
                   <span className="font-medium text-foreground">{user.email}</span>
                 </div>
 
@@ -93,7 +95,7 @@ export function UserMenu() {
                   className="w-full px-4 py-2 text-left text-sm hover:bg-accent flex items-center gap-2 text-red-600"
                 >
                   <LogOut className="w-4 h-4" />
-                  Sign Out
+                  {t('menu.signOut')}
                 </button>
               </>
             ) : (
@@ -109,7 +111,7 @@ export function UserMenu() {
                   className="w-full px-4 py-2 text-left text-sm hover:bg-accent flex items-center gap-2"
                 >
                   <User className="w-4 h-4" />
-                  Sign In / Sign Up
+                  {t('menu.signInSignUp')}
                 </button>
               </>
             )}
