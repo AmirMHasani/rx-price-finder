@@ -16,6 +16,7 @@ import { useLocation } from "wouter";
 import { searchMedications, getMedicationDetails, getCleanMedicationName, type MedicationResult } from "@/services/medicationService";
 import { searchCommonMedications } from "@/data/commonMedications";
 import { getSearchHistory, clearSearchHistory, formatTimeAgo, type SearchHistoryItem } from "@/services/searchHistory";
+import { trpc } from "@/lib/trpc";
 
 export default function SearchWithAPI() {
   const { t } = useLanguage();
@@ -36,10 +37,23 @@ export default function SearchWithAPI() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
   
+  // Load user's insurance data
+  const { data: insuranceData } = trpc.insurance.getInsuranceInfo.useQuery();
+  
   // Load search history on mount
   useEffect(() => {
     setSearchHistory(getSearchHistory());
   }, []);
+  
+  // Auto-populate insurance when user data loads
+  useEffect(() => {
+    if (insuranceData && insuranceData.primaryCarrier && insuranceData.primaryPlan) {
+      setSelectedCarrier(insuranceData.primaryCarrier);
+      setSelectedInsurance(insuranceData.primaryPlan as InsurancePlanType);
+      setDeductibleMet(insuranceData.deductibleMet);
+      console.log('✅ [Insurance Auto-Population] Loaded user insurance:', insuranceData.primaryCarrier, insuranceData.primaryPlan);
+    }
+  }, [insuranceData]);
   
   // Dosage and form options
   const [availableDosages, setAvailableDosages] = useState<string[]>([]);

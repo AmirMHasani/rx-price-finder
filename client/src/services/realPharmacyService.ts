@@ -114,10 +114,21 @@ export async function fetchRealPharmacies(
           return false;
         }
         
-        // Pattern 2: "First Last" (two words only, capitalized like person names)
+        // Pattern 2: "First Last" or "Last First MiddleInitial" (two-three words, capitalized like person names)
         // But exclude common pharmacy words
         const commonPharmacyWords = ['pharmacy', 'drug', 'drugs', 'rx', 'health', 'care', 'mart', 'store', 'discount', 'family', 'community', 'neighborhood'];
         const words = place.name!.split(/\s+/);
+        
+        // Check for "Last First MiddleInitial" pattern (e.g., "Gwin Julie J", "Smith John A")
+        if (words.length === 3 && /^[A-Z]$/.test(words[2])) {
+          // Third word is single capital letter (middle initial)
+          const hasPharmacyKeyword = commonPharmacyWords.some(word => name.includes(word));
+          if (!hasPharmacyKeyword) {
+            console.log(`❌ [FILTER] Excluding person name with middle initial: ${place.name}`);
+            return false;
+          }
+        }
+        
         if (words.length === 2 && !commonPharmacyWords.some(word => name.includes(word))) {
           // Check if both words are capitalized (typical person name)
           if (words.every(word => word.charAt(0) === word.charAt(0).toUpperCase())) {

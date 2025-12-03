@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,10 +10,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { 
   User, Heart, Pill, AlertTriangle, Users, Shield, 
-  Plus, X, Save, ArrowLeft, Calendar 
+  Plus, X, Save, ArrowLeft, Calendar, Loader2
 } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+import { searchMedications, type MedicationResult } from "@/services/medicationService";
 import { SectionHeader } from "@/components/SectionHeader";
 import { Layout } from "@/components/Layout";
 
@@ -108,7 +109,11 @@ export default function PatientInfo() {
   const [currentMedications, setCurrentMedications] = useState<CurrentMedication[]>([]);
   const [newMedName, setNewMedName] = useState("");
   const [newMedDosage, setNewMedDosage] = useState("");
-  const [newMedFrequency, setNewMedFrequency] = useState("");
+  const [newMedFrequency, setNewMedFrequency] = useState("Once daily");
+  const [medicationSearchResults, setMedicationSearchResults] = useState<MedicationResult[]>([]);
+  const [showMedicationDropdown, setShowMedicationDropdown] = useState(false);
+  const [searchingMedication, setSearchingMedication] = useState(false);
+  const medicationSearchTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const [medSearchQuery, setMedSearchQuery] = useState("");
   const [medSearchResults, setMedSearchResults] = useState<any[]>([]);
   const [medSearching, setMedSearching] = useState(false);
@@ -157,6 +162,38 @@ export default function PatientInfo() {
   const removeFamilyHistoryMutation = trpc.patientProfile.removeFamilyHistory.useMutation();
   const updateInsurance = trpc.insurance.updateInsuranceInfo.useMutation();
 
+  // Debounced medication search
+  useEffect(() => {
+    if (medicationSearchTimeoutRef.current) {
+      clearTimeout(medicationSearchTimeoutRef.current);
+    }
+
+    if (newMedName.length < 2) {
+      setMedicationSearchResults([]);
+      setShowMedicationDropdown(false);
+      return;
+    }
+
+    medicationSearchTimeoutRef.current = setTimeout(async () => {
+      setSearchingMedication(true);
+      try {
+        const results = await searchMedications(newMedName);
+        setMedicationSearchResults(results.slice(0, 5)); // Limit to 5 results
+        setShowMedicationDropdown(results.length > 0);
+      } catch (error) {
+        console.error('Medication search error:', error);
+      } finally {
+        setSearchingMedication(false);
+      }
+    }, 300);
+
+    return () => {
+      if (medicationSearchTimeoutRef.current) {
+        clearTimeout(medicationSearchTimeoutRef.current);
+      }
+    };
+  }, [newMedName]);
+  
   // Load data on mount
   useEffect(() => {
     if (profileData) {
@@ -493,14 +530,50 @@ export default function PatientInfo() {
             <div className="space-y-3 p-4 border border-dashed rounded-lg">
               <p className="text-sm font-medium">Add New Medication</p>
               <div className="grid gap-3 md:grid-cols-3">
-                <div className="space-y-2">
+                <div className="space-y-2 relative">
                   <Label htmlFor="med-name">Medication Name</Label>
-                  <Input
-                    id="med-name"
-                    placeholder="e.g., Metformin"
-                    value={newMedName}
-                    onChange={(e) => setNewMedName(e.target.value)}
-                  />
+                  <div className="relative">
+                    <Input
+                      id="med-name"
+                      placeholder="e.g., Metformin"
+                      value={newMedName}
+                      onChange={(e) => setNewMedName(e.target.value)}
+                      onFocus={() => setShowMedicationDropdown(medicationSearchResults.length > 0)}
+                      onBlur={() => setTimeout(() => setShowMedicationDropdown(false), 200)}
+                    />
+                    {searchingMedication && (
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                      </div>
+                    )}
+                    {showMedicationDropdown && medicationSearchResults.length > 0 && (
+                      <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-lg max-h-60 overflow-auto">
+                        {medicationSearchResults.map((result, index) => (
+                          <button
+                            key={index}
+                            type="button"
+                            className="w-full px-3 py-2 text-left hover:bg-accent hover:text-accent-foreground transition-colors flex items-center justify-between"
+                            onClick={() => {
+                              setNewMedName(result.name);
+                              setShowMedicationDropdown(false);
+                            }}
+                          >
+                            <div className="flex-1">
+                              <div className="font-medium text-sm">{result.name}</div>
+                              {result.genericName && (
+                                <div className="text-xs text-muted-foreground">{result.genericName}</div>
+                              )}
+                            </div>
+                            {result.strength && (
+                              <Badge variant="secondary" className="ml-2 text-xs">
+                                {result.strength}
+                              </Badge>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="med-dosage">Dosage</Label>
