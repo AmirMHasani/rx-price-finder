@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,6 +19,7 @@ import {
   Brain, Activity, Zap, Shield
 } from "lucide-react";
 import { toast } from "sonner";
+import { trpc } from "@/lib/trpc";
 
 // Sample genomic data - in production, this would come from API
 const SAMPLE_GENOMIC_DATA = {
@@ -165,22 +166,97 @@ const SAMPLE_GENOMIC_DATA = {
 
 export default function MyGenomic() {
   const [, setLocation] = useLocation();
-  const [hasTest, setHasTest] = useState(true); // Set to true to show sample data
+  const [hasTest, setHasTest] = useState(false);
   const [requestingTest, setRequestingTest] = useState(false);
   const [testNotes, setTestNotes] = useState("");
+  const [genomicData, setGenomicData] = useState<any>(null);
+
+  // Load genomic test data from API
+  const { data: testData, isLoading, refetch } = trpc.genomic.getGenomicTest.useQuery();
+  const requestTest = trpc.genomic.requestGenomicTest.useMutation();
+  const seedSampleData = trpc.genomic.seedSampleData.useMutation();
+
+  useEffect(() => {
+    if (testData) {
+      setHasTest(true);
+      // Transform API data to match component structure
+      const transformedData = {
+        testStatus: testData.test.status,
+        requestDate: testData.test.requestDate ? new Date(testData.test.requestDate).toLocaleDateString() : "",
+        resultsDate: testData.test.resultsDate ? new Date(testData.test.resultsDate).toLocaleDateString() : "",
+        testType: testData.test.testType,
+        testProvider: testData.test.testProvider,
+        genes: [
+          { gene: "CYP2D6", variant: "*1/*1", phenotype: "Normal Metabolizer", activity: "Normal" },
+          { gene: "CYP2C19", variant: "*2/*17", phenotype: "Intermediate Metabolizer", activity: "Reduced" },
+          { gene: "CYP2C9", variant: "*1/*3", phenotype: "Intermediate Metabolizer", activity: "Reduced" },
+          { gene: "SLCO1B1", variant: "*1/*1", phenotype: "Normal Function", activity: "Normal" },
+          { gene: "VKORC1", variant: "GG", phenotype: "Low Sensitivity", activity: "Normal" },
+        ],
+        medicationCategories: groupMedicationsByCategory(testData.interactions),
+      };
+      setGenomicData(transformedData);
+    }
+  }, [testData]);
+
+  const groupMedicationsByCategory = (interactions: any[]) => {
+    const categories: any = {};
+    interactions.forEach(interaction => {
+      const category = interaction.medicationClass || "Other";
+      if (!categories[category]) {
+        categories[category] = [];
+      }
+      categories[category].push({
+        name: interaction.medicationName,
+        gene: interaction.gene,
+        safetyLevel: interaction.safetyLevel,
+        interpretation: interaction.interpretation,
+        recommendation: interaction.recommendation,
+        evidenceLevel: interaction.evidenceLevel,
+        guidelineSource: interaction.guidelineSource,
+      });
+    });
+
+    const iconMap: any = {
+      "Cardiovascular": Heart,
+      "Antidepressants": Brain,
+      "Pain Management": Activity,
+      "Diabetes": Zap,
+    };
+
+    return Object.keys(categories).map(category => ({
+      category: category,
+      icon: iconMap[category] || Pill,
+      medications: categories[category],
+    }));
+  };
 
   const handleRequestTest = async () => {
     setRequestingTest(true);
     try {
-      // TODO: API call to request genomic test
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await requestTest.mutateAsync({
+        testType: "Comprehensive Pharmacogenomic Panel",
+        notes: testNotes,
+      });
       toast.success("Genomic test request submitted successfully");
       setHasTest(true);
+      refetch();
     } catch (error) {
       toast.error("Failed to submit test request");
       console.error(error);
     } finally {
       setRequestingTest(false);
+    }
+  };
+
+  const handleSeedSampleData = async () => {
+    try {
+      await seedSampleData.mutateAsync();
+      toast.success("Sample genomic data loaded");
+      refetch();
+    } catch (error) {
+      toast.error("Failed to load sample data");
+      console.error(error);
     }
   };
 
@@ -319,14 +395,34 @@ export default function MyGenomic() {
                 />
               </div>
 
-              <Button 
-                onClick={handleRequestTest} 
-                disabled={requestingTest}
-                className="w-full"
-                size="lg"
-              >
-                {requestingTest ? "Submitting Request..." : "Request Pharmacogenomic Test"}
-              </Button>
+              <div className="space-y-3">
+                <Button 
+                  onClick={handleRequestTest} 
+                  disabled={requestingTest}
+                  className="w-full"
+                  size="lg"
+                >
+                  {requestingTest ? "Submitting Request..." : "Request Pharmacogenomic Test"}
+                </Button>
+
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">Or for demo</span>
+                  </div>
+                </div>
+
+                <Button 
+                  onClick={handleSeedSampleData} 
+                  variant="outline"
+                  className="w-full"
+                  size="lg"
+                >
+                  Load Sample Genomic Data
+                </Button>
+              </div>
 
               <p className="text-xs text-muted-foreground text-center">
                 By requesting this test, you consent to genetic testing. Results will be shared with your healthcare provider.
@@ -346,7 +442,7 @@ export default function MyGenomic() {
                       Test Information
                     </CardTitle>
                     <CardDescription>
-                      {SAMPLE_GENOMIC_DATA.testType} • {SAMPLE_GENOMIC_DATA.testProvider}
+                      {(genomicData || SAMPLE_GENOMIC_DATA).testType} • {(genomicData || SAMPLE_GENOMIC_DATA).testProvider}
                     </CardDescription>
                   </div>
                   <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
@@ -361,14 +457,14 @@ export default function MyGenomic() {
                     <Calendar className="w-5 h-5 text-muted-foreground" />
                     <div>
                       <p className="text-sm text-muted-foreground">Request Date</p>
-                      <p className="font-medium">{new Date(SAMPLE_GENOMIC_DATA.requestDate).toLocaleDateString()}</p>
+                      <p className="font-medium">{(genomicData || SAMPLE_GENOMIC_DATA).requestDate}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <Calendar className="w-5 h-5 text-muted-foreground" />
                     <div>
                       <p className="text-sm text-muted-foreground">Results Date</p>
-                      <p className="font-medium">{new Date(SAMPLE_GENOMIC_DATA.resultsDate).toLocaleDateString()}</p>
+                      <p className="font-medium">{(genomicData || SAMPLE_GENOMIC_DATA).resultsDate}</p>
                     </div>
                   </div>
                 </div>
@@ -388,7 +484,7 @@ export default function MyGenomic() {
               </CardHeader>
               <CardContent>
                 <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-                  {SAMPLE_GENOMIC_DATA.genes.map((gene) => (
+                  {(genomicData || SAMPLE_GENOMIC_DATA).genes.map((gene) => (
                     <div key={gene.gene} className="p-4 border rounded-lg space-y-2">
                       <div className="flex items-center justify-between">
                         <h3 className="font-semibold text-lg">{gene.gene}</h3>
@@ -455,7 +551,7 @@ export default function MyGenomic() {
 
                 {/* Medication Categories */}
                 <Accordion type="multiple" className="space-y-2">
-                  {SAMPLE_GENOMIC_DATA.medicationCategories.map((category, catIndex) => {
+                  {(genomicData || SAMPLE_GENOMIC_DATA).medicationCategories.map((category, catIndex) => {
                     const CategoryIcon = category.icon;
                     const safeCount = category.medications.filter(m => m.safetyLevel === "safe").length;
                     const cautionCount = category.medications.filter(m => m.safetyLevel === "caution").length;

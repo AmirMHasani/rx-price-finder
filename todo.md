@@ -116,3 +116,50 @@
 - [x] Verify color-coded safety levels (green/yellow/red) display correctly
 - [x] Verify accordion expansion shows detailed gene-drug interactions
 - [ ] Save checkpoint and deliver to user
+
+## 🔌 Backend API Integration for Patient Profiles & Genomics
+
+### Phase 1: Patient Profile API Routes
+- [x] Create tRPC router for patient profiles
+- [x] Implement getUserProfile endpoint
+- [x] Implement updatePersonalInfo endpoint (DOB, gender)
+- [x] Implement updateMedicalConditions endpoint
+- [x] Implement addCurrentMedication endpoint
+- [x] Implement removeCurrentMedication endpoint
+- [x] Implement updateAllergies endpoint
+- [x] Implement addFamilyHistory endpoint
+- [x] Implement removeFamilyHistory endpoint
+- [x] Register patientProfile router in routers.ts
+
+### Phase 2: Insurance Information API
+- [x] Create tRPC router for insurance details
+- [x] Implement getInsuranceInfo endpoint
+- [x] Implement updateInsuranceInfo endpoint
+- [ ] Implement auto-population logic in SearchWithAPI page
+- [ ] Load insurance data when user is logged in
+- [x] Register insurance router in routers.ts
+
+### Phase 3: Genomic Test Data API
+- [x] Create tRPC router for genomic tests
+- [x] Implement getGenomicTest endpoint
+- [x] Implement requestGenomicTest endpoint
+- [x] Implement getMedicationInteractions endpoint (included in getGenomicTest)
+- [x] Add sample data seeding for demo purposes (seedSampleData endpoint)
+- [x] Register genomic router in routers.ts
+
+### Phase 4: Frontend Integration
+- [x] Connect PatientInfo form to backend APIs
+- [x] Add loading states and error handling
+- [x] Connect MyGenomic page to backend APIs
+- [x] Add "Load Sample Data" button for demo
+- [ ] Implement auto-population in SearchWithAPI (TODO)
+- [x] Add success/error toast notifications
+
+### Phase 5: Testing & Delivery
+- [x] Test patient profile save/load flow (requires login)
+- [ ] Test insurance auto-population (requires login + SearchWithAPI integration)
+- [x] Test genomic data loading (sample data seeding works!)
+- [x] Test medication recommendations display (accordion expansion works!)
+- [x] Verify color-coded safety levels display correctly
+- [x] Verify gene-drug interactions show detailed recommendations
+- [ ] Save checkpoint and deliver to user

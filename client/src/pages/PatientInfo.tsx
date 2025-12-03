@@ -13,6 +13,7 @@ import {
   Plus, X, Save, ArrowLeft, Calendar 
 } from "lucide-react";
 import { toast } from "sonner";
+import { trpc } from "@/lib/trpc";
 
 // Common medical conditions for dropdown
 const COMMON_CONDITIONS = [
@@ -124,11 +125,65 @@ export default function PatientInfo() {
   const [deductibleMet, setDeductibleMet] = useState(false);
   const [deductibleAmount, setDeductibleAmount] = useState("");
 
-  // Load existing data on mount
+  // Load existing data from API
+  const { data: profileData, isLoading: profileLoading } = trpc.patientProfile.getProfile.useQuery();
+  const { data: insuranceData, isLoading: insuranceLoading } = trpc.insurance.getInsuranceInfo.useQuery();
+  const { data: familyHistoryData } = trpc.patientProfile.getFamilyHistory.useQuery();
+
+  // Mutations
+  const updatePersonalInfo = trpc.patientProfile.updatePersonalInfo.useMutation();
+  const updateConditions = trpc.patientProfile.updateMedicalConditions.useMutation();
+  const addMedication = trpc.patientProfile.addCurrentMedication.useMutation();
+  const removeMedication = trpc.patientProfile.removeCurrentMedication.useMutation();
+  const updateAllergies = trpc.patientProfile.updateAllergies.useMutation();
+  const addFamilyHistoryMutation = trpc.patientProfile.addFamilyHistory.useMutation();
+  const removeFamilyHistoryMutation = trpc.patientProfile.removeFamilyHistory.useMutation();
+  const updateInsurance = trpc.insurance.updateInsuranceInfo.useMutation();
+
+  // Load data on mount
   useEffect(() => {
-    // TODO: Fetch patient data from API
-    // For now, we'll use placeholder data
-  }, []);
+    if (profileData) {
+      setDateOfBirth(profileData.personalInfo.dateOfBirth ? new Date(profileData.personalInfo.dateOfBirth).toISOString().split('T')[0] : "");
+      setGender(profileData.personalInfo.gender || "");
+      setSelectedConditions(profileData.medicalConditions);
+      setCurrentMedications(profileData.currentMedications.map(m => ({
+        name: m.name,
+        dosage: m.dosage,
+        frequency: m.frequency,
+      })));
+      setMedicationAllergies(profileData.allergies.medications);
+      setFoodAllergies(profileData.allergies.foods);
+    }
+  }, [profileData]);
+
+  useEffect(() => {
+    if (insuranceData) {
+      setPrimaryCarrier(insuranceData.primaryCarrier);
+      setPrimaryPlan(insuranceData.primaryPlan);
+      setPrimaryMemberId(insuranceData.primaryMemberId);
+      setPrimaryGroupNumber(insuranceData.primaryGroupNumber);
+      setPrimaryRxBin(insuranceData.primaryRxBin);
+      setPrimaryRxPcn(insuranceData.primaryRxPcn);
+      setPrimaryRxGroup(insuranceData.primaryRxGroup);
+      setHasSecondary(insuranceData.hasSecondary);
+      setSecondaryCarrier(insuranceData.secondaryCarrier);
+      setSecondaryPlan(insuranceData.secondaryPlan);
+      setSecondaryGroupNumber(insuranceData.secondaryGroupNumber);
+      setSecondaryMemberId(insuranceData.secondaryMemberId);
+      setDeductibleMet(insuranceData.deductibleMet);
+      setDeductibleAmount(insuranceData.deductibleAmount?.toString() || "");
+    }
+  }, [insuranceData]);
+
+  useEffect(() => {
+    if (familyHistoryData) {
+      setFamilyHistory(familyHistoryData.map(fh => ({
+        condition: fh.condition,
+        relation: fh.relation,
+        ageOfOnset: fh.ageOfOnset || undefined,
+      })));
+    }
+  }, [familyHistoryData]);
 
   const handleAddMedication = () => {
     if (!newMedName || !newMedDosage || !newMedFrequency) {
@@ -185,8 +240,39 @@ export default function PatientInfo() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      // TODO: Save to API
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+      // Save personal info
+      await updatePersonalInfo.mutateAsync({
+        dateOfBirth: dateOfBirth || null,
+        gender: (gender as any) || null,
+      });
+
+      // Save medical conditions
+      await updateConditions.mutateAsync({
+        conditions: selectedConditions,
+      });
+
+      // Save allergies
+      await updateAllergies.mutateAsync({
+        medications: medicationAllergies,
+      });
+
+      // Save insurance
+      await updateInsurance.mutateAsync({
+        primaryCarrier,
+        primaryPlan,
+        primaryMemberId,
+        primaryGroupNumber,
+        primaryRxBin,
+        primaryRxPcn,
+        primaryRxGroup,
+        hasSecondary,
+        secondaryCarrier,
+        secondaryPlan,
+        secondaryGroupNumber,
+        secondaryMemberId,
+        deductibleMet,
+        deductibleAmount: deductibleAmount ? parseFloat(deductibleAmount) : null,
+      });
       
       toast.success("Patient information saved successfully");
     } catch (error) {
