@@ -42,3 +42,12 @@
 
 **Status**: Phase 1 in progress
 **Next Milestone**: Complete security foundation and payment integration
+
+
+## 🐛 Critical Bug: Insurance Pricing Showing $1
+
+- [x] Investigate why all insurance copays show $1 - Found ID mismatch between insurance.ts and insuranceCarriers.ts
+- [x] Check insurance tier categorization (Tier 1/2/3) - Verified tiers are correctly defined
+- [x] Verify copay calculation logic in realPricingService.ts - Logic is correct, issue was ID mismatch
+- [x] Test brand vs generic medication pricing with different insurance plans
+- [x] Fix insurance pricing algorithm - Updated insurance plan IDs to match

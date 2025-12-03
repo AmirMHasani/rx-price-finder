@@ -24,9 +24,9 @@ export const insurancePlans: InsurancePlan[] = [
     deductible: 545
   },
   {
-    id: "blue_cross_ppo",
-    carrier: "Blue Cross Blue Shield",
-    planName: "Blue Shield PPO",
+    id: "anthem_ppo",
+    carrier: "Anthem Blue Cross Blue Shield",
+    planName: "PPO Plan",
     planType: "PPO",
     tier1Copay: 15,
     tier2Copay: 45,
@@ -35,9 +35,9 @@ export const insurancePlans: InsurancePlan[] = [
     deductible: 1000
   },
   {
-    id: "blue_cross_hmo",
-    carrier: "Blue Cross Blue Shield",
-    planName: "Blue Advantage HMO",
+    id: "anthem_hmo",
+    carrier: "Anthem Blue Cross Blue Shield",
+    planName: "HMO Plan",
     planType: "HMO",
     tier1Copay: 10,
     tier2Copay: 30,
@@ -46,9 +46,9 @@ export const insurancePlans: InsurancePlan[] = [
     deductible: 500
   },
   {
-    id: "united_healthcare",
+    id: "uhc_choice_plus",
     carrier: "UnitedHealthcare",
-    planName: "Choice Plus PPO",
+    planName: "Choice Plus (PPO)",
     planType: "PPO",
     tier1Copay: 15,
     tier2Copay: 35,
@@ -57,9 +57,9 @@ export const insurancePlans: InsurancePlan[] = [
     deductible: 1000
   },
   {
-    id: "aetna",
-    carrier: "Aetna",
-    planName: "Open Access HMO",
+    id: "aetna_hmo",
+    carrier: "Aetna (CVS Health)",
+    planName: "HMO Plan",
     planType: "HMO",
     tier1Copay: 10,
     tier2Copay: 25,
@@ -68,9 +68,9 @@ export const insurancePlans: InsurancePlan[] = [
     deductible: 750
   },
   {
-    id: "cigna",
+    id: "cigna_hmo",
     carrier: "Cigna",
-    planName: "LocalPlus",
+    planName: "HMO Plan",
     planType: "HMO",
     tier1Copay: 12,
     tier2Copay: 40,
@@ -79,9 +79,9 @@ export const insurancePlans: InsurancePlan[] = [
     deductible: 1500
   },
   {
-    id: "humana",
+    id: "humana_hmo",
     carrier: "Humana",
-    planName: "Gold Plus HMO",
+    planName: "HMO Plan",
     planType: "HMO",
     tier1Copay: 5,
     tier2Copay: 20,
