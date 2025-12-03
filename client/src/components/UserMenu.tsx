@@ -54,6 +54,18 @@ export function UserMenu() {
       {isOpen && (
         <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg border border-border z-50">
           <div className="py-1">
+            {/* My Dashboard - Always visible */}
+            <button
+              onClick={() => {
+                setLocation('/my-dashboard');
+                setIsOpen(false);
+              }}
+              className="w-full px-4 py-2 text-left text-sm hover:bg-accent flex items-center gap-2"
+            >
+              <LayoutDashboard className="w-4 h-4" />
+              My Dashboard
+            </button>
+
             {/* History - Always visible */}
             <button
               onClick={() => {
@@ -66,20 +78,7 @@ export function UserMenu() {
               Search History
             </button>
 
-            {user ? (
-              <>
-                {/* Dashboard - Only for logged in users */}
-                <button
-                  onClick={() => {
-                    setLocation('/dashboard');
-                    setIsOpen(false);
-                  }}
-                  className="w-full px-4 py-2 text-left text-sm hover:bg-accent flex items-center gap-2"
-                >
-                  <LayoutDashboard className="w-4 h-4" />
-                  My Dashboard
-                </button>
-
+            {user ? (              <>
                 <div className="border-t border-border my-1"></div>
 
                 {/* User info */}

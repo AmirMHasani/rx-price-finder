@@ -13,6 +13,7 @@ const SearchWithAPI = lazy(() => import("./pages/SearchWithAPI"));
 const Results = lazy(() => import("./pages/Results"));
 const Auth = lazy(() => import("./pages/Auth"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
+const MyDashboard = lazy(() => import("./pages/MyDashboard"));
 const History = lazy(() => import("./pages/History"));
 const TestPlaces = lazy(() => import("./pages/TestPlaces"));
 const TabsTest = lazy(() => import("./pages/TabsTest"));
@@ -35,6 +36,7 @@ function Router() {
         <Route path={"/"} component={SearchWithAPI} />
         <Route path="/auth" component={Auth} />
         <Route path="/dashboard" component={Dashboard} />
+        <Route path="/my-dashboard" component={MyDashboard} />
         <Route path="/history" component={History} />
         <Route path="/results" component={Results} />
         <Route path="/test-places" component={TestPlaces} />
