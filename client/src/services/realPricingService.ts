@@ -461,7 +461,9 @@ export async function fetchRealPricing(
             isGeneric,
             isBrand,
             isSpecialty,
-            deductibleMet
+            deductibleMet,
+            cashPrice,
+            pharmacy.name
           );
         } else {
           // Fallback to old calculation if plan not found

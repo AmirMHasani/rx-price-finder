@@ -612,44 +612,7 @@ export default function SearchWithAPI() {
           </Card>
         </div>
 
-        {/* Recent Searches */}
-        {searchHistory.length > 0 && (
-          <div className="mt-12">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold">{t('home.recentSearches.title')}</h2>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  clearSearchHistory();
-                  setSearchHistory([]);
-                }}
-              >
-                {t('home.recentSearches.clearHistory')}
-              </Button>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {searchHistory.map((item) => {
-                return (
-                  <Button
-                    key={item.id}
-                    variant="outline"
-                    size="sm"
-                    className="h-auto py-2 px-3 hover:bg-primary hover:text-primary-foreground transition-colors"
-                    onClick={() => setLocation(item.url.replace(window.location.origin, ''))}
-                  >
-                    <div className="flex flex-col items-start text-left">
-                      <span className="font-semibold text-sm">{item.medication}</span>
-                      <span className="text-xs opacity-75">
-                        {item.dosage} • {item.insurance} • {formatTimeAgo(item.timestamp)}
-                      </span>
-                    </div>
-                  </Button>
-                );
-              })}
-            </div>
-          </div>
-        )}
+        {/* Recent Searches removed from main page - now only in menu */}
 
         {/* Features Section */}
         <div className="grid md:grid-cols-3 gap-6 mt-12">

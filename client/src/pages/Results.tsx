@@ -14,6 +14,7 @@ import { MapView } from "@/components/Map";
 import { generatePharmaciesForZip } from "@/services/pharmacyGenerator";
 import { fetchRealPharmacies, calculateDistance, getCleanPharmacyName, type RealPharmacy } from "@/services/realPharmacyService";
 import { LanguageToggle } from "@/components/LanguageToggle";
+import { UserMenu } from "@/components/UserMenu";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getZipCodeLocation } from "@/services/zipCodeService";
 import { saveSearch } from "@/services/searchHistory";
@@ -357,7 +358,7 @@ export default function Results() {
 
       marker.addListener("click", () => {
         console.log(`🖱️ [MARKER CLICK] User clicked marker for ${result.pharmacy.name}`);
-        setSelectedPharmacy(result.pharmacy.id);
+        setSelectedPharmacy(result.pharmacy.id || null);
         // Scroll to pharmacy card
         const pharmacyCard = document.getElementById(`pharmacy-${result.pharmacy.id}`);
         if (pharmacyCard) {
@@ -394,7 +395,10 @@ export default function Results() {
             </Button>
             <div className="flex items-center gap-2 sm:gap-4">
               <h1 className="text-lg sm:text-2xl font-bold text-foreground">RxPriceFinder</h1>
-              <LanguageToggle />
+              <div className="flex items-center gap-2">
+                <UserMenu />
+                <LanguageToggle />
+              </div>
             </div>
             <div className="flex gap-1 sm:gap-2">
               <Button
@@ -730,7 +734,7 @@ export default function Results() {
                     }`}
                     onClick={() => {
                       console.log(`🖱️ [CARD CLICK] User clicked card for ${result.pharmacy.name}`);
-                      setSelectedPharmacy(result.pharmacy.id);
+                      setSelectedPharmacy(result.pharmacy.id || null);
                     }}
                   >
                     <CardContent className="p-4">

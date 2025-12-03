@@ -59,12 +59,32 @@ export function getCopayForTier(planType: PlanType, tier: DrugTier): number {
 }
 
 /**
- * Add slight variation to copay amount (±15%) to simulate real-world differences
+ * Simple hash function for deterministic variation
  */
-export function addCopayVariation(amount: number, variation: number = 0.15): number {
+function hashString(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return Math.abs(hash);
+}
+
+/**
+ * Add slight variation to copay amount (±15%) to simulate real-world differences
+ * Uses deterministic hash to ensure consistent prices
+ */
+export function addCopayVariation(
+  amount: number,
+  seed: string,
+  variation: number = 0.15
+): number {
   const min = Math.round(amount * (1 - variation));
   const max = Math.round(amount * (1 + variation));
-  return Math.round(min + Math.random() * (max - min));
+  const hash = hashString(seed);
+  const normalizedHash = (hash % 1000) / 1000; // 0 to 1
+  return Math.round(min + normalizedHash * (max - min));
 }
 
 /**
@@ -76,7 +96,9 @@ export function calculateInsuranceCopay(
   isGeneric: boolean,
   isBrand: boolean = false,
   isSpecialty: boolean = false,
-  deductibleMet: boolean = false
+  deductibleMet: boolean = false,
+  cashPrice?: number,
+  pharmacyName?: string
 ): number {
   const planType = getPlanType(planName, planDescription);
   const tier = getDrugTier(isGeneric, isBrand, isSpecialty);
@@ -87,8 +109,14 @@ export function calculateInsuranceCopay(
     copay = copay * 2.5; // Much higher cost until deductible met
   }
   
-  // Add slight variation to make prices more realistic
-  copay = addCopayVariation(copay, 0.12);
+  // Add slight variation to make prices more realistic (deterministic)
+  const seed = `${planName}-${pharmacyName || 'default'}-${tier}`;
+  copay = addCopayVariation(copay, seed, 0.12);
+  
+  // CRITICAL FIX: Cap copay at cash price (insurance shouldn't cost more than cash)
+  if (cashPrice !== undefined && copay > cashPrice) {
+    copay = cashPrice;
+  }
   
   return Math.round(copay * 100) / 100; // Round to 2 decimal places
 }

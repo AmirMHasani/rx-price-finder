@@ -4,7 +4,7 @@
  * Looks up drug coverage and copays from real insurance plan formularies
  */
 
-import { db } from "../db";
+import { getDb } from "../db";
 import { insurers, plans, planDrugCoverage } from "../../drizzle/schema";
 import { eq, and } from "drizzle-orm";
 
@@ -27,6 +27,11 @@ export async function getFormularyCoverage(
 ): Promise<FormularyCoverage[]> {
   try {
     // Query plan_drug_coverage joined with plans and insurers
+    const db = await getDb();
+    if (!db) {
+      console.error('[Insurance Formulary] Database connection failed');
+      return [];
+    }
     const coverage = await db
       .select({
         planId: planDrugCoverage.planId,
@@ -49,10 +54,16 @@ export async function getFormularyCoverage(
         )
       );
 
-    // Convert copay strings to numbers
-    return coverage.map((c) => ({
+    // Convert copay strings to numbers and handle nulls
+    return coverage.map((c: any) => ({
       ...c,
-      copay: parseFloat(c.copay),
+      planId: c.planId ?? 0,
+      planName: c.planName ?? 'Unknown Plan',
+      insurerName: c.insurerName ?? 'Unknown Insurer',
+      tier: c.tier ?? 1,
+      tierName: c.tierName ?? 'Tier 1',
+      copay: c.copay ? parseFloat(c.copay) : 0,
+      priorAuthRequired: c.priorAuthRequired ?? false,
     }));
   } catch (error) {
     console.error(`[Insurance Formulary] Error fetching coverage for RXCUI ${rxcui}:`, error);
@@ -65,6 +76,11 @@ export async function getFormularyCoverage(
  */
 export async function getActivePlans() {
   try {
+    const db = await getDb();
+    if (!db) {
+      console.error('[Insurance Formulary] Database connection failed');
+      return [];
+    }
     const activePlans = await db
       .select({
         id: plans.id,
