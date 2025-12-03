@@ -26,7 +26,7 @@ import { getPharmacyFeatures, getPharmacyHours } from "@/data/pharmacyFeatures";
 import { SafetyInfoTab } from "@/components/SafetyInfoTab";
 import { AIAlternativesTab } from "@/components/AIAlternativesTab";
 import { fetchRealPricing } from "@/services/realPricingService";
-import { getMedicationImage } from "@/services/medicationImageService";
+
 
 // Helper function to get clean pharmacy display name for map markers
 const getPharmacyDisplayName = (pharmacy: RealPharmacy): string => {
@@ -441,17 +441,7 @@ export default function Results() {
                   <div className="font-medium text-blue-600 text-xs sm:text-sm">{insurance?.carrier} - {insurance?.planName}</div>
                 </CardDescription>
               </div>
-              <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-xl overflow-hidden bg-white shadow-md flex-shrink-0">
-                <img 
-                  src={getMedicationImage(medicationName)} 
-                  alt={medicationName}
-                  className="w-full h-full object-contain p-2"
-                  onError={(e) => {
-                    // Fallback to generic image if specific image fails to load
-                    e.currentTarget.src = '/medication-images/generic-pills-clean.jpg';
-                  }}
-                />
-              </div>
+
             </div>
           </CardHeader>
         </Card>
