@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+import { SectionHeader } from "@/components/SectionHeader";
 
 // Common medical conditions for dropdown
 const COMMON_CONDITIONS = [
@@ -158,6 +159,14 @@ export default function PatientInfo() {
   const [, setLocation] = useLocation();
   const [saving, setSaving] = useState(false);
 
+  // Section edit states
+  const [editingPersonalInfo, setEditingPersonalInfo] = useState(true);
+  const [editingMedicalConditions, setEditingMedicalConditions] = useState(true);
+  const [editingCurrentMedications, setEditingCurrentMedications] = useState(true);
+  const [editingAllergies, setEditingAllergies] = useState(true);
+  const [editingFamilyHistory, setEditingFamilyHistory] = useState(true);
+  const [editingInsurance, setEditingInsurance] = useState(true);
+
   // Personal Information
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [gender, setGender] = useState("");
@@ -171,6 +180,9 @@ export default function PatientInfo() {
   const [newMedName, setNewMedName] = useState("");
   const [newMedDosage, setNewMedDosage] = useState("");
   const [newMedFrequency, setNewMedFrequency] = useState("");
+  const [medSearchQuery, setMedSearchQuery] = useState("");
+  const [medSearchResults, setMedSearchResults] = useState<any[]>([]);
+  const [medSearching, setMedSearching] = useState(false);
 
   // Allergies
   const [medicationAllergies, setMedicationAllergies] = useState<string[]>([]);
@@ -313,26 +325,59 @@ export default function PatientInfo() {
     toast.success("Family history removed");
   };
 
-  const handleSave = async () => {
+  // Section-specific save handlers
+  const handleSavePersonalInfo = async () => {
     setSaving(true);
     try {
-      // Save personal info
       await updatePersonalInfo.mutateAsync({
         dateOfBirth: dateOfBirth || null,
         gender: (gender as any) || null,
       });
+      setEditingPersonalInfo(false);
+      toast.success("Personal information saved");
+    } catch (error) {
+      toast.error("Failed to save personal information");
+      console.error(error);
+    } finally {
+      setSaving(false);
+    }
+  };
 
-      // Save medical conditions
+  const handleSaveMedicalConditions = async () => {
+    setSaving(true);
+    try {
       await updateConditions.mutateAsync({
         conditions: selectedConditions,
       });
+      setEditingMedicalConditions(false);
+      toast.success("Medical conditions saved");
+    } catch (error) {
+      toast.error("Failed to save medical conditions");
+      console.error(error);
+    } finally {
+      setSaving(false);
+    }
+  };
 
-      // Save allergies
+  const handleSaveAllergies = async () => {
+    setSaving(true);
+    try {
       await updateAllergies.mutateAsync({
         medications: medicationAllergies,
       });
+      setEditingAllergies(false);
+      toast.success("Allergies saved");
+    } catch (error) {
+      toast.error("Failed to save allergies");
+      console.error(error);
+    } finally {
+      setSaving(false);
+    }
+  };
 
-      // Save insurance
+  const handleSaveInsurance = async () => {
+    setSaving(true);
+    try {
       await updateInsurance.mutateAsync({
         primaryCarrier,
         primaryPlan,
@@ -349,10 +394,10 @@ export default function PatientInfo() {
         deductibleMet,
         deductibleAmount: deductibleAmount ? parseFloat(deductibleAmount) : null,
       });
-      
-      toast.success("Patient information saved successfully");
+      setEditingInsurance(false);
+      toast.success("Insurance information saved");
     } catch (error) {
-      toast.error("Failed to save patient information");
+      toast.error("Failed to save insurance information");
       console.error(error);
     } finally {
       setSaving(false);
@@ -384,10 +429,7 @@ export default function PatientInfo() {
                 </div>
               </div>
             </div>
-            <Button onClick={handleSave} disabled={saving}>
-              <Save className="w-4 h-4 mr-2" />
-              {saving ? "Saving..." : "Save Changes"}
-            </Button>
+            {/* Individual section save buttons will be in each card */}
           </div>
         </div>
       </header>
@@ -397,11 +439,15 @@ export default function PatientInfo() {
         {/* Personal Information */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="w-5 h-5" />
-              Personal Information
-            </CardTitle>
-            <CardDescription>Basic demographic information</CardDescription>
+            <SectionHeader
+              icon={<User className="w-5 h-5" />}
+              title="Personal Information"
+              description="Basic demographic information"
+              isEditing={editingPersonalInfo}
+              onSave={handleSavePersonalInfo}
+              onEdit={() => setEditingPersonalInfo(true)}
+              saving={saving}
+            />
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
@@ -412,11 +458,12 @@ export default function PatientInfo() {
                   type="date"
                   value={dateOfBirth}
                   onChange={(e) => setDateOfBirth(e.target.value)}
+                  disabled={!editingPersonalInfo}
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="gender">Gender</Label>
-                <Select value={gender} onValueChange={setGender}>
+                <Select value={gender} onValueChange={setGender} disabled={!editingPersonalInfo}>
                   <SelectTrigger id="gender">
                     <SelectValue placeholder="Select gender" />
                   </SelectTrigger>
@@ -435,11 +482,15 @@ export default function PatientInfo() {
         {/* Medical Conditions */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Heart className="w-5 h-5" />
-              Medical Conditions
-            </CardTitle>
-            <CardDescription>Select all conditions that apply to you</CardDescription>
+            <SectionHeader
+              icon={<Heart className="w-5 h-5" />}
+              title="Medical Conditions"
+              description="Select all conditions that apply to you"
+              isEditing={editingMedicalConditions}
+              onSave={handleSaveMedicalConditions}
+              onEdit={() => setEditingMedicalConditions(true)}
+              saving={saving}
+            />
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
@@ -449,7 +500,9 @@ export default function PatientInfo() {
                   className="flex items-center space-x-2 p-3 rounded-lg border border-border hover:bg-muted cursor-pointer transition-colors"
                 >
                   <Checkbox
+                    id={condition}
                     checked={selectedConditions.includes(condition)}
+                    disabled={!editingMedicalConditions}
                     onCheckedChange={(checked) => {
                       if (checked) {
                         setSelectedConditions([...selectedConditions, condition]);
@@ -574,11 +627,15 @@ export default function PatientInfo() {
         {/* Allergies */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5" />
-              Allergies
-            </CardTitle>
-            <CardDescription>Important for avoiding adverse reactions</CardDescription>
+            <SectionHeader
+              icon={<AlertTriangle className="w-5 h-5" />}
+              title="Allergies"
+              description="Important for avoiding adverse reactions"
+              isEditing={editingAllergies}
+              onSave={handleSaveAllergies}
+              onEdit={() => setEditingAllergies(true)}
+              saving={saving}
+            />
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -723,13 +780,15 @@ export default function PatientInfo() {
         {/* Insurance Information */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Shield className="w-5 h-5" />
-              Insurance Information
-            </CardTitle>
-            <CardDescription>
-              This information will auto-populate when searching for medication prices
-            </CardDescription>
+            <SectionHeader
+              icon={<Shield className="w-5 h-5" />}
+              title="Insurance Information"
+              description="This information will auto-populate when searching for medication prices"
+              isEditing={editingInsurance}
+              onSave={handleSaveInsurance}
+              onEdit={() => setEditingInsurance(true)}
+              saving={saving}
+            />
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Primary Insurance */}
@@ -741,7 +800,7 @@ export default function PatientInfo() {
                   <Select value={primaryCarrier} onValueChange={(value) => {
                     setPrimaryCarrier(value);
                     setPrimaryPlan(""); // Reset plan when carrier changes
-                  }}>
+                  }} disabled={!editingInsurance}>
                     <SelectTrigger id="primary-carrier">
                       <SelectValue placeholder="Select carrier" />
                     </SelectTrigger>
@@ -759,7 +818,7 @@ export default function PatientInfo() {
                   <Select 
                     value={primaryPlan} 
                     onValueChange={setPrimaryPlan}
-                    disabled={!primaryCarrier}
+                    disabled={!editingInsurance || !primaryCarrier}
                   >
                     <SelectTrigger id="primary-plan">
                       <SelectValue placeholder={primaryCarrier ? "Select plan" : "Select carrier first"} />
@@ -780,6 +839,7 @@ export default function PatientInfo() {
                     placeholder="Member ID number"
                     value={primaryMemberId}
                     onChange={(e) => setPrimaryMemberId(e.target.value)}
+                    disabled={!editingInsurance}
                   />
                 </div>
                 <div className="space-y-2">
@@ -789,6 +849,7 @@ export default function PatientInfo() {
                     placeholder="Group number"
                     value={primaryGroupNumber}
                     onChange={(e) => setPrimaryGroupNumber(e.target.value)}
+                    disabled={!editingInsurance}
                   />
                 </div>
               </div>
@@ -803,6 +864,7 @@ export default function PatientInfo() {
                       placeholder="6-digit BIN"
                       value={primaryRxBin}
                       onChange={(e) => setPrimaryRxBin(e.target.value)}
+                      disabled={!editingInsurance}
                     />
                   </div>
                   <div className="space-y-2">
@@ -812,6 +874,7 @@ export default function PatientInfo() {
                       placeholder="PCN"
                       value={primaryRxPcn}
                       onChange={(e) => setPrimaryRxPcn(e.target.value)}
+                      disabled={!editingInsurance}
                     />
                   </div>
                   <div className="space-y-2">
@@ -821,6 +884,7 @@ export default function PatientInfo() {
                       placeholder="Group"
                       value={primaryRxGroup}
                       onChange={(e) => setPrimaryRxGroup(e.target.value)}
+                      disabled={!editingInsurance}
                     />
                   </div>
                 </div>
@@ -897,19 +961,14 @@ export default function PatientInfo() {
                   placeholder="e.g., 1500"
                   value={deductibleAmount}
                   onChange={(e) => setDeductibleAmount(e.target.value)}
+                  disabled={!editingInsurance}
                 />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Save Button */}
-        <div className="flex justify-end">
-          <Button onClick={handleSave} disabled={saving} size="lg">
-            <Save className="w-5 h-5 mr-2" />
-            {saving ? "Saving..." : "Save All Changes"}
-          </Button>
-        </div>
+
       </main>
     </div>
   );

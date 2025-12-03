@@ -171,4 +171,34 @@
 - [x] Update carrier dropdown to show: Blue Cross Blue Shield, Medicare, Medicaid, etc.
 - [x] Update plan dropdown to be dynamic based on selected carrier
 - [x] Test insurance selection flow
+- [x] Save checkpoint
+
+
+## 🎯 Patient Information Page Optimization
+
+### Section-Level Save/Edit Controls
+- [x] Add individual Save/Edit buttons for each section (Personal Info, Medical Conditions, Current Medications, Allergies, Family History, Insurance)
+- [x] Implement gray-out state when section is saved
+- [x] Enable edit mode when Edit button is clicked
+- [x] Disable form fields when section is in saved (grayed out) state
+- [x] Create reusable SectionHeader component
+- [x] Add disabled states to Personal Information inputs
+- [x] Add disabled states to Medical Conditions checkboxes
+- [x] Add disabled states to Insurance form fields
+
+### Current Medications API Integration
+- [ ] Connect medication search to RxNorm API
+- [ ] Allow manual override for dosage and frequency fields
+- [ ] Add autocomplete for medication names
+- [ ] Save medication selections to database via backend API
+
+### Insurance Dropdown Consistency
+- [ ] Apply same carrier/plan dropdown structure to main SearchWithAPI page
+- [ ] Ensure Blue Cross Blue Shield consolidation is consistent
+- [ ] Add state-specific plan options to search page
+
+### Testing & Delivery
+- [ ] Test section-level save/edit for all sections
+- [ ] Test medication API integration with manual overrides
+- [ ] Test insurance dropdowns on both pages
 - [ ] Save checkpoint
