@@ -484,7 +484,7 @@ export default function MyGenomic() {
               </CardHeader>
               <CardContent>
                 <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-                  {(genomicData || SAMPLE_GENOMIC_DATA).genes.map((gene) => (
+                  {(genomicData || SAMPLE_GENOMIC_DATA).genes.map((gene: any) => (
                     <div key={gene.gene} className="p-4 border rounded-lg space-y-2">
                       <div className="flex items-center justify-between">
                         <h3 className="font-semibold text-lg">{gene.gene}</h3>
@@ -551,11 +551,11 @@ export default function MyGenomic() {
 
                 {/* Medication Categories */}
                 <Accordion type="multiple" className="space-y-2">
-                  {(genomicData || SAMPLE_GENOMIC_DATA).medicationCategories.map((category, catIndex) => {
+                  {(genomicData || SAMPLE_GENOMIC_DATA).medicationCategories.map((category: any, catIndex: number) => {
                     const CategoryIcon = category.icon;
-                    const safeCount = category.medications.filter(m => m.safetyLevel === "safe").length;
-                    const cautionCount = category.medications.filter(m => m.safetyLevel === "caution").length;
-                    const avoidCount = category.medications.filter(m => m.safetyLevel === "avoid").length;
+                    const safeCount = category.medications.filter((m: any) => m.safetyLevel === "safe").length;
+                    const cautionCount = category.medications.filter((m: any) => m.safetyLevel === "caution").length;
+                    const avoidCount = category.medications.filter((m: any) => m.safetyLevel === "avoid").length;
 
                     return (
                       <AccordionItem key={catIndex} value={`category-${catIndex}`} className="border rounded-lg px-4">
@@ -586,7 +586,7 @@ export default function MyGenomic() {
                         </AccordionTrigger>
                         <AccordionContent>
                           <div className="space-y-3 pt-2">
-                            {category.medications.map((med, medIndex) => (
+                            {category.medications.map((med: any, medIndex: number) => (
                               <div
                                 key={medIndex}
                                 className={`p-4 rounded-lg border-l-4 ${

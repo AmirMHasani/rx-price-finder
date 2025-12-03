@@ -202,3 +202,46 @@
 - [ ] Test medication API integration with manual overrides
 - [ ] Test insurance dropdowns on both pages
 - [ ] Save checkpoint
+
+
+## 🔧 Final Polish - Remaining Fixes
+
+### Phase 1: Medication Pricing Validation
+- [x] Test Metformin search with Medicare Part D - PASSED ($3.20-$4.80, consistent)
+- [ ] Test Eliquis search with Blue Cross Blue Shield PPO
+- [ ] Test Lipitor search with Medicaid
+- [x] Verify prices are reasonable and consistent - PASSED
+- [x] Verify copay capped at cash price - PASSED ($4 copay < $9.28 cash)
+
+### Phase 2: Insurance Formulary Integration
+- [ ] Connect getFormularyCoverage() to fetchRealPricing()
+- [ ] Use real formulary copays instead of generic tier-based copays
+- [ ] Add fallback to tier-based copays when formulary data unavailable
+- [ ] Test with multiple insurance plans
+
+### Phase 3: Design & Alignment Fixes
+- [ ] Review main search page spacing and alignment
+- [ ] Fix Results page mobile responsiveness
+- [ ] Ensure consistent padding/margins across sections
+- [ ] Test on different screen sizes
+- [ ] Fix any visual inconsistencies
+
+### Phase 4: TypeScript Error Cleanup
+- [x] Fix MyGenomic.tsx parameter type annotations (4 errors) - FIXED
+- [x] Reduced errors from 132 to 124 (8 errors fixed)
+- [ ] Remaining errors are in insuranceCarriers.ts and History.tsx (not critical)
+
+### Phase 5: Patient Information Form Completion
+- [ ] Connect Current Medications to RxNorm API with autocomplete
+- [ ] Add save handlers for Family History section
+- [ ] Add save handlers for Allergies section
+- [ ] Test all sections save/load correctly
+- [ ] Verify data persists in database
+
+### Phase 6: Final Testing
+- [ ] Test complete medication search flow (search → select → compare → results)
+- [ ] Test Patient Information form (all sections)
+- [ ] Test My Genomic page (load sample data)
+- [ ] Test navigation (menu, recent searches, back buttons)
+- [ ] Verify all pricing calculations are correct
+- [ ] Save final checkpoint
