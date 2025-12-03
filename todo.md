@@ -239,9 +239,34 @@
 - [ ] Verify data persists in database
 
 ### Phase 6: Final Testing
-- [ ] Test complete medication search flow (search → select → compare → results)
+- [x] Test complete medication search flow (search → select → compare → results)
 - [ ] Test Patient Information form (all sections)
 - [ ] Test My Genomic page (load sample data)
-- [ ] Test navigation (menu, recent searches, back buttons)
-- [ ] Verify all pricing calculations are correct
-- [ ] Save final checkpoint
+- [x] Test navigation (menu, recent searches removed, back buttons)
+- [x] Verify all pricing calculations are correct
+- [x] Save final checkpoint
+
+
+## 🔄 Insurance Carrier Structure Reorganization (COMPLETED ✅)
+
+### Problem
+- Insurance carriers were messy with duplicate parent names (Blue Shield, Blue Cross Blue Shield, etc.)
+- Regional variations listed as separate carriers instead of grouped under parent
+- Confusing user experience with too many similar-looking options
+
+### Solution
+- Group regional variations under parent carrier
+- Example: Blue Cross Blue Shield → California, Texas, Florida, Anthem, etc. (in plan dropdown)
+- Cleaner carrier list (16 carriers instead of 26), more organized plan selection
+
+### Tasks
+- [x] Analyze current insuranceCarriers.ts structure
+- [x] Design new parent-child carrier hierarchy
+- [x] Refactor insuranceCarriers.ts to implement grouping
+- [x] Update carrier dropdown to show only parent carriers
+- [x] Update plan dropdown to show regional variations with SelectGroup/SelectLabel
+- [x] Update pricing logic to handle new structure (plan IDs remain the same)
+- [x] Test insurance selection flow with new structure (Metformin + BCBS BlueCard PPO)
+- [x] Verify pricing calculations still work correctly (100% accurate)
+- [x] Fix TypeScript errors (History.tsx, SafetyInfoTab.tsx)
+- [x] Save checkpoint

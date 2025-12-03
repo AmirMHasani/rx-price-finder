@@ -116,7 +116,7 @@ export default function History() {
 
   const getInsuranceName = (insuranceId: string) => {
     const plan = insurancePlans.find(p => p.id === insuranceId);
-    return plan ? plan.name : insuranceId;
+    return plan ? plan.planName : insuranceId;
   };
 
   return (

@@ -121,11 +121,11 @@ export function SafetyInfoTab({ medicationName, rxcui }: SafetyInfoTabProps) {
           console.error('Error formatting safety info:', formatError);
           // Fall back to raw data if formatting fails
           setSafetyData({
-            blackBoxWarnings: rawData.blackBoxWarnings.map(text => ({ title: 'Warning', content: text })),
-            warnings: rawData.warnings.map(text => ({ title: 'Warning', content: text })),
-            contraindications: rawData.contraindications.map(text => ({ title: 'Contraindication', content: text })),
-            adverseReactions: rawData.adverseReactions.map(text => ({ title: 'Reaction', content: text })),
-            drugInteractions: rawData.drugInteractions.map(text => ({ title: 'Interaction', content: text })),
+            blackBoxWarnings: rawData.blackBoxWarnings.map((text: string) => ({ title: 'Warning', content: text })),
+            warnings: rawData.warnings.map((text: string) => ({ title: 'Warning', content: text })),
+            contraindications: rawData.contraindications.map((text: string) => ({ title: 'Contraindication', content: text })),
+            adverseReactions: rawData.adverseReactions.map((text: string) => ({ title: 'Reaction', content: text })),
+            drugInteractions: rawData.drugInteractions.map((text: string) => ({ title: 'Interaction', content: text })),
             loading: false,
             error: null,
             formatting: false,

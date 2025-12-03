@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +15,8 @@ import {
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { SectionHeader } from "@/components/SectionHeader";
+
+import { INSURANCE_CARRIERS } from "@/data/insuranceCarriers";
 
 // Common medical conditions for dropdown
 const COMMON_CONDITIONS = [
@@ -66,81 +68,7 @@ const FAMILY_RELATIONS = [
   "Other",
 ];
 
-// Insurance carriers
-const INSURANCE_CARRIERS = [
-  "Blue Cross Blue Shield",
-  "Medicare",
-  "Medicaid",
-  "Aetna",
-  "Cigna",
-  "UnitedHealthcare",
-  "Humana",
-  "Kaiser Permanente",
-  "Anthem",
-  "Other",
-];
-
-// Insurance plans by carrier
-const INSURANCE_PLANS: Record<string, string[]> = {
-  "Blue Cross Blue Shield": [
-    "Blue Shield of California PPO",
-    "Blue Shield of California HMO",
-    "Blue Shield of Massachusetts PPO",
-    "Blue Shield of Massachusetts HMO",
-    "Blue Shield of Texas PPO",
-    "Blue Shield of Illinois HMO",
-    "Blue Cross PPO",
-    "Blue Cross HMO",
-    "Federal Employee Program (FEP)",
-    "Other",
-  ],
-  "Medicare": [
-    "Medicare Part A",
-    "Medicare Part B",
-    "Medicare Part C (Medicare Advantage)",
-    "Medicare Part D",
-    "Medicare Supplement (Medigap)",
-  ],
-  "Medicaid": [
-    "Medicaid Standard",
-    "Medicaid Managed Care",
-    "Children's Health Insurance Program (CHIP)",
-  ],
-  "Aetna": [
-    "Aetna PPO",
-    "Aetna HMO",
-    "Aetna Medicare Advantage",
-    "Aetna Open Access",
-  ],
-  "Cigna": [
-    "Cigna PPO",
-    "Cigna HMO",
-    "Cigna Open Access Plus",
-    "Cigna Medicare Advantage",
-  ],
-  "UnitedHealthcare": [
-    "UnitedHealthcare Choice Plus (PPO)",
-    "UnitedHealthcare Options (PPO)",
-    "UnitedHealthcare Navigate (HMO)",
-    "UnitedHealthcare Medicare Advantage",
-  ],
-  "Humana": [
-    "Humana PPO",
-    "Humana HMO",
-    "Humana Medicare Advantage",
-    "Humana Gold Plus",
-  ],
-  "Kaiser Permanente": [
-    "Kaiser Permanente HMO",
-    "Kaiser Permanente Senior Advantage",
-  ],
-  "Anthem": [
-    "Anthem Blue Cross PPO",
-    "Anthem Blue Cross HMO",
-    "Anthem Medicare Advantage",
-  ],
-  "Other": ["Other Plan"],
-};
+// Insurance carriers and plans are now imported from @/data/insuranceCarriers
 
 interface CurrentMedication {
   name: string;
@@ -806,8 +734,8 @@ export default function PatientInfo() {
                     </SelectTrigger>
                     <SelectContent>
                       {INSURANCE_CARRIERS.map((carrier) => (
-                        <SelectItem key={carrier} value={carrier}>
-                          {carrier}
+                        <SelectItem key={carrier.id} value={carrier.id}>
+                          {carrier.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -824,11 +752,38 @@ export default function PatientInfo() {
                       <SelectValue placeholder={primaryCarrier ? "Select plan" : "Select carrier first"} />
                     </SelectTrigger>
                     <SelectContent>
-                      {primaryCarrier && INSURANCE_PLANS[primaryCarrier]?.map((plan) => (
-                        <SelectItem key={plan} value={plan}>
-                          {plan}
-                        </SelectItem>
-                      ))}
+                      {primaryCarrier && (() => {
+                        const carrier = INSURANCE_CARRIERS.find(c => c.id === primaryCarrier);
+                        if (!carrier) return null;
+                        
+                        // For BCBS, group plans by region
+                        if (carrier.id === 'bcbs') {
+                          const plansByRegion: Record<string, typeof carrier.plans> = {};
+                          carrier.plans.forEach(plan => {
+                            const region = plan.region || 'Other';
+                            if (!plansByRegion[region]) plansByRegion[region] = [];
+                            plansByRegion[region].push(plan);
+                          });
+                          
+                          return Object.entries(plansByRegion).map(([region, plans]) => (
+                            <SelectGroup key={region}>
+                              <SelectLabel>{region}</SelectLabel>
+                              {plans.map(plan => (
+                                <SelectItem key={plan.id} value={plan.id}>
+                                  {plan.regionalCarrier ? `${plan.name} (${plan.regionalCarrier})` : plan.name}
+                                </SelectItem>
+                              ))}
+                            </SelectGroup>
+                          ));
+                        }
+                        
+                        // For other carriers, show plans normally
+                        return carrier.plans.map(plan => (
+                          <SelectItem key={plan.id} value={plan.id}>
+                            {plan.name}
+                          </SelectItem>
+                        ));
+                      })()}
                     </SelectContent>
                   </Select>
                 </div>

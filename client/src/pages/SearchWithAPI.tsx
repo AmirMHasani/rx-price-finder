@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 
 import { InsurancePlanType } from "@/data/insurancePlans";
@@ -554,11 +554,38 @@ export default function SearchWithAPI() {
                         <SelectValue placeholder={selectedCarrier ? t('home.form.insurancePlaceholder') : t('home.form.selectCarrierFirst')} />
                       </SelectTrigger>
                       <SelectContent>
-                        {selectedCarrier && INSURANCE_CARRIERS.find(c => c.id === selectedCarrier)?.plans.map(plan => (
-                          <SelectItem key={plan.id} value={plan.id}>
-                            {plan.name}
-                          </SelectItem>
-                        ))}
+                        {selectedCarrier && (() => {
+                          const carrier = INSURANCE_CARRIERS.find(c => c.id === selectedCarrier);
+                          if (!carrier) return null;
+                          
+                          // For BCBS, group plans by region
+                          if (carrier.id === 'bcbs') {
+                            const plansByRegion: Record<string, typeof carrier.plans> = {};
+                            carrier.plans.forEach(plan => {
+                              const region = plan.region || 'Other';
+                              if (!plansByRegion[region]) plansByRegion[region] = [];
+                              plansByRegion[region].push(plan);
+                            });
+                            
+                            return Object.entries(plansByRegion).map(([region, plans]) => (
+                              <SelectGroup key={region}>
+                                <SelectLabel>{region}</SelectLabel>
+                                {plans.map(plan => (
+                                  <SelectItem key={plan.id} value={plan.id}>
+                                    {plan.regionalCarrier ? `${plan.name} (${plan.regionalCarrier})` : plan.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectGroup>
+                            ));
+                          }
+                          
+                          // For other carriers, show plans normally
+                          return carrier.plans.map(plan => (
+                            <SelectItem key={plan.id} value={plan.id}>
+                              {plan.name}
+                            </SelectItem>
+                          ));
+                        })()}
                       </SelectContent>
                     </Select>
                   </div>
