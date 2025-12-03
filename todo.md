@@ -281,3 +281,14 @@
 - [x] Test carrier dropdown shows only 29 parent carriers (down from 42)
 - [x] Verify regional BCBS plans appear in plan dropdown with proper grouping
 - [x] Save checkpoint
+
+
+## 🔤 Sort Insurance Carriers Alphabetically (COMPLETED ✅)
+
+- [x] Sort INSURANCE_CARRIERS array in alphabetical order by carrier name
+- [x] Keep Medicare and Medicaid at the top (most commonly used)
+- [x] Sort remaining carriers A-Z (Aetna through WellCare)
+- [x] Keep No Insurance (Cash Pay) at the bottom
+- [x] Apply sorting to both SearchWithAPI.tsx and PatientInfo.tsx
+- [x] Test carrier dropdown shows alphabetical order
+- [x] Save checkpoint

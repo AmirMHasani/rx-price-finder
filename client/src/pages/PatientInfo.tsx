@@ -733,11 +733,22 @@ export default function PatientInfo() {
                       <SelectValue placeholder="Select carrier" />
                     </SelectTrigger>
                     <SelectContent>
-                      {INSURANCE_CARRIERS.map((carrier) => (
-                        <SelectItem key={carrier.id} value={carrier.id}>
-                          {carrier.name}
-                        </SelectItem>
-                      ))}
+                      {(() => {
+                        // Sort carriers: Medicare/Medicaid first, then A-Z, then No Insurance last
+                        const priority = ['medicare', 'medicaid'];
+                        const cashPay = 'cash';
+                        
+                        const priorityCarriers = INSURANCE_CARRIERS.filter(c => priority.includes(c.id));
+                        const regularCarriers = INSURANCE_CARRIERS.filter(c => !priority.includes(c.id) && c.id !== cashPay)
+                          .sort((a, b) => a.name.localeCompare(b.name));
+                        const cashCarrier = INSURANCE_CARRIERS.filter(c => c.id === cashPay);
+                        
+                        return [...priorityCarriers, ...regularCarriers, ...cashCarrier].map(carrier => (
+                          <SelectItem key={carrier.id} value={carrier.id}>
+                            {carrier.name}
+                          </SelectItem>
+                        ));
+                      })()}
                     </SelectContent>
                   </Select>
                 </div>
