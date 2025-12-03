@@ -336,35 +336,18 @@ export default function PatientInfo() {
   return (
     <Layout>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-        {/* Page Header */}
-        <div className="bg-white border-b border-border shadow-sm">
-          <div className="container py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setLocation("/")}
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back
-                </Button>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                    <User className="w-6 h-6 text-primary-foreground" />
-                  </div>
-                  <div>
-                    <h1 className="text-2xl font-bold text-foreground">Patient Information</h1>
-                    <p className="text-sm text-muted-foreground">Manage your medical profile and insurance</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* Main Content */}
         <main className="container py-8 space-y-6">
+          {/* Page Title */}
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+              <User className="w-6 h-6 text-primary-foreground" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">Patient Information</h1>
+              <p className="text-sm text-muted-foreground">Manage your medical profile and insurance</p>
+            </div>
+          </div>
         {/* Personal Information */}
         <Card>
           <CardHeader>

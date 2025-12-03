@@ -90,10 +90,10 @@ export default function UserDashboard() {
   return (
     <Layout>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-        {/* Page Header */}
-        <div className="bg-white border-b">
-        <div className="container py-6">
-          <div className="flex items-center justify-between">
+        {/* Main Content */}
+        <div className="container py-8">
+          {/* Page Title */}
+          <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">{t('dashboard.title')}</h1>
               <p className="text-gray-600 mt-1">{t('dashboard.subtitle')}</p>
@@ -103,11 +103,6 @@ export default function UserDashboard() {
               {t('dashboard.newSearch')}
             </Button>
           </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="container py-8">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           {/* Total Searches */}

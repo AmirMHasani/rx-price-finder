@@ -123,28 +123,8 @@ export default function History() {
   return (
     <Layout>
       <div className="min-h-screen bg-gradient-to-br from-blue-100 via-indigo-50 to-purple-50">
-        {/* Page Header */}
-        <div className="bg-white border-b border-border shadow-sm">
-          <div className="container py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                onClick={() => setLocation("/")}
-                className="gap-2"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Back to Search
-              </Button>
-              <h1 className="text-2xl font-bold text-foreground">{APP_TITLE}</h1>
-            </div>
-            <LanguageToggle />
-          </div>
-          </div>
-        </div>
-
-      {/* Main Content */}
-      <main className="container py-8">
+        {/* Main Content */}
+        <main className="container py-8">
         <div className="max-w-5xl mx-auto space-y-6">
           {/* Page Header */}
           <div>

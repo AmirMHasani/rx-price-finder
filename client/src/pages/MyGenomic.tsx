@@ -295,27 +295,17 @@ export default function MyGenomic() {
   return (
     <Layout>
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
-        {/* Page Header */}
-        <div className="bg-white border-b border-border shadow-sm">
-          <div className="container py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setLocation("/")}
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back
-              </Button>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
-                  <Dna className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-2xl font-bold text-foreground">My Pharmacogenomic Profile</h1>
-                  <p className="text-sm text-muted-foreground">Personalized medication guidance based on your genetics</p>
-                </div>
+        {/* Main Content */}
+        <main className="container py-8 space-y-6">
+          {/* Page Title */}
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
+                <Dna className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-foreground">My Pharmacogenomic Profile</h1>
+                <p className="text-sm text-muted-foreground">Personalized medication guidance based on your genetics</p>
               </div>
             </div>
             {hasTest && (
@@ -325,11 +315,6 @@ export default function MyGenomic() {
               </Button>
             )}
           </div>
-          </div>
-        </div>
-
-      {/* Main Content */}
-      <main className="container py-8 space-y-6">
         {!hasTest ? (
           /* Request Test Section */
           <Card className="max-w-3xl mx-auto">
