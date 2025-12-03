@@ -6,7 +6,9 @@ import {
   History, 
   LayoutDashboard, 
   LogOut,
-  ChevronDown 
+  ChevronDown,
+  FileText,
+  Dna
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -78,6 +80,30 @@ export function UserMenu() {
             >
               <History className="w-4 h-4" />
               {t('menu.searchHistory')}
+            </button>
+
+            {/* Patient Info - Always visible */}
+            <button
+              onClick={() => {
+                setLocation('/patient-info');
+                setIsOpen(false);
+              }}
+              className="w-full px-4 py-2 text-left text-sm hover:bg-accent flex items-center gap-2"
+            >
+              <FileText className="w-4 h-4" />
+              Patient Information
+            </button>
+
+            {/* My Genomic - Always visible */}
+            <button
+              onClick={() => {
+                setLocation('/my-genomic');
+                setIsOpen(false);
+              }}
+              className="w-full px-4 py-2 text-left text-sm hover:bg-accent flex items-center gap-2"
+            >
+              <Dna className="w-4 h-4" />
+              My Pharmacogenomics
             </button>
 
             {user ? (              <>

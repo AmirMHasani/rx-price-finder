@@ -67,3 +67,52 @@
 - [x] Let users choose from available dosages in database after selecting medication
 - [x] Test with Eliquis and other medications
 - [x] Remove numeric prefixes from form names ("2. Oral Tablet" -> "Oral Tablet")
+
+## 🧬 Pharmacogenomic Testing System
+
+### Phase 1: Database Schema
+- [x] Create patient_profiles table (diseases, allergies, family_history, current_medications)
+- [x] Create insurance_info table (carrier, plan, group_number, member_id, etc.)
+- [x] Create genomic_tests table (test_status, request_date, results_date, report_url)
+- [x] Create medication_resistance table (medication, gene, resistance_level, interpretation)
+- [x] Push database schema changes with pnpm db:push
+
+### Phase 2: Patient Information Page
+- [x] Create PatientInfo.tsx page with structured forms
+- [x] Add disease selection (dropdown + "Other" field)
+- [x] Add current medications list management
+- [x] Add family history form (structured conditions)
+- [x] Add allergies form (medication/food allergies)
+- [x] Add insurance information form (carrier, plan, group, member ID, etc.)
+- [x] Implement save/update patient profile functionality
+
+### Phase 3: My Genomic Page
+- [x] Create MyGenomic.tsx page
+- [x] Add genomic testing request form
+- [x] Design medication resistance visualization (expandable categories)
+- [x] Implement color-coded resistance indicators (green/yellow/red)
+- [x] Create genomic report display (mimic real PGx reports)
+- [x] Add gene-drug interaction explanations
+- [x] Add genetic variant display (CYP2D6, CYP2C19, etc.)
+- [x] Implement accordion-based medication categories
+- [x] Add safety level legend and clinical disclaimers
+
+### Phase 4: Integration
+- [ ] Auto-populate insurance on main search page when user is logged in (TODO: API integration needed)
+- [ ] Link patient profile to search history (TODO: API integration needed)
+- [x] Add navigation to new pages in dashboard/menu
+- [x] Add routes to App.tsx for PatientInfo and MyGenomic
+- [x] Update UserMenu with Patient Information and My Pharmacogenomics links
+- [ ] Update user context to include patient profile data (TODO: API integration needed)
+
+### Phase 5: Testing & Delivery
+- [x] Test complete user flow (profile → genomic → search)
+- [ ] Verify insurance auto-population (requires backend API)
+- [x] Test medication resistance visualization
+- [ ] Verify all forms save correctly (requires backend API)
+- [x] Test navigation between pages
+- [x] Verify Patient Information page displays all sections
+- [x] Verify My Genomic page shows test results and medication categories
+- [x] Verify color-coded safety levels (green/yellow/red) display correctly
+- [x] Verify accordion expansion shows detailed gene-drug interactions
+- [ ] Save checkpoint and deliver to user

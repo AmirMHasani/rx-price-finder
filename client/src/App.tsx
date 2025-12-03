@@ -17,6 +17,8 @@ const MyDashboard = lazy(() => import("./pages/MyDashboard"));
 const History = lazy(() => import("./pages/History"));
 const TestPlaces = lazy(() => import("./pages/TestPlaces"));
 const TabsTest = lazy(() => import("./pages/TabsTest"));
+const PatientInfo = lazy(() => import("./pages/PatientInfo"));
+const MyGenomic = lazy(() => import("./pages/MyGenomic"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Loading fallback component
@@ -41,6 +43,8 @@ function Router() {
         <Route path="/results" component={Results} />
         <Route path="/test-places" component={TestPlaces} />
         <Route path="/tabs-test" component={TabsTest} />
+        <Route path="/patient-info" component={PatientInfo} />
+        <Route path="/my-genomic" component={MyGenomic} />
         <Route path="/404" component={NotFound} />
         {/* Final fallback route */}
         <Route component={NotFound} />
