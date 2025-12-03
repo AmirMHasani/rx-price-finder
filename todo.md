@@ -51,3 +51,19 @@
 - [x] Verify copay calculation logic in realPricingService.ts - Logic is correct, issue was ID mismatch
 - [x] Test brand vs generic medication pricing with different insurance plans
 - [x] Fix insurance pricing algorithm - Updated insurance plan IDs to match
+## 🐛 Bug: Pharmacy Names Display Issues
+
+- [x] Investigate pharmacy naming in Results page
+- [ ] Check Google Places API pharmacy name extraction
+- [ ] Verify getPharmacyDisplayName() function logic
+- [ ] Test with multiple pharmacy chains (CVS, Walgreens, Walmart, etc.)
+- [ ] Fix pharmacy name display to show clean chain names
+
+## 🐛 Bug: Medication Search Display Issues
+
+- [x] Clean up medication display names (remove RxNorm formatting like "{74 (apixaban...)")
+- [x] Filter out confusing medication options (packs, kits, starter packs)
+- [x] Show only base medications in search results
+- [x] Let users choose from available dosages in database after selecting medication
+- [x] Test with Eliquis and other medications
+- [x] Remove numeric prefixes from form names ("2. Oral Tablet" -> "Oral Tablet")

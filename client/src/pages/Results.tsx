@@ -12,7 +12,7 @@ import { ArrowLeft, MapPin, Phone, Clock, Truck, Car, DollarSign, TrendingDown, 
 import { MapView } from "@/components/Map";
 // Removed: getMockMedicationId - now using real Cost Plus API pricing
 import { generatePharmaciesForZip } from "@/services/pharmacyGenerator";
-import { fetchRealPharmacies, calculateDistance, type RealPharmacy } from "@/services/realPharmacyService";
+import { fetchRealPharmacies, calculateDistance, getCleanPharmacyName, type RealPharmacy } from "@/services/realPharmacyService";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getZipCodeLocation } from "@/services/zipCodeService";
@@ -738,7 +738,7 @@ export default function Results() {
                         {/* Top Row: Pharmacy Name and Badge */}
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <h3 className="font-bold text-lg text-foreground">{result.pharmacy.name}</h3>
+                            <h3 className="font-bold text-lg text-foreground">{getCleanPharmacyName(result.pharmacy.name)}</h3>
                             {index === 0 && (
                               <Badge className="bg-green-500 text-white text-xs px-2 py-0.5">
                                 ⭐ Lowest Price

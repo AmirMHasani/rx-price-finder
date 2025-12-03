@@ -13,7 +13,7 @@ import { LanguageToggle } from "@/components/LanguageToggle";
 import { UserMenu } from "@/components/UserMenu";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useLocation } from "wouter";
-import { searchMedications, getMedicationDetails, type MedicationResult } from "@/services/medicationService";
+import { searchMedications, getMedicationDetails, getCleanMedicationName, type MedicationResult } from "@/services/medicationService";
 import { searchCommonMedications } from "@/data/commonMedications";
 import { getSearchHistory, clearSearchHistory, formatTimeAgo, type SearchHistoryItem } from "@/services/searchHistory";
 
@@ -384,15 +384,10 @@ export default function SearchWithAPI() {
                               }}
                               className="w-full text-left px-4 py-3 hover:bg-muted focus:bg-muted focus:outline-none focus:ring-2 focus:ring-primary border-b border-border last:border-b-0 transition-colors"
                             >
-                              <div className="font-medium text-sm">{medication.brandName || medication.name}</div>
-                              {medication.genericName && medication.genericName !== medication.brandName && (
+                              <div className="font-medium text-sm">{getCleanMedicationName(medication)}</div>
+                              {medication.genericName && medication.brandName && medication.genericName !== medication.brandName && (
                                 <div className="text-xs text-muted-foreground">
-                                  Generic: {medication.genericName}
-                                </div>
-                              )}
-                              {medication.strength && (
-                                <div className="text-xs text-muted-foreground">
-                                  {medication.strength}
+                                  {medication.type}
                                 </div>
                               )}
                             </button>
@@ -408,10 +403,7 @@ export default function SearchWithAPI() {
 
                       {selectedMedication && (
                         <div className="p-3 bg-green-50 border border-green-200 rounded-md">
-                          <p className="text-sm font-medium text-green-900">✓ Selected: {selectedMedication.brandName || selectedMedication.name}</p>
-                          {selectedMedication.genericName && selectedMedication.genericName !== selectedMedication.brandName && (
-                            <p className="text-xs text-green-700">Generic: {selectedMedication.genericName}</p>
-                          )}
+                          <p className="text-sm font-medium text-green-900">✓ Selected: {getCleanMedicationName(selectedMedication)}</p>
                         </div>
                       )}
                     </div>

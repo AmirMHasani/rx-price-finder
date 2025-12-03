@@ -58,6 +58,43 @@ function extractBrandName(name: string): string {
 }
 
 /**
+ * Clean up medication display name for user-friendly presentation
+ * Removes confusing RxNorm formatting and shows brand or generic name clearly
+ */
+export function getCleanMedicationName(medication: MedicationResult): string {
+  const brandName = extractBrandName(medication.name);
+  const genericName = extractGenericName(medication.name);
+  const strength = medication.strength || extractStrength(medication.name);
+  
+  // If there's a brand name in brackets, use it
+  if (brandName && brandName !== medication.name && !brandName.includes('{')) {
+    return strength ? `${brandName} (${genericName} ${strength})` : `${brandName} (${genericName})`;
+  }
+  
+  // Otherwise use generic name with strength
+  return strength ? `${genericName} ${strength}` : genericName;
+}
+
+/**
+ * Check if medication should be filtered out (packs, kits, starter packs, etc.)
+ */
+function shouldFilterMedication(name: string): boolean {
+  const lowerName = name.toLowerCase();
+  const filterPatterns = [
+    'pack',
+    'kit',
+    'starter',
+    '{', // RxNorm pack notation
+    '}',
+    'dose pack',
+    'therapy pack',
+    'combination pack'
+  ];
+  
+  return filterPatterns.some(pattern => lowerName.includes(pattern));
+}
+
+/**
  * Extract dose form from medication name
  * e.g., "atorvastatin 20 MG Oral Tablet" -> "Oral Tablet"
  */
@@ -143,7 +180,9 @@ async function getAvailableForms(rxcui: string): Promise<string[]> {
         if (group.propName === "DOSE_FORM" && group.conceptProperties) {
           group.conceptProperties.forEach((prop: any) => {
             if (prop.name) {
-              forms.add(prop.name);
+              // Clean up form name - remove numeric prefixes like "2. Oral Tablet" -> "Oral Tablet"
+              const cleanForm = prop.name.replace(/^\d+\.\s*/, '');
+              forms.add(cleanForm);
             }
           });
         }
@@ -193,10 +232,11 @@ export async function searchMedications(searchTerm: string): Promise<MedicationR
     for (const group of data.drugGroup.conceptGroup) {
       const tty = group.tty;
       
-      // Include brand names, generic names, and branded packs
+      // Include brand names, generic names, and clinical drugs
       // BN = Brand Name, GN = Generic Name, SBD = Semantic Branded Drug
-      // SCD = Semantic Clinical Drug, IN = Ingredient, BPCK = Branded Pack
-      if (!["BN", "GN", "SBD", "SCD", "IN", "BPCK", "GPCK"].includes(tty)) {
+      // SCD = Semantic Clinical Drug, IN = Ingredient
+      // Exclude: BPCK = Branded Pack, GPCK = Generic Pack (confusing for users)
+      if (!["BN", "GN", "SBD", "SCD", "IN"].includes(tty)) {
         continue;
       }
 
@@ -221,6 +261,12 @@ export async function searchMedications(searchTerm: string): Promise<MedicationR
         
         if (hasSpanishIndicator) {
           console.log(`Skipping Spanish drug name: ${name}`);
+          continue;
+        }
+        
+        // Filter out packs, kits, and confusing options
+        if (shouldFilterMedication(name)) {
+          console.log(`Skipping pack/kit medication: ${name}`);
           continue;
         }
 

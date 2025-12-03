@@ -76,8 +76,17 @@ export async function fetchRealPharmacies(
     console.log('✅ [REAL PHARMACIES] Found', placesResult.length, 'pharmacies');
 
     // Step 3: Transform to our pharmacy format
+    // Priority: Known pharmacy chains first, then independent pharmacies
     const pharmacies: RealPharmacy[] = placesResult
       .filter(place => place.geometry?.location && place.name && place.vicinity)
+      .sort((a, b) => {
+        // Prioritize known chains
+        const aIsChain = isKnownPharmacyChain(a.name!);
+        const bIsChain = isKnownPharmacyChain(b.name!);
+        if (aIsChain && !bIsChain) return -1;
+        if (!aIsChain && bIsChain) return 1;
+        return 0;
+      })
       .map(place => {
         const lat = place.geometry!.location!.lat();
         const lng = place.geometry!.location!.lng();
@@ -145,4 +154,40 @@ export function calculateDistance(
 
 function toRad(degrees: number): number {
   return degrees * (Math.PI / 180);
+}
+
+/**
+ * Check if a place name is a known pharmacy chain
+ */
+function isKnownPharmacyChain(name: string): boolean {
+  const lowerName = name.toLowerCase();
+  const chains = ['cvs', 'walgreens', 'walmart', 'rite aid', 'costco', 'target', 'stop & shop', 'kroger', 'safeway', 'publix'];
+  return chains.some(chain => lowerName.includes(chain));
+}
+
+/**
+ * Get clean display name for pharmacy
+ */
+export function getCleanPharmacyName(name: string): string {
+  const lowerName = name.toLowerCase();
+  
+  // Known chain patterns
+  if (lowerName.includes('cvs')) return 'CVS Pharmacy';
+  if (lowerName.includes('walgreens')) return 'Walgreens';
+  if (lowerName.includes('walmart')) return 'Walmart Pharmacy';
+  if (lowerName.includes('rite aid')) return 'Rite Aid';
+  if (lowerName.includes('costco')) return 'Costco Pharmacy';
+  if (lowerName.includes('target')) return 'Target Pharmacy';
+  if (lowerName.includes('stop & shop')) return 'Stop & Shop Pharmacy';
+  if (lowerName.includes('kroger')) return 'Kroger Pharmacy';
+  if (lowerName.includes('safeway')) return 'Safeway Pharmacy';
+  if (lowerName.includes('publix')) return 'Publix Pharmacy';
+  
+  // For health centers and clinics, add "Pharmacy" if not present
+  if ((lowerName.includes('health') || lowerName.includes('medical') || lowerName.includes('clinic')) && !lowerName.includes('pharmacy')) {
+    return `${name} Pharmacy`;
+  }
+  
+  // Return original name for independent pharmacies
+  return name;
 }
