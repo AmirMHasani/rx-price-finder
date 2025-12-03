@@ -338,3 +338,12 @@
 - [x] Test with metformin (simple tablet) - PASS
 - [x] Verify essential info retained (strength, form) - PASS
 - [x] Save checkpoint
+
+
+## 🍔 Add Menu to All Pages
+
+- [ ] Identify all pages in the app (Home, Results, PatientInfo, MyGenomic, History, etc.)
+- [ ] Create shared Layout component with menu/header
+- [ ] Apply Layout to all routes in App.tsx
+- [ ] Test navigation from every page
+- [ ] Save checkpoint
