@@ -709,7 +709,54 @@ export default function Results() {
             )}
 
             {/* Pharmacy Results */}
-            {filteredAndSortedResults.length > 0 ? (
+            {/* Show pharmacies even if pricing is not available */}
+            {realPharmacies.length > 0 && filteredAndSortedResults.length === 0 ? (
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-center space-y-4 mb-6">
+                    <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto">
+                      <DollarSign className="w-8 h-8 text-amber-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-foreground mb-2">Pricing Not Available</h3>
+                      <p className="text-muted-foreground max-w-md mx-auto">
+                        We don't have pricing data for <strong>{medicationName}</strong> yet. However, here are nearby pharmacies where you can check prices:
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Show pharmacy list without pricing */}
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-foreground">Nearby Pharmacies ({realPharmacies.length})</h4>
+                    {realPharmacies.map((pharmacy, index) => (
+                      <div key={pharmacy.placeId} className="p-4 border rounded-lg hover:border-blue-500 transition-colors">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <h3 className="font-bold text-lg text-foreground">{getCleanPharmacyName(pharmacy.name)}</h3>
+                            <p className="text-sm text-muted-foreground">{pharmacy.address}</p>
+                            {pharmacy.phone && (
+                              <p className="text-sm text-muted-foreground mt-1">
+                                <Phone className="w-3 h-3 inline mr-1" />
+                                {pharmacy.phone}
+                              </p>
+                            )}
+                          </div>
+                          <Badge variant="outline" className="ml-2">
+                            {pharmacy.chain && pharmacy.chain !== 'independent' ? pharmacy.chain.toUpperCase() : 'Independent'}
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="mt-6 text-center">
+                    <Button onClick={() => setLocation("/")} variant="default">
+                      Search Another Medication
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : filteredAndSortedResults.length > 0 ? (
               <div className="space-y-4">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3">

@@ -101,24 +101,60 @@ export async function fetchRealPharmacies(
         const isPharmacyType = types.includes('pharmacy');
         
         // FIRST: Exclude person names and medical facilities BEFORE checking if it's a pharmacy
-        // Exclude if name appears to be a person's name (has title like BSc, MD, PharmD)
-        if (name.match(/\b(bsc|md|pharmd|phd|rph|do|dds|dvm)\b/)) {
+        // Exclude if name appears to be a person's name (has title like BSc, BS, MD, PharmD)
+        if (name.match(/\b(bs|bsc|md|pharmd|phd|rph|do|dds|dvm|np|pa)\b/)) {
           console.log(`❌ [FILTER] Excluding person name with title: ${place.name}`);
           return false;
         }
         
-        // Exclude if name has typical person name patterns (First Last, Last First)
-        if (name.match(/^[a-z]+ [a-z]+,?\s*[a-z]*$/)) {
-          console.log(`❌ [FILTER] Excluding person name pattern: ${place.name}`);
+        // Exclude if name has typical person name patterns
+        // Pattern 1: "First Last, Title" or "First M. Last, Title"
+        if (name.match(/^[a-z]+\s+[a-z]\.?\s+[a-z]+,/)) {
+          console.log(`❌ [FILTER] Excluding person name with title: ${place.name}`);
           return false;
+        }
+        
+        // Pattern 2: "First Last" (two words only, capitalized like person names)
+        // But exclude common pharmacy words
+        const commonPharmacyWords = ['pharmacy', 'drug', 'drugs', 'rx', 'health', 'care', 'mart', 'store', 'discount', 'family', 'community', 'neighborhood'];
+        const words = place.name!.split(/\s+/);
+        if (words.length === 2 && !commonPharmacyWords.some(word => name.includes(word))) {
+          // Check if both words are capitalized (typical person name)
+          if (words.every(word => word.charAt(0) === word.charAt(0).toUpperCase())) {
+            console.log(`❌ [FILTER] Excluding likely person name: ${place.name}`);
+            return false;
+          }
+        }
+        
+        // Pattern 3: "First Middle Last" (three words, all capitalized - person name)
+        // Examples: "Hawkins White Maria", "John A. Smith", "Mary Jane Doe"
+        if (words.length === 3) {
+          // Check if all three words are capitalized (typical person name pattern)
+          const allCapitalized = words.every(word => /^[A-Z][a-z]/.test(word) || /^[A-Z]\.$/.test(word));
+          
+          // Also check if it doesn't contain pharmacy-related keywords
+          const hasPharmacyKeyword = commonPharmacyWords.some(word => name.includes(word));
+          
+          if (allCapitalized && !hasPharmacyKeyword) {
+            console.log(`❌ [FILTER] Excluding three-word person name: ${place.name}`);
+            return false;
+          }
         }
         
         // Exclude medical facilities even if they have 'pharmacy' in name
         if (name.includes('hospital') || name.includes('clinic') || 
             name.includes('medical center') || name.includes('health center') ||
             name.includes('urgent care') || name.includes('doctor') ||
+            name.includes('physicians') || name.includes('associates') ||
             name.includes('veterans administration') || name.includes('va medical')) {
           console.log(`❌ [FILTER] Excluding medical facility: ${place.name}`);
+          return false;
+        }
+        
+        // Exclude single-word names that are likely not pharmacies
+        const singleWordExclusions = ['reads', 'wellness', 'care', 'health'];
+        if (words.length === 1 && singleWordExclusions.includes(name)) {
+          console.log(`❌ [FILTER] Excluding single-word non-pharmacy: ${place.name}`);
           return false;
         }
         
