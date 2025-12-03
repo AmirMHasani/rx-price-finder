@@ -77,8 +77,58 @@ export async function fetchRealPharmacies(
 
     // Step 3: Transform to our pharmacy format
     // Priority: Known pharmacy chains first, then independent pharmacies
+    
+    // Known pharmacy chains to prioritize
+    const KNOWN_CHAINS = [
+      'cvs', 'walgreens', 'walmart', 'rite aid', 'costco', 'target',
+      'kroger', 'safeway', 'publix', 'wegmans', 'giant', 'stop & shop',
+      'harris teeter', 'albertsons', 'vons', 'jewel', 'osco', 'sav-on',
+      'duane reade', 'eckerd', 'thrifty', 'longs drugs', 'medicine shoppe',
+      'health mart', 'good neighbor', 'independent pharmacy', 'family pharmacy',
+      'community pharmacy', 'discount pharmacy', 'neighborhood pharmacy'
+    ];
+    
     const pharmacies: RealPharmacy[] = placesResult
-      .filter(place => place.geometry?.location && place.name && place.vicinity)
+      .filter(place => {
+        if (!place.geometry?.location || !place.name || !place.vicinity) return false;
+        
+        const name = place.name.toLowerCase();
+        const types = place.types || [];
+        
+        // STRICT FILTER: Must be a known chain OR explicitly contain 'pharmacy' in name
+        const isKnownChain = KNOWN_CHAINS.some(chain => name.includes(chain));
+        const hasPharmacyInName = name.includes('pharmacy') || name.includes('drug') || name.includes('rx');
+        
+        if (!isKnownChain && !hasPharmacyInName) {
+          console.log(`❌ [FILTER] Not a recognized pharmacy: ${place.name}`);
+          return false;
+        }
+        
+        // Exclude medical facilities even if they have 'pharmacy' in name
+        if (name.includes('hospital') || name.includes('clinic') || 
+            name.includes('medical center') || name.includes('health center') ||
+            name.includes('urgent care') || name.includes('doctor') ||
+            name.includes('veterans administration')) {
+          console.log(`❌ [FILTER] Excluding medical facility: ${place.name}`);
+          return false;
+        }
+        
+        // Exclude if name appears to be a person's name (has title like BSc, MD, PharmD)
+        if (name.match(/\b(bsc|md|pharmd|phd|rph|do|dds|dvm)\b/)) {
+          console.log(`❌ [FILTER] Excluding person name with title: ${place.name}`);
+          return false;
+        }
+        
+        // Exclude if name has typical person name patterns (First Last, Last First)
+        // Match patterns like "John Smith" or "Smith, John" or "John Smith, BSc"
+        if (name.match(/^[a-z]+ [a-z]+,?\s*[a-z]*$/)) {
+          console.log(`❌ [FILTER] Excluding person name pattern: ${place.name}`);
+          return false;
+        }
+        
+        console.log(`✅ [FILTER] Accepted pharmacy: ${place.name}`);
+        return true;
+      })
       .sort((a, b) => {
         // Prioritize known chains
         const aIsChain = isKnownPharmacyChain(a.name!);

@@ -287,15 +287,30 @@ export async function fetchRealPricing(
       console.log(`📊 [DOSING] Adjusted quantity: ${quantity} → ${actualQuantity} (${dosingInfo.description})`);
     }
     
-    // STEP 1: Check if this is a known brand medication in our database
-    const brandData = getBrandMedicationData(cleanName);
+    // STEP 1: Check generic pricing database first (most accurate for common generics)
+    const { getGenericMedicationPrice } = await import('../data/genericPricing');
+    const genericPricing = getGenericMedicationPrice(cleanName, strength, medicationForm);
     
     let wholesalePrice: number;
     let medicationTier: 'tier1' | 'tier2' | 'tier3' | 'tier4';
     let usingEstimate = false;
     let isBrandMedication = false; // Track if this is a brand drug
     
-    if (brandData) {
+    if (genericPricing) {
+      // Found in generic pricing database - use this (most accurate for common generics)
+      wholesalePrice = Math.round(genericPricing.wholesalePricePerUnit * actualQuantity * 100) / 100;
+      medicationTier = 'tier1'; // Generics are tier 1
+      isBrandMedication = false;
+      usingEstimate = false;
+      
+      console.log('✅ [GENERIC DATABASE] Found:', cleanName, strength);
+      console.log('   Wholesale: $' + wholesalePrice + ' ($' + genericPricing.wholesalePricePerUnit.toFixed(4) + '/unit × ' + actualQuantity + ')');
+      console.log('   Source:', genericPricing.source);
+    } else {
+      // STEP 2: Check if this is a known brand medication in our database
+      const brandData = getBrandMedicationData(cleanName);
+      
+      if (brandData) {
       // Known brand medication - use database pricing (most accurate for expensive brands)
       wholesalePrice = Math.round(brandData.wholesalePricePerUnit * actualQuantity * 100) / 100;
       medicationTier = brandData.tier;
@@ -409,6 +424,7 @@ export async function fetchRealPricing(
         usingEstimate = false;
       }
     }
+    } // Close the else block for genericPricing check
     
     console.log(usingEstimate 
       ? '📊 [REAL PRICING] Using estimated wholesale: $' + wholesalePrice
