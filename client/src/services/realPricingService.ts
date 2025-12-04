@@ -81,14 +81,15 @@ function hashString(str: string): number {
  * @param pharmacyName - Name of the pharmacy
  * @param isBrand - Whether this is a brand medication (uses higher markups)
  */
-function getPharmacyMarkup(pharmacyName: string, isBrand: boolean = false): number {
+function getPharmacyMarkup(pharmacyName: string, uniqueId: string, isBrand: boolean = false): number {
   const lowerName = pharmacyName.toLowerCase();
   const markupTable = isBrand ? BRAND_PHARMACY_MARKUPS : PHARMACY_MARKUPS;
   
   for (const [key, range] of Object.entries(markupTable)) {
     if (lowerName.includes(key)) {
-      // Deterministic markup within the pharmacy's range based on name hash
-      const hash = hashString(pharmacyName);
+      // Deterministic markup within the pharmacy's range based on UNIQUE ID (not name)
+      // This ensures each location gets different pricing even if they have the same chain name
+      const hash = hashString(uniqueId);
       const normalizedHash = (hash % 1000) / 1000; // 0 to 1
       return range.min + normalizedHash * (range.max - range.min);
     }
@@ -96,7 +97,7 @@ function getPharmacyMarkup(pharmacyName: string, isBrand: boolean = false): numb
   
   // Default range with deterministic variation
   const defaultRange = markupTable.default;
-  const hash = hashString(pharmacyName);
+  const hash = hashString(uniqueId);
   const normalizedHash = (hash % 1000) / 1000; // 0 to 1
   return defaultRange.min + normalizedHash * (defaultRange.max - defaultRange.min);
 }
@@ -447,7 +448,7 @@ export async function fetchRealPricing(
     const pricingResults: PharmacyPricing[] = pharmacies.map(pharmacy => {
       // 1. Calculate cash price with pharmacy-specific markup
       // Use brand markup for brand medications (3-5x) vs generic markup (1.3-1.7x)
-      const pharmacyMarkup = getPharmacyMarkup(pharmacy.name, isBrandMedication);
+      const pharmacyMarkup = getPharmacyMarkup(pharmacy.name, pharmacy.placeId, isBrandMedication);
       const cashPrice = Math.round(wholesalePrice * pharmacyMarkup * 100) / 100;
       
       // 2. Calculate insurance copay first (needed for membership price)
@@ -456,7 +457,7 @@ export async function fetchRealPricing(
       if (realInsuranceCopay !== null) {
         // Add pharmacy-specific variation to formulary copay (±10%)
         // This reflects real-world differences in pharmacy dispensing fees and processing
-        const hash = hashString(pharmacy.name + medicationName);
+        const hash = hashString(pharmacy.placeId + medicationName);
         const variationPercent = ((hash % 20) - 10) / 100; // -10% to +10%
         const variationAmount = realInsuranceCopay * variationPercent;
         insurancePrice = Math.round((realInsuranceCopay + variationAmount) * 100) / 100;
@@ -493,7 +494,7 @@ export async function fetchRealPricing(
       
       // 4. Calculate coupon price (not all pharmacies accept all coupons)
       // Deterministically decide if pharmacy accepts coupons based on name hash
-      const hash = hashString(pharmacy.name);
+      const hash = hashString(pharmacy.placeId);
       const acceptsCoupons = (hash % 10) < 7; // 70% of pharmacies accept coupons
       let couponPrice: number | undefined;
       let couponProvider: string | undefined;
