@@ -57,7 +57,7 @@ export async function fetchRealPharmacies(
     
     const request: google.maps.places.PlaceSearchRequest = {
       location: location,
-      radius: 16000, // 16km radius (about 10 miles) - increased to get more pharmacies
+      radius: 25000, // 25km radius (about 15.5 miles) - expanded to find more pharmacy chains
       type: 'pharmacy',
       keyword: 'pharmacy drugstore', // Add keyword to improve results
     };
@@ -239,10 +239,12 @@ export async function fetchRealPharmacies(
           chain,
         };
       })
-      .slice(0, 12); // Limit to 12 pharmacies
+    
+    // Apply chain diversity logic to ensure variety
+    const diversePharmacies = ensureChainDiversity(pharmacies, 12);
 
-    console.log('✅ [REAL PHARMACIES] Returning', pharmacies.length, 'formatted pharmacies');
-    return pharmacies;
+    console.log('✅ [REAL PHARMACIES] Returning', diversePharmacies.length, 'formatted pharmacies');
+    return diversePharmacies;
 
   } catch (error) {
     console.error('❌ [REAL PHARMACIES] Error fetching pharmacies:', error);
@@ -285,6 +287,53 @@ function isKnownPharmacyChain(name: string): boolean {
   const lowerName = name.toLowerCase();
   const chains = ['cvs', 'walgreens', 'walmart', 'rite aid', 'costco', 'target', 'stop & shop', 'kroger', 'safeway', 'publix'];
   return chains.some(chain => lowerName.includes(chain));
+}
+
+/**
+ * Ensure chain diversity in pharmacy results
+ * Prioritizes getting at least one pharmacy from each major chain (if available)
+ * then fills remaining slots with closest pharmacies
+ */
+function ensureChainDiversity(pharmacies: RealPharmacy[], limit: number): RealPharmacy[] {
+  const majorChains = ['cvs', 'walgreens', 'walmart', 'costco', 'target', 'riteaid'];
+  const result: RealPharmacy[] = [];
+  const usedPlaceIds = new Set<string>();
+  
+  // Step 1: Get one pharmacy from each major chain (if available)
+  for (const chain of majorChains) {
+    const chainPharmacy = pharmacies.find(p => 
+      p.chain === chain && !usedPlaceIds.has(p.placeId)
+    );
+    if (chainPharmacy) {
+      result.push(chainPharmacy);
+      usedPlaceIds.add(chainPharmacy.placeId);
+    }
+  }
+  
+  console.log(`✅ [DIVERSITY] Added ${result.length} pharmacies from major chains`);
+  
+  // Step 2: Fill remaining slots with closest pharmacies (prioritizing independents for diversity)
+  const remaining = pharmacies.filter(p => !usedPlaceIds.has(p.placeId));
+  const independents = remaining.filter(p => p.chain === 'independent');
+  const otherChains = remaining.filter(p => p.chain !== 'independent');
+  
+  // Add independents first for diversity
+  for (const pharmacy of independents) {
+    if (result.length >= limit) break;
+    result.push(pharmacy);
+    usedPlaceIds.add(pharmacy.placeId);
+  }
+  
+  // Then add other chains
+  for (const pharmacy of otherChains) {
+    if (result.length >= limit) break;
+    result.push(pharmacy);
+    usedPlaceIds.add(pharmacy.placeId);
+  }
+  
+  console.log(`✅ [DIVERSITY] Final count: ${result.length} pharmacies (${result.filter(p => p.chain === 'independent').length} independents, ${result.filter(p => p.chain !== 'independent').length} chains)`);
+  
+  return result;
 }
 
 /**

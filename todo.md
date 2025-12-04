@@ -138,3 +138,15 @@ Major milestones:
 - ✅ Bilingual support (EN/ES)
 - ✅ Pharmacogenomics dashboard
 - ✅ Patient information management
+
+
+## 🐛 Pharmacy Search Diversity - PARTIALLY FIXED ✅
+
+- [x] Investigated - Google Places API returns only CVS for Boston 02108
+- [x] Confirmed all 12 results are CVS at different addresses
+- [x] Manhattan 10001 works correctly (shows Duane Reade, Walgreens, independents)
+- [x] Expanded search radius from 16km to 25km (15.5 miles)
+- [x] Added chain diversity logic to prioritize one pharmacy from each major chain
+- [x] Tested with Boston 02108 - now shows Eastern Pharmacy and Boston Medical Center (independents)
+- [ ] **Issue**: Walgreens, Walmart, Costco, Target don't exist within 25km of Boston 02108
+- [ ] **Solution**: Consider adding "virtual" pricing for major chains even if not nearby
