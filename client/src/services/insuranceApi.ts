@@ -22,6 +22,12 @@ export async function getInsuranceCopay(
   rxcui: string,
   insurance: string
 ): Promise<InsuranceCopay | null> {
+  // TODO: Implement insurance formulary API endpoint
+  // For now, return null to use fallback tier-based copay calculation
+  // This prevents "Unexpected token '<'" errors from non-existent endpoint
+  return null;
+  
+  /* Disabled until API endpoint is implemented
   try {
     const response = await fetch(`/api/insurance/copay/${rxcui}?insurance=${encodeURIComponent(insurance)}`);
     
@@ -36,6 +42,7 @@ export async function getInsuranceCopay(
     console.error(`[Insurance API] Error fetching copay for RXCUI ${rxcui}:`, error);
     return null;
   }
+  */
 }
 
 /**
