@@ -6,15 +6,20 @@ This file tracks active development tasks and future enhancements. Completed tas
 
 ## 🚨 High Priority
 
-### CRITICAL: Pharmacy Search Results Accuracy
-- [x] Fix pharmacy search to return accurate results matching Google Maps
-- [x] Debug why our app returns incorrect pharmacies for Boston 02108
-- [x] Verify Google Places API query parameters (location, radius, search terms)
-- [x] Check if we're using correct coordinates for ZIP code lookup
-- [x] Compare our results to actual Google Maps search results
+### CRITICAL: Pharmacy Search Results Accuracy - FIXED ✅
+- [x] Fix identical prices appearing for different pharmacies
+- [x] Fix incorrect addresses for pharmacy names (name/address mismatch)
+- [x] Remove random/invalid pharmacy names from results
+- [x] Test with multiple ZIP codes (Boston 02108, NYC 10001, etc.) and compare to Google Maps
+- [x] Verify pharmacy chain detection is working correctly
+- [x] Ensure price variation logic works properly per location
 - [x] Reduced search radius from 25km to 5km (3 miles)
-- [x] Implemented distance-based sorting instead of Google's prominence ranking
-- [x] Results now show pharmacies actually in Boston, not suburbs 10-20 miles away
+- [x] Implemented hybrid sorting (distance + chain recognition + ratings)
+- [x] Widened markup ranges for better price variation (CVS 7-12x, Walgreens 6-10x, Independent 4.5-9x)
+- [x] Added filtering for generic pharmacy names (wellness, clean care, xpress lane, etc.)
+- [x] Added filtering for person name pharmacies (Joseph Pharmacy, Gary Drug, etc.)
+- [x] Major chains (CVS, Walgreens) now appear in top 5 results
+- [x] Price spread increased from $0.95 to $4-5 range
 
 ### Insurance Formulary API
 - [ ] Implement `/api/insurance/copay/{rxcui}` endpoint

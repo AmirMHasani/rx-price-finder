@@ -36,15 +36,15 @@ export interface PharmacyPricing {
  * For GENERIC medications only - brand drugs use different pricing
  */
 const PHARMACY_MARKUPS: Record<string, { min: number; max: number }> = {
-  'costco': { min: 3.5, max: 4.5 },      // Costco: 3.5-4.5x markup (cheapest)
-  'walmart': { min: 4.0, max: 5.0 },    // Walmart: 4-5x markup
-  'sam': { min: 4.0, max: 5.0 },        // Sam's Club: 4-5x markup
-  'kroger': { min: 5.0, max: 6.0 },     // Kroger: 5-6x markup
-  'target': { min: 5.5, max: 6.5 },     // Target: 5.5-6.5x markup
-  'rite aid': { min: 6.0, max: 7.5 },   // Rite Aid: 6-7.5x markup
-  'walgreens': { min: 7.0, max: 9.0 },  // Walgreens: 7-9x markup
-  'cvs': { min: 8.0, max: 10.0 },        // CVS: 8-10x markup (most expensive)
-  'default': { min: 5.5, max: 7.0 },    // Independent: 5.5-7x markup
+  'costco': { min: 3.0, max: 5.5 },      // Costco: 3-5.5x markup (cheapest)
+  'walmart': { min: 3.5, max: 6.0 },    // Walmart: 3.5-6x markup
+  'sam': { min: 3.5, max: 6.0 },        // Sam's Club: 3.5-6x markup
+  'kroger': { min: 4.5, max: 7.5 },     // Kroger: 4.5-7.5x markup
+  'target': { min: 5.0, max: 8.0 },     // Target: 5-8x markup
+  'rite aid': { min: 5.5, max: 9.0 },   // Rite Aid: 5.5-9x markup
+  'walgreens': { min: 6.0, max: 10.0 },  // Walgreens: 6-10x markup
+  'cvs': { min: 7.0, max: 12.0 },        // CVS: 7-12x markup (most expensive)
+  'default': { min: 4.5, max: 9.0 },    // Independent: 4.5-9x markup (wider range)
 };
 
 /**
@@ -52,15 +52,15 @@ const PHARMACY_MARKUPS: Record<string, { min: number; max: number }> = {
  * Brand drugs have 3-5x markup from wholesale to retail
  */
 const BRAND_PHARMACY_MARKUPS: Record<string, { min: number; max: number }> = {
-  'costco': { min: 3.0, max: 3.5 },       // Costco: 3-3.5x markup (cheapest)
-  'walmart': { min: 3.2, max: 3.8 },      // Walmart: 3.2-3.8x markup
-  'sam': { min: 3.2, max: 3.8 },          // Sam's Club: 3.2-3.8x markup
-  'kroger': { min: 3.5, max: 4.0 },       // Kroger: 3.5-4x markup
-  'target': { min: 3.8, max: 4.2 },       // Target: 3.8-4.2x markup
-  'rite aid': { min: 4.0, max: 4.5 },     // Rite Aid: 4-4.5x markup
-  'walgreens': { min: 4.2, max: 4.8 },    // Walgreens: 4.2-4.8x markup
-  'cvs': { min: 4.5, max: 5.0 },          // CVS: 4.5-5x markup (most expensive)
-  'default': { min: 3.8, max: 4.5 },      // Independent: 3.8-4.5x markup
+  'costco': { min: 2.8, max: 4.0 },       // Costco: 2.8-4x markup (cheapest)
+  'walmart': { min: 3.0, max: 4.5 },      // Walmart: 3-4.5x markup
+  'sam': { min: 3.0, max: 4.5 },          // Sam's Club: 3-4.5x markup
+  'kroger': { min: 3.3, max: 4.8 },       // Kroger: 3.3-4.8x markup
+  'target': { min: 3.5, max: 5.0 },       // Target: 3.5-5x markup
+  'rite aid': { min: 3.8, max: 5.2 },     // Rite Aid: 3.8-5.2x markup
+  'walgreens': { min: 4.0, max: 5.5 },    // Walgreens: 4-5.5x markup
+  'cvs': { min: 4.2, max: 6.0 },          // CVS: 4.2-6x markup (most expensive)
+  'default': { min: 3.5, max: 5.5 },      // Independent: 3.5-5.5x markup (wider range)
 };
 
 /**

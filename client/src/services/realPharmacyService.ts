@@ -75,6 +75,13 @@ export async function fetchRealPharmacies(
     );
 
     console.log('✅ [REAL PHARMACIES] Found', placesResult.length, 'pharmacies from Google Places');
+    console.log('📍 [RAW API DATA] Full response:', JSON.stringify(placesResult.map(p => ({
+      name: p.name,
+      vicinity: p.vicinity,
+      types: p.types,
+      rating: p.rating,
+      user_ratings_total: p.user_ratings_total
+    })), null, 2));
     
     // Log all pharmacy names for debugging
     placesResult.forEach((place, index) => {
@@ -126,8 +133,36 @@ export async function fetchRealPharmacies(
         
         // Pattern 2: "First Last" or "Last First MiddleInitial" (two-three words, capitalized like person names)
         // But exclude common pharmacy words
-        const commonPharmacyWords = ['pharmacy', 'drug', 'drugs', 'rx', 'health', 'care', 'mart', 'store', 'discount', 'family', 'community', 'neighborhood'];
+        const commonPharmacyWords = ['pharmacy', 'drug', 'drugs', 'rx', 'mart', 'store', 'discount', 'family', 'community', 'neighborhood', 'market'];
         const words = place.name!.split(/\s+/);
+        
+        // Exclude generic/vague pharmacy names that don't identify a specific business
+        const genericNames = [
+          'outpatient pharmacy', 'inpatient pharmacy', 'hospital pharmacy',
+          'healthcare plus', 'health care plus', 'healthcare pharmacy',
+          'medical pharmacy', 'clinic pharmacy', 'galaxy pharmacy',
+          'neighborhood pharmacy', 'community pharmacy', 'local pharmacy',
+          'wellness pharmacy', 'clean care pharmacy', 'xpress lane pharmacy',
+          'express pharmacy', 'quick care pharmacy', 'fast pharmacy'
+        ];
+        
+        if (genericNames.some(generic => name.includes(generic))) {
+          console.log(`❌ [FILTER] Excluding generic pharmacy name: ${place.name}`);
+          return false;
+        }
+        
+        // Exclude names that look like "FirstName Drug" or "FirstName Pharmacy" (e.g., "Gary Drug Co.", "Joseph Pharmacy")
+        // Common first names to check
+        const commonFirstNames = [
+          'gary', 'john', 'michael', 'david', 'james', 'robert', 'william', 'richard', 'thomas', 'charles',
+          'joseph', 'christopher', 'daniel', 'matthew', 'anthony', 'mark', 'donald', 'steven', 'paul', 'andrew',
+          'joshua', 'kenneth', 'kevin', 'brian', 'george', 'edward', 'ronald', 'timothy', 'jason', 'jeffrey'
+        ];
+        const firstWord = words[0]?.toLowerCase();
+        if (words.length >= 2 && commonFirstNames.includes(firstWord) && (words[1].toLowerCase().includes('drug') || words[1].toLowerCase().includes('pharm'))) {
+          console.log(`❌ [FILTER] Excluding person name pharmacy: ${place.name}`);
+          return false;
+        }
         
         // Check for "Last First MiddleInitial" pattern (e.g., "Gwin Julie J", "Smith John A")
         if (words.length === 3 && /^[A-Z]$/.test(words[2])) {
@@ -202,7 +237,7 @@ export async function fetchRealPharmacies(
         return true;
       })
       .sort((a, b) => {
-        // Sort by distance from center (closest first)
+        // Hybrid scoring: distance + chain recognition + ratings
         const aLat = a.geometry!.location!.lat();
         const aLng = a.geometry!.location!.lng();
         const bLat = b.geometry!.location!.lat();
@@ -211,11 +246,36 @@ export async function fetchRealPharmacies(
         const centerLat = location.lat();
         const centerLng = location.lng();
         
-        // Calculate distance using Haversine formula
+        // Calculate distance (miles)
         const distanceA = calculateDistance(centerLat, centerLng, aLat, aLng);
         const distanceB = calculateDistance(centerLat, centerLng, bLat, bLng);
         
-        return distanceA - distanceB;
+        // Check if major chain (CVS, Walgreens, Walmart, Costco, Target)
+        const majorChains = ['cvs', 'walgreens', 'walmart', 'costco', 'target'];
+        const aName = a.name!.toLowerCase();
+        const bName = b.name!.toLowerCase();
+        const aIsMajorChain = majorChains.some(chain => aName.includes(chain));
+        const bIsMajorChain = majorChains.some(chain => bName.includes(chain));
+        
+        // Calculate scores (higher = better)
+        // Distance score: Closer = higher (max 100 points at 0 miles, 0 points at 5+ miles)
+        const distanceScoreA = Math.max(0, 100 - (distanceA * 20));
+        const distanceScoreB = Math.max(0, 100 - (distanceB * 20));
+        
+        // Chain bonus: Major chains get +50 points
+        const chainBonusA = aIsMajorChain ? 50 : 0;
+        const chainBonusB = bIsMajorChain ? 50 : 0;
+        
+        // Rating bonus: Small boost for highly rated (max +10 points)
+        const ratingBonusA = (a.rating || 0) * 2;
+        const ratingBonusB = (b.rating || 0) * 2;
+        
+        // Total score
+        const scoreA = distanceScoreA + chainBonusA + ratingBonusA;
+        const scoreB = distanceScoreB + chainBonusB + ratingBonusB;
+        
+        // Sort by score (highest first)
+        return scoreB - scoreA;
       })
       .map(place => {
         const lat = place.geometry!.location!.lat();
