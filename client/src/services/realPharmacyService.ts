@@ -57,7 +57,7 @@ export async function fetchRealPharmacies(
     
     const request: google.maps.places.PlaceSearchRequest = {
       location: location,
-      radius: 25000, // 25km radius (about 15.5 miles) - expanded to find more pharmacy chains
+      radius: 5000, // 5km radius (about 3 miles) - focused on nearby pharmacies
       type: 'pharmacy',
       keyword: 'pharmacy drugstore', // Add keyword to improve results
     };
@@ -202,12 +202,20 @@ export async function fetchRealPharmacies(
         return true;
       })
       .sort((a, b) => {
-        // Prioritize known chains
-        const aIsChain = isKnownPharmacyChain(a.name!);
-        const bIsChain = isKnownPharmacyChain(b.name!);
-        if (aIsChain && !bIsChain) return -1;
-        if (!aIsChain && bIsChain) return 1;
-        return 0;
+        // Sort by distance from center (closest first)
+        const aLat = a.geometry!.location!.lat();
+        const aLng = a.geometry!.location!.lng();
+        const bLat = b.geometry!.location!.lat();
+        const bLng = b.geometry!.location!.lng();
+        
+        const centerLat = location.lat();
+        const centerLng = location.lng();
+        
+        // Calculate distance using Haversine formula
+        const distanceA = calculateDistance(centerLat, centerLng, aLat, aLng);
+        const distanceB = calculateDistance(centerLat, centerLng, bLat, bLng);
+        
+        return distanceA - distanceB;
       })
       .map(place => {
         const lat = place.geometry!.location!.lat();

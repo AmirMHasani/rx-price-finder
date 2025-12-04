@@ -6,6 +6,16 @@ This file tracks active development tasks and future enhancements. Completed tas
 
 ## 🚨 High Priority
 
+### CRITICAL: Pharmacy Search Results Accuracy
+- [x] Fix pharmacy search to return accurate results matching Google Maps
+- [x] Debug why our app returns incorrect pharmacies for Boston 02108
+- [x] Verify Google Places API query parameters (location, radius, search terms)
+- [x] Check if we're using correct coordinates for ZIP code lookup
+- [x] Compare our results to actual Google Maps search results
+- [x] Reduced search radius from 25km to 5km (3 miles)
+- [x] Implemented distance-based sorting instead of Google's prominence ranking
+- [x] Results now show pharmacies actually in Boston, not suburbs 10-20 miles away
+
 ### Insurance Formulary API
 - [ ] Implement `/api/insurance/copay/{rxcui}` endpoint
 - [ ] Integrate real insurance formulary data
