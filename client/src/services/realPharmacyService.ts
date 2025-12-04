@@ -57,8 +57,9 @@ export async function fetchRealPharmacies(
     
     const request: google.maps.places.PlaceSearchRequest = {
       location: location,
-      radius: 8000, // 8km radius (about 5 miles)
+      radius: 16000, // 16km radius (about 10 miles) - increased to get more pharmacies
       type: 'pharmacy',
+      keyword: 'pharmacy drugstore', // Add keyword to improve results
     };
 
     const placesResult = await new Promise<google.maps.places.PlaceResult[]>(
@@ -73,7 +74,12 @@ export async function fetchRealPharmacies(
       }
     );
 
-    console.log('✅ [REAL PHARMACIES] Found', placesResult.length, 'pharmacies');
+    console.log('✅ [REAL PHARMACIES] Found', placesResult.length, 'pharmacies from Google Places');
+    
+    // Log all pharmacy names for debugging
+    placesResult.forEach((place, index) => {
+      console.log(`  ${index + 1}. ${place.name} - ${place.vicinity}`);
+    });
 
     // Step 3: Transform to our pharmacy format
     // Priority: Known pharmacy chains first, then independent pharmacies
@@ -85,7 +91,11 @@ export async function fetchRealPharmacies(
       'harris teeter', 'albertsons', 'vons', 'jewel', 'osco', 'sav-on',
       'duane reade', 'eckerd', 'thrifty', 'longs drugs', 'medicine shoppe',
       'health mart', 'good neighbor', 'independent pharmacy', 'family pharmacy',
-      'community pharmacy', 'discount pharmacy', 'neighborhood pharmacy'
+      'community pharmacy', 'discount pharmacy', 'neighborhood pharmacy',
+      'hy-vee', 'meijer', 'shoprite', 'food lion', 'winn-dixie', 'bi-lo',
+      'hannaford', 'price chopper', 'acme', 'ralphs', 'fred meyer', 'qfc',
+      'king soopers', 'smith\'s', 'fry\'s', 'dillons', 'baker\'s', 'gerbes',
+      'city market', 'jay c', 'owen\'s', 'pay less', 'foods co'
     ];
     
     const pharmacies: RealPharmacy[] = placesResult
@@ -153,19 +163,31 @@ export async function fetchRealPharmacies(
         }
         
         // Exclude medical facilities even if they have 'pharmacy' in name
-        if (name.includes('hospital') || name.includes('clinic') || 
+        // BUT allow if it's clearly a retail pharmacy (has 'pharmacy' or 'drug' in name)
+        const isMedicalFacility = name.includes('hospital') || name.includes('clinic') || 
             name.includes('medical center') || name.includes('health center') ||
             name.includes('urgent care') || name.includes('doctor') ||
             name.includes('physicians') || name.includes('associates') ||
-            name.includes('veterans administration') || name.includes('va medical')) {
-          console.log(`❌ [FILTER] Excluding medical facility: ${place.name}`);
+            name.includes('veterans administration') || name.includes('va medical');
+        
+        if (isMedicalFacility && !hasPharmacyInName) {
+          console.log(`❌ [FILTER] Excluding medical facility without pharmacy keyword: ${place.name}`);
           return false;
         }
         
         // Exclude single-word names that are likely not pharmacies
-        const singleWordExclusions = ['reads', 'wellness', 'care', 'health'];
+        const singleWordExclusions = ['reads', 'wellness', 'care', 'health', 'services', 'systems', 'solutions', 'group', 'network'];
         if (words.length === 1 && singleWordExclusions.includes(name)) {
           console.log(`❌ [FILTER] Excluding single-word non-pharmacy: ${place.name}`);
+          return false;
+        }
+        
+        // Exclude corporate/business service names (not customer-facing pharmacies)
+        const corporateKeywords = ['llc', 'inc', 'corp', 'ltd', 'systems', 'solutions', 'services llc', 'group llc'];
+        const hasCorporateKeyword = corporateKeywords.some(keyword => name.includes(keyword));
+        
+        if (hasCorporateKeyword && !isKnownChain) {
+          console.log(`❌ [FILTER] Excluding corporate entity (not customer-facing): ${place.name}`);
           return false;
         }
         
@@ -271,23 +293,61 @@ function isKnownPharmacyChain(name: string): boolean {
 export function getCleanPharmacyName(name: string): string {
   const lowerName = name.toLowerCase();
   
-  // Known chain patterns
+  // Known chain patterns - Major chains
   if (lowerName.includes('cvs')) return 'CVS Pharmacy';
   if (lowerName.includes('walgreens')) return 'Walgreens';
   if (lowerName.includes('walmart')) return 'Walmart Pharmacy';
   if (lowerName.includes('rite aid')) return 'Rite Aid';
   if (lowerName.includes('costco')) return 'Costco Pharmacy';
   if (lowerName.includes('target')) return 'Target Pharmacy';
-  if (lowerName.includes('stop & shop')) return 'Stop & Shop Pharmacy';
+  
+  // Grocery store pharmacies
   if (lowerName.includes('kroger')) return 'Kroger Pharmacy';
   if (lowerName.includes('safeway')) return 'Safeway Pharmacy';
   if (lowerName.includes('publix')) return 'Publix Pharmacy';
+  if (lowerName.includes('wegmans')) return 'Wegmans Pharmacy';
+  if (lowerName.includes('giant')) return 'Giant Pharmacy';
+  if (lowerName.includes('stop & shop')) return 'Stop & Shop Pharmacy';
+  if (lowerName.includes('harris teeter')) return 'Harris Teeter Pharmacy';
+  if (lowerName.includes('albertsons')) return 'Albertsons Pharmacy';
+  if (lowerName.includes('vons')) return 'Vons Pharmacy';
+  if (lowerName.includes('jewel')) return 'Jewel-Osco Pharmacy';
+  if (lowerName.includes('osco')) return 'Jewel-Osco Pharmacy';
+  if (lowerName.includes('hy-vee')) return 'Hy-Vee Pharmacy';
+  if (lowerName.includes('meijer')) return 'Meijer Pharmacy';
+  if (lowerName.includes('shoprite')) return 'ShopRite Pharmacy';
+  if (lowerName.includes('food lion')) return 'Food Lion Pharmacy';
+  if (lowerName.includes('winn-dixie')) return 'Winn-Dixie Pharmacy';
+  if (lowerName.includes('hannaford')) return 'Hannaford Pharmacy';
+  if (lowerName.includes('acme')) return 'Acme Pharmacy';
+  if (lowerName.includes('ralphs')) return 'Ralphs Pharmacy';
+  if (lowerName.includes('fred meyer')) return 'Fred Meyer Pharmacy';
+  if (lowerName.includes('qfc')) return 'QFC Pharmacy';
+  if (lowerName.includes('king soopers')) return 'King Soopers Pharmacy';
+  if (lowerName.includes('smith\'s')) return 'Smith\'s Pharmacy';
+  if (lowerName.includes('fry\'s')) return 'Fry\'s Pharmacy';
+  if (lowerName.includes('dillons')) return 'Dillons Pharmacy';
+  
+  // Regional chains
+  if (lowerName.includes('duane reade')) return 'Duane Reade';
+  if (lowerName.includes('medicine shoppe')) return 'Medicine Shoppe';
+  if (lowerName.includes('health mart')) return 'Health Mart Pharmacy';
+  if (lowerName.includes('good neighbor')) return 'Good Neighbor Pharmacy';
+  
+  // Clean up corporate suffixes from independent pharmacies
+  let cleanName = name;
+  const corporateSuffixes = [', LLC', ' LLC', ', Inc.', ' Inc.', ', Inc', ' Inc', ', Corp.', ' Corp.', ', Ltd.', ' Ltd.'];
+  corporateSuffixes.forEach(suffix => {
+    if (cleanName.endsWith(suffix)) {
+      cleanName = cleanName.substring(0, cleanName.length - suffix.length);
+    }
+  });
   
   // For health centers and clinics, add "Pharmacy" if not present
   if ((lowerName.includes('health') || lowerName.includes('medical') || lowerName.includes('clinic')) && !lowerName.includes('pharmacy')) {
-    return `${name} Pharmacy`;
+    return `${cleanName} Pharmacy`;
   }
   
-  // Return original name for independent pharmacies
-  return name;
+  // Return cleaned name for independent pharmacies
+  return cleanName;
 }
