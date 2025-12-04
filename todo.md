@@ -860,3 +860,13 @@
 - Clean, professional UI
 
 ✅ **Ready for Presentation** 🎉
+
+
+## 🎨 HOMEPAGE REDESIGN - IN PROGRESS
+
+### Issue: Too many feature boxes cluttering the top
+- [ ] Move search form to the very top of the page (above hero section)
+- [ ] Remove or minimize the 3 feature boxes (Insurance-First, Pharmacogenomic, Real Locations)
+- [ ] Simplify hero section messaging
+- [ ] Make search form the primary focus
+- [ ] Test new layout on mobile and desktop

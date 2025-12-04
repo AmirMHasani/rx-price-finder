@@ -33,7 +33,7 @@ export default function SearchWithAPI() {
   const [selectedCarrier, setSelectedCarrier] = useState<string>("");
   const [selectedInsurance, setSelectedInsurance] = useState<InsurancePlanType | "">(""  );
   const [deductibleMet, setDeductibleMet] = useState(false);
-  const [userZip, setUserZip] = useState("");
+  const [userZip, setUserZip] = useState("02108"); // Default to Boston for demo
   const [showDropdown, setShowDropdown] = useState(false);
   const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
   
@@ -291,66 +291,16 @@ export default function SearchWithAPI() {
       </header>
 
       {/* Main Content */}
-      <main className="container py-6 sm:py-12 px-4">
+      <main className="container py-6 sm:py-8 px-4">
         <div className="max-w-4xl mx-auto">
-          {/* Hero Section */}
-          <div className="text-center mb-8 sm:mb-12">
-            <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold text-foreground mb-3 sm:mb-4 leading-tight px-2">
+          {/* Simplified Hero - Minimal text */}
+          <div className="text-center mb-6">
+            <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
               {t('home.hero.title')}
             </h2>
-            <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed px-2">
+            <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
               {t('home.hero.subtitle')}
             </p>
-          </div>
-
-          {/* Value Proposition - Why RxPriceFinder */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <Card className="bg-gradient-to-br from-blue-50 to-white border-blue-200">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Shield className="w-5 h-5 text-blue-600" />
-                  Insurance-First Pricing
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Unlike GoodRx, we show your actual insurance copay FIRST, then compare with discount programs to find your true lowest price.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-purple-50 to-white border-purple-200">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  Pharmacogenomic Integration
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Get personalized medication recommendations based on your genetic profile. Avoid medications that won't work for you.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-green-50 to-white border-green-200">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  Real Pharmacy Locations
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Search actual pharmacies near you with verified addresses, hours, and services like drive-thru and delivery.
-                </p>
-              </CardContent>
-            </Card>
           </div>
 
           {/* Search Form */}
@@ -762,58 +712,7 @@ export default function SearchWithAPI() {
           </Card>
         </div>
 
-        {/* Recent Searches removed from main page - now only in menu */}
-
-        {/* Features Section */}
-        <div className="grid md:grid-cols-3 gap-6 mt-12">
-          <Card className="hover:shadow-lg transition-shadow duration-300 border-2">
-            <CardHeader>
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-3">
-                <Pill className="w-6 h-6 text-blue-600" />
-              </div>
-              <CardTitle className="text-lg">
-                {t('home.features.realData.title')}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {t('home.features.realData.description')}
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-shadow duration-300 border-2">
-            <CardHeader>
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-3">
-                <Shield className="w-6 h-6 text-green-600" />
-              </div>
-              <CardTitle className="text-lg">
-                {t('home.features.insurancePricing.title')}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {t('home.features.insurancePricing.description')}
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-shadow duration-300 border-2">
-            <CardHeader>
-              <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center mb-3">
-                <SearchIcon className="w-6 h-6 text-amber-600" />
-              </div>
-              <CardTitle className="text-lg">
-                {t('home.features.saveMoney.title')}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {t('home.features.saveMoney.description')}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Features section removed - keeping page focused on search */}
       </main>
     </div>
   );

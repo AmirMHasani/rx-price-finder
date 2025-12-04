@@ -36,15 +36,15 @@ export interface PharmacyPricing {
  * For GENERIC medications only - brand drugs use different pricing
  */
 const PHARMACY_MARKUPS: Record<string, { min: number; max: number }> = {
-  'costco': { min: 1.25, max: 1.35 },      // Costco: 25-35% markup (cheapest)
-  'walmart': { min: 1.30, max: 1.40 },    // Walmart: 30-40% markup
-  'sam': { min: 1.30, max: 1.40 },        // Sam's Club: 30-40% markup
-  'kroger': { min: 1.35, max: 1.45 },     // Kroger: 35-45% markup
-  'target': { min: 1.40, max: 1.50 },     // Target: 40-50% markup
-  'rite aid': { min: 1.45, max: 1.60 },   // Rite Aid: 45-60% markup
-  'walgreens': { min: 1.50, max: 1.70 },  // Walgreens: 50-70% markup
-  'cvs': { min: 1.55, max: 1.75 },        // CVS: 55-75% markup (most expensive)
-  'default': { min: 1.40, max: 1.60 },    // Independent: 40-60% markup
+  'costco': { min: 3.5, max: 4.5 },      // Costco: 3.5-4.5x markup (cheapest)
+  'walmart': { min: 4.0, max: 5.0 },    // Walmart: 4-5x markup
+  'sam': { min: 4.0, max: 5.0 },        // Sam's Club: 4-5x markup
+  'kroger': { min: 5.0, max: 6.0 },     // Kroger: 5-6x markup
+  'target': { min: 5.5, max: 6.5 },     // Target: 5.5-6.5x markup
+  'rite aid': { min: 6.0, max: 7.5 },   // Rite Aid: 6-7.5x markup
+  'walgreens': { min: 7.0, max: 9.0 },  // Walgreens: 7-9x markup
+  'cvs': { min: 8.0, max: 10.0 },        // CVS: 8-10x markup (most expensive)
+  'default': { min: 5.5, max: 7.0 },    // Independent: 5.5-7x markup
 };
 
 /**
